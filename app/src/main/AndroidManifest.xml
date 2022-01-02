@@ -61,6 +61,10 @@
 
 
 		></activity>
+	    
+	    <receiver android:name="<name_of_the_entry>"
+                android:exported="false or true"
+                tools:node="merge" />
 		
 	  <provider android:name="com.startapp.sdk.adsbase.StartAppInitProvider" android:authorities="${applicationId}.startappinitprovider" android:exported="false" />
 	  <activity android:name="com.startapp.sdk.adsbase.consent.ConsentActivity" android:configChanges="orientation|screenSize|screenLayout|keyboardHidden" android:theme="@android:style/Theme.Translucent"/>
