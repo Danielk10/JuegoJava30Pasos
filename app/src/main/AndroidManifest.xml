@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.diamon.curso">
+
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+	<uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.JuegoJava30Pasos">
+
+        <meta-data
+            android:name="com.startapp.sdk.APPLICATION_ID"
+            android:value="203554014" />
+			
+			<meta-data
+               android:name="com.startapp.sdk.RETURN_ADS_ENABLED"
+               android:value="false" />
+
+
+        <activity android:name=".Tutorial"
+				  android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+			<activity
+            android:name=".Pagina"
+            android:label="@string/tutorial"
+			android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale"
+
+		></activity>
+
+		<activity
+            android:name="com.diamon.juego.Inicio"
+            android:label="@string/juego"
+			android:configChanges="orientation|keyboardHidden|orientation"
+			android:screenOrientation="landscape"
+
+		></activity>
+
+
+		<activity
+            android:name=".Terminos"
+            android:label="@string/juego"
+			android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale"
+
+
+		></activity>
+    </application>
+
+</manifest>

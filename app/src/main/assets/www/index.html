@@ -1,0 +1,2275 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+ <meta name="viewport" content="user-scalable=no,  width=device-width">
+<title>Hacer un juego en Java en 30 pasos</title>
+<link href="jquery.mobile/jquery.mobile-1.4.5.css" rel="stylesheet" type="text/css"/>
+<script src="jquery/jquery-1.11.1.min.js" type="text/javascript"></script>
+<script src="jquery.mobile/jquery.mobile-1.4.5.min.js" type="text/javascript"></script>
+<script src="js/js.js" type="text/javascript"></script>
+<link href="css/estilos.css" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+
+
+<div data-role="page" id="principal">
+
+
+
+
+
+
+<div data-role="header" data-position="fixed">
+<p align="center">Hacer un juego en Java en 30 pasos</p>
+</div>
+
+
+
+
+<div data-role="content">
+
+<ul data-role="listview">
+	<li><a href="#segunda" data-transition="pop">Introducción</a></li>
+	<li><a href="#tercera">Tutorial</a></li>
+	<li><a href="#sexta" data-rel="dialog">Acerca De La Aplicación</a></li>
+</ul>	
+
+
+
+
+</div>
+
+
+
+
+
+<div data-role="footer" data-position="fixed">
+
+
+<nav data-role="navbar">
+<ul>
+<li><a href="#principal" data-transition="pop" id= "menup" data-icon="home"></a> </li>
+<li><a href="#principal" data-transition="flip" id= "botonatrasp" data-icon="arrow-l"></a> </li>
+<li><a href="#segunda" data-transition="flip" id= "botonsiguientep" data-icon="arrow-r"></a> </li>
+<li><a href="#sexta" data-rel="dialog" data-transition="pop" id= "ayudap" data-icon="info"></a> </li>
+</ul>
+
+
+
+</nav>
+<p id="pie"> </p>
+
+</div>
+
+
+
+
+
+</div>
+
+
+
+<div data-role="page" id="segunda">
+
+
+
+
+
+
+<div data-role="header" data-position="fixed">
+<p align="center">Introducción</p>
+
+<nav data-role="navbar" data-position="fixed">
+<ul>
+<li><a href="#principal" data-transition="flip" id= "botonatras2" data-icon="arrow-l">Atras</a> </li>
+<li><a href="#tercera" data-transition="flip" id= "botonsiguiente2" data-icon="arrow-r">Siguiente</a> </li>
+</ul>
+
+
+
+</nav>
+</div>
+
+
+
+
+<div data-role="content">
+
+<p> &nbsp;&nbsp;&nbsp;&nbsp;En este tutorial vamos a crear un juego de un solo nivel en Java en 30 pasos, 
+conoceremos  todas las APIS en Java Estándar Edición que nos permitan realizar un juego totalmente funcional 
+en 2D, también vamos a ver técnica que se utilizan en video juegos que nos servirán para programar nuestros
+ propios juegos en cualquier lenguaje, este tutorial no se limita a los conceptos básicos  de desarrollo de
+ juegos en 2D, ni tampoco se deja el nivel inconcluso, el juego será totalmente jugable y tendrá todos su nivel 
+ respectivos como cualquier juego del mercado, además todo el código fuente estará completamente libre y  disponible
+ en este <a data-ajax="false" href="https://github.com/Danielk10/Final-Mision-Java.git">Link</a>, voy a utilizar toda mi experiencia amateur en realizar un juego desde cero, todo el código será 
+ escrito con el paradigma de programación orientado a objetos (POO), el que siga este tutorial tiene que tener
+ conocimiento de programación y manejar el paradigma POO, además también le
+ será de ayuda si ya sabe programar en Java, aunque si maneja otro lenguaje que
+ implemente POO, no le costara mucho seguirlo.</p>	
+ 
+ 
+        <p> &nbsp;&nbsp;&nbsp;&nbsp;El juego realizado se rescribirá en varios 
+		lenguajes de programación y será migrado a 
+		su tiempo para la consola NES o Nintendo, también se migrara a
+		Android sin muchas modificaciones.</p>	
+     
+
+</div>
+
+
+
+
+
+<div data-role="footer" data-position="fixed">
+<nav data-role="navbar">
+<ul>
+<li><a href="#principal" data-transition="pop" id= "menu2" data-icon="home"></a> </li>
+<li><a href="#principal" data-transition="flip" id= "siguiente2" data-icon="arrow-l"></a> </li>
+<li><a href="#tercera" data-transition="flip" id= "atras2" data-icon="arrow-r"></a> </li>
+<li><a href="#sexta2" data-transition="pop" data-rel="dialog" id= "ayuda2" data-icon="info"></a> </li>
+</ul>
+
+
+
+</nav>
+
+
+</div>
+
+
+
+
+
+</div>
+
+
+
+
+<div data-role="page" id="tercera">
+
+
+
+
+
+
+<div data-role="header" data-position="fixed">
+	<p align="center" >Tutorial</p>
+
+<nav data-role="navbar">
+<ul>
+<li><a href="#segunda" data-transition="flip" id= "botonatras3" data-icon="arrow-l">Atras</a> </li>
+<li><a href="#principal" data-transition="flip" id= "botonsiguiente3" data-icon="arrow-r">Siguiente</a> </li>
+</ul>
+
+
+
+</nav>
+</div>
+
+
+
+
+<div data-role="content">
+
+
+		
+		<div data-role="collapsible">
+		<h1 id="titulo">
+          Paso 1. Conociendo las herramientas de programación:
+        </h1>
+		
+		
+		
+		<p> &nbsp;&nbsp;&nbsp;&nbsp;
+         Antes de empezar a escribir código debemos conocer las herramientas de programación, para programar en Java, se necesita un conjunto de herramientas necesarias para crear programas en este lenguaje, primero necesitaremos el SDK de Java, este programa está disponible para diversos sistemas operativos, cuenta con varias herramientas, entre ellas la maquina virtual de Java donde corren todos los programas escrito en lenguaje Java, el compilador de este lenguaje, herramientas de firmado de aplicaciones y entre otras utilidades que facilitan la vida del desarrollador, podemos descargar la última versión del SDK de Java en su página oficial, necesitaremos también un editor de código donde escribamos el código fuente, existen muchos para Windows, Linux, Mac etc. En mi caso utilizare Eclipse que es más que un editor de código es un IDE especialmente diseñado para facilitar la programación de diversos lenguajes incluyendo Java con multitud de herramientas útiles para el desarrollo de software, son libres de escoger su IDE, todo lo referente a la configuración y utilización del IDE, el SDK no se explica en este tutorial, el lector debe tener conocimientos sobre esto o buscar ayuda en otro sitio.
+       </p>
+		  
+		<p> &nbsp;&nbsp;&nbsp;&nbsp;
+		Este tutorial es práctico y está orientado al desarrollo de juegos 2D, también se pasaran por alto los conocimientos básicos de programación y programación POO, el lector tendrá que buscar ayuda de referencia en otro lugar o realizar un curso antes de seguir con los siguientes capítulos.
+      </p>
+		
+		
+	
+	</div>
+	
+	
+	
+	
+	
+	
+	<div data-role="collapsible">
+		<h1 id="titulo">
+          Paso 2. Creando nuestro proyecto:
+        </h1>
+
+		
+	<p>	 &nbsp;&nbsp;&nbsp;&nbsp;
+Vamos a crear un juego en dos dimensiones con las APIS graficas estándar de Java, comenzáremos por crear un pequeño motor grafico o marco de trabajo adaptado a nuestras necesidades, que será reutilizable para cualquier otro juego 2D, el juego que vamos a realizar es un juego de las consola NES, este juego se llama Final Mission (1990) de la empresa NATSUME, replicaremos el mismo en Java, con todos los detalles posibles, para este tutorial no vamos a reinventar la rueda, vamos a utilizar algo ya echo y poder hacerlo en Java, pueden descargar la ROM y córrelo en algún emulador de NES, pero antes de empezar con la acción, vamos a ver qué APIS graficas podemos utilizar en Java pura.
+	</p>
+		<p>	 &nbsp;&nbsp;&nbsp;&nbsp;
+Primero crearemos un proyecto en el IDE de su preferencia llamado Final Misión, crearemos un paquete principal llamado com.diamon.juego, la palabra diamon la pueden sustituir con la palabra que gusten, com.xxxx.juego, esto para tener un mejor orden en el código, crearemos una clase principal llamada Inicio con su respectivo método main, esta sería el punto de ejecución de nuestro programa.	
+	
+	</p>
+	
+	
+	<p align="center">
+  <img src="img/Clase 1.jpg" title = "Clase 1" alt ="Clase 1" id="clase1" > </img>
+ </p>
+
+ 
+ 
+ 	<p>	 &nbsp;&nbsp;&nbsp;&nbsp;
+Quedaría así en mi caso, luego creamos otro paquete siguiendo nuestra nomenclatura, com.diamon.nucle, este paquete contendrá todas las clases para nuestro marco o motor de juego.
+	</p>
+ 
+ 
+ 
+ 	<p>	 &nbsp;&nbsp;&nbsp;&nbsp;
+Crearemos una clase abstracta llamada Juego, esta clase va hacer el núcleo de nuestro marco, será la encargada de manejar el GameLoop o bucle principal del juego, manejar los eventos, gestionar las pantallas, manejar los gráficos y otras cosas que vallamos necesitando en el camino, esta no el 
+única forma de realizar un juego, existen muchas pero lo vamos hacer de esta manera, por ahora nuestro proyecto quedaría así.	
+	</p>
+ 
+ 
+ 
+ 
+ 	<h1><p id="codigo">
+     Código 1:   <a data-ajax="false" href="codigo/Codigo paso 2/Inicio.java">Inicio.java</a>
+	 
+       </p>	</h1>
+ 
+ <h1><p id="codigo">
+     Código 2:   <a  data-ajax="false" href="codigo/Codigo paso 2/Juego.java">Juego.java</a>
+	 
+       </p>	</h1>
+ 
+ 
+ 
+ 
+	   
+	   </div>
+	   
+	   
+	   
+	   
+	   
+	   
+	   <div data-role="collapsible">
+		<h1 id="titulo">
+            Paso 3. Conociendo las APIS graficas en Java:
+        </h1>
+	   	
+		
+		
+		
+ 	<p>	 &nbsp;&nbsp;&nbsp;&nbsp;
+
+	En Java hay muchas formas de dibujar en pantalla, vamos a ver algunas formas y cuál es la más optima para nuestro juego 2D.
+	
+	</p>
+		
+		
+		
+		
+		
+		
+	  <h3><p id="pasos">
+	Ejemplo 1:
+     </p> </h3>
+	 
+	 
+	 
+	 
+	 <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	 En nuestra clase Juego vamos a heredar de la clase Frame, que se encuentra en el paquete java.awt, esta clase muestra una ventana en pantalla, donde podemos agregar controles y pintan en ella, en nuestra clase Juego creamos un constructor por defecto que invoca al constructor de la súper clase en este caso Frame, también crearemos unos atributos constantes que contengan el ancho y alto del Frame.
+	   
+	   </p> 
+	   
+	   
+	   
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	  public final static int ANCHO_PANTALLA = 640;
+	   </p>
+	   
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	  public final static int ALTO_PANTALLA = 480;
+	   </p>
+	   
+	   
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	   
+	   Vamos crear en el constructor una clase anonimia que controles los eventos de la ventana, para controlarla y poder cerrarla, con el método del sistema System.exit(0).
+	  
+	   </p>
+	   
+	   
+	    <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+		
+		Para dibujar en esta ventana debemos sobrescribir el método paint de esta clase, este método tiene como argumento un objeto grafico encargado de dibujar primitivas graficas, rectángulos, puntos, imágenes etc. El objeto pertenece a la clase Graphics del paquete java.awt, en este ejemplo pintaremos un rectángulo azul en pantalla.
+	  
+	   </p>
+	   
+	   
+	   	    <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+			
+			Vamos a crear una nueva clase llamada FinalMision que hereda a la clase Juego que tendrá un constructor por defecto y llama al constructor de la súper clase, por ultimo crearemos un objeto de la clase FinalMision  en nuestra clase principal y ejecutamos el programa, esto es lo que aparece en pantalla.
+			
+	  
+	   </p>
+	   
+	   
+	   <p align="center">
+  <img src="img/Clase 2.jpg" title = "Clase 2" alt ="Clase 2" id="clase1"  > </img>
+ </p>
+
+	   
+	
+	   
+	   
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	 Para ver más métodos y como utilizar la clase Frame, clases anónimas y eventos, ver documentación de Java.
+
+	  </p> 
+	  
+	  
+	  <h1><p id="codigo">
+     Código 3:   <a  data-ajax="false" href="codigo/Codigo paso 3/Inicio.java">Inicio.java</a>
+	 
+       </p>	</h1>
+	  
+	  
+	  
+	<h1><p id="codigo">
+     Código 4:   <a  data-ajax="false" href="codigo/Codigo paso 3/Ejemplo 1/Juego.java">Juego.java</a>
+	 
+       </p>	</h1>
+	   
+	   <h1><p id="codigo">
+     Código 5:   <a  data-ajax="false" href="codigo/Codigo paso 3/FinalMision.java">FinalMision.java</a>
+	 
+       </p>	</h1>
+   
+	  
+	  
+	  <h3><p id="pasos">
+	Ejemplo 2:
+     </p> </h3>
+	  
+		
+		
+		  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	 Para el segundo ejemplo modificaremos el código de la Clase Juego levemente, eliminaremos la clase anónima y extenderemos de la clase JFrame, que se encuentra en el paquete javax.swing, y colocando la siguiente línea de código setDefaultCloseOperation(Juego.EXIT_ON_CLOSE) este método maneja de forma automática el cierre de la ventana, recibiendo esta constante para este fin, esta constante es heredada tal cual se muestra, otra modificación ocurre en el meto paint donde antes de escribir nuestro código llamamos al metodo de la súper clase de esta manera super.paint(g), esto para pasar los gráficos a la clase padre.
+
+	  </p> 
+	  
+		
+		
+		  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+	El resultado sería parecido con la única diferencia que el color de fondo de la ventana es diferente.
+	
+	  </p>
+		
+		
+		<p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+	Para ver más métodos y como utilizar la clase JFrame ver documentación de Java.
+	
+	  </p>
+	  
+	  
+	  
+	  
+	  	  <h1><p id="codigo">
+     Código 6:   <a  data-ajax="false" href="codigo/Codigo paso 3/Inicio.java">Inicio.java</a>
+	 
+       </p>	</h1>
+	  
+	  
+	  
+	<h1><p id="codigo">
+     Código 7:   <a  data-ajax="false" href="codigo/Codigo paso 3/Ejemplo 2/Juego.java">Juego.java</a>
+	 
+       </p>	</h1>
+	   
+	   <h1><p id="codigo">
+     Código 8:   <a  data-ajax="false" href="codigo/Codigo paso 3/FinalMision.java">FinalMision.java</a>
+	  
+	  
+	  
+	   <h3><p id="pasos">
+	Ejemplo 3:
+     </p> </h3>
+	  
+	  
+	  
+	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+	Los dos ejemplos anteriores dibujan los gráficos directamente en la ventana o frame, esto no es muy optimo, en Java existen dos componentes o clases especialmente para dibujar, la primera es la clase Canvas que se encuentra en el paquete java.awt, y la otra clase es JPanel que está contenida en el paquete javax.swing, estas clases son lienzos sin marco donde podemos dibujar y luego agregarlo a una ventana, quiere decir que no dibujamos directamente en la ventana, esto es mas optimo que los dos métodos anteriores, para esto debemos modificar la clase Juego de la siguiente manera, primero pintando en una clase Canvas, la clase Juego ahora hereda de la clase Canvas, en el constructor definimos su ancho y alto del lienzo con las constantes que definimos y como siempre sobrescribimos su método paint lo siguiente es crear un atributo privado de la clase JFrame o de la clase Frame, para tener acceso global dentro de la clase esto nos servirá en los siguiente pasos, aunque ahorita no será necesario, podría ser un objeto local en el constructor, este objeto llama los métodos pertinentes para la creación de la ventana, tamaño, visibilidad etc. Y añadiremos a nuestro objeto JFrame con su método add() nuestro lienzo o Canvas con una referencia this, ya con esto el resultado en pantalla seria el mismo del ejemplo anterior, para usar la clase JPanel seria exactamente igual y obtendríamos el mismo resultado en pantalla.
+	
+	  </p>
+	  
+	  
+	  	  <h1><p id="codigo">
+     Código 9 Canvas:  <a  data-ajax="false" href="codigo/Codigo paso 3/Ejemplo 3/Canvas/Juego.java">Juego.java</a>
+	 
+       </p>	</h1>
+	  
+	  	  <h1><p id="codigo">
+    Código 10 JPanel:   <a  data-ajax="false" href="codigo/Codigo paso 3/Ejemplo 3/JPanel/Juego.java">Juego.java</a>
+	 
+       </p>	</h1>
+	   
+	   
+	    	  <h1><p id="codigo">
+     Código 11:   <a  data-ajax="false" href="codigo/Codigo paso 3/Inicio.java">Inicio.java</a>
+	 
+       </p>	</h1>
+
+
+   <h1><p id="codigo">
+     Código 12:   <a  data-ajax="false" href="codigo/Codigo paso 3/FinalMision.java">FinalMision.java</a></h1>
+	  
+	  
+	  
+	  
+	  
+	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+	Por ahora veremos estas cuatro formas de dibujar en Java, y después veremos que diferencias tiene cada método de dibujos, esto se explicara más adelante, existen más formas de dibujar en Java pero estas son las más comunes en la API estándar de Java.
+	
+	  </p>
+		
+	
+		
+		
+	</div>   
+	   
+	   
+	   
+
+	   
+	   
+	    <div data-role="collapsible">
+		<h1 id="titulo">
+            Paso 4. Creando nuestro GameLoop o bucle principal del Juego:
+        </h1>
+
+
+		
+		 <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+	En los Juegos necesitamos un bucle que se repita constantemente lo más rápido posible, este bucle es el encargado de actualizar lo que se dibuja en la pantalla, las entradas de periféricos, ratón teclado etc. Y todos los algoritmos matemáticos en unos pocos segundos, por eso las formas de las mecánicas y dibujos deben ser las más optimas posible para evitar lentitud para que el juego sea jugable, por lo general para un juego 2D unas pocas actualizaciones por segundo sería suficiente, pero por lo general con 60 actualizaciones en un segundo o frames por  segundo sería suficiente, esto al ojo humano daría una sensación de fluidez.
+	  </p>
+		
+		
+		
+		<p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+	Como podemos lograr esto en Java, hay varias formas, una seria con un bucle en el hilo principal, o en un nuevo hilo, ver documentación Java si no domina este tema, vamos crear un pequeño rectángulo azul moviéndose en pantalla.
+	  </p>
+		
+		
+		
+			<p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+	Empecemos implementando un GameLoop básico.
+	  </p>
+		
+		
+		
+	   <h3><p id="pasos">
+	Ejemplo 1:
+     </p> </h3>
+	  
+		
+		<p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	Este bucle principal será implementado en la clase Juego en sus 4 versiones anteriores, esto para ver cuál es la más optima a la hora de dibujar y cual nos da mejor rendimiento, este bucle es el más básico posible en java, crearemos en la clase Juego en sus 4 versiones anteriores un atributo privado de la clase Thread, que se encuentra en el paquete java.lang, y implementamos la interfaz Runnable que está en el paquete java.lang, sobre la clase Juego y sobrescribimos su meto run(), en este método colocamos una sentencia while infinita que actualizara la posición de nuestro rectángulo atreves de del método reapaint, también crearemos un método publico llamado iniciar que iniciara el nuevo hilo, que invocaremos de nuestra clase principal Inicio en el método main, creamos un atributo entero en nuestra clase Juego que tendrá la posición de nuestro rectángulo y que vamos a ir actualizado cada fotograma, el resultado será un rectángulo moviéndose muy rápido y titilado, esto se corregirá más adelante.     
+	
+	  </p>
+		
+		
+			<p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+	Aunque nos damos cuenta que en la última versión de la clase Juego que implementa este GameLoop no titila, esto es debido que la clase JPanel tiene doble búfer automático, esto se explicara más adelante.
+	  </p>
+		
+		
+		
+		
+		  <h1><p id="codigo">
+     Código 13 versión 1:  <a data-ajax="false" href="codigo/Codigo paso 4/Ejemplo 1/Version 1/Juego.java">Juego.java</a>
+	 
+       </p>	</h1>
+	  
+	  	  <h1><p id="codigo">
+    Código 14 versión 2:   <a data-ajax="false" href="codigo/Codigo paso 4/Ejemplo 1/Version 2/Juego.java">Juego.java</a>
+	 
+       </p>	</h1>
+	   
+	   
+	     <h1><p id="codigo">
+     Código 15 versión 3:  <a data-ajax="false" href="codigo/Codigo paso 4/Ejemplo 1/Version 3/Juego.java">Juego.java</a>
+	 
+       </p>	</h1>
+	  
+	  	  <h1><p id="codigo">
+    Código 16 versión 4:   <a data-ajax="false" href="codigo/Codigo paso 4/Ejemplo 1/Version 4/Juego.java">Juego.java</a>
+	 
+       </p>	</h1>
+		
+		
+	 	  <h1><p id="codigo">
+     Código 17:   <a  data-ajax="false" href="codigo/Codigo paso 4/Inicio.java">Inicio.java</a>
+	 
+       </p>	</h1>
+
+
+   <h1><p id="codigo">
+     Código 18:   <a  data-ajax="false" href="codigo/Codigo paso 4/FinalMision.java">FinalMision.java</a></h1>
+
+
+
+
+	
+	<h3><p id="pasos">
+	Ejemplo 2:
+     </p> </h3>
+	  
+		
+		
+		<p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	Aquí vamos a mejorar nuestro GameLoop en sus respectivas versiones de la clase Juego, este bucle tendrá una interrupción de 60 segundos que limita el número de actualizaciones del bucle, y un atributo booleano volatile que inicia el bucle while, es volatile para que ningún otro hilo tenga acceso a este atributo al mismo tiempo, en nuestro método iniciar cambiamos su valor a true, nos podemos fijar que al limitar la velocidad del bucle el rectángulo se mueve más suave y ya no titila tanto el dibujo, pero aun esto no es optimo.
+	
+	  </p>
+		
+		
+			  <h1><p id="codigo">
+     Código 19 versión 1:  <a data-ajax="false" href="codigo/Codigo paso 4/Ejemplo 2/Version 1/Juego.java">Juego.java</a>
+	 
+       </p>	</h1>
+	  
+	  	  <h1><p id="codigo">
+    Código 20 versión 2:   <a data-ajax="false" href="codigo/Codigo paso 4/Ejemplo 2/Version 2/Juego.java">Juego.java</a>
+	 
+       </p>	</h1>
+	   
+	   
+	     <h1><p id="codigo">
+     Código 21 versión 3:  <a data-ajax="false" href="codigo/Codigo paso 4/Ejemplo 2/Version 3/Juego.java">Juego.java</a>
+	 
+       </p>	</h1>
+	  
+	  	  <h1><p id="codigo">
+    Código 22 versión 4:   <a data-ajax="false" href="codigo/Codigo paso 4/Ejemplo 2/Version 4/Juego.java">Juego.java</a>
+	 
+       </p>	</h1>
+		
+		
+	 	  <h1><p id="codigo">
+     Código 23:   <a  data-ajax="false" href="codigo/Codigo paso 4/Inicio.java">Inicio.java</a>
+	 
+       </p>	</h1>
+
+
+   <h1><p id="codigo">
+     Código 24:   <a  data-ajax="false" href="codigo/Codigo paso 4/FinalMision.java">FinalMision.java</a></h1>
+
+	
+		
+		
+		
+		<h3><p id="pasos">
+	Ejemplo 3:
+     </p> </h3>
+		
+		
+		
+		<p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	La anterior forma de limitar los fotogramas no es muy optima, para ello vamos a limitar nuestro bucle de juego de una manera más precisa obteniendo tiempo más exactos del procesador con determinados métodos y también vamos a calcular el diferencial del tiempo o deltaTime, esto es el tiempo que se tarda en dibujar cada fotograma, este tiempo es utilizado para muchas cosas, pero lo más común es para hacer que un juego se mueva con la misma velocidad en distintas computadoras, este tiempo se puede calcular de distintas maneras, pero nosotros utilizaremos la nuestra, en nuestro bucle limitaremos el dibujo y actualizaciones a 60 ciclos constantes indistintamente de la Pc donde se ejecute nuestro juego.
+	
+	  </p>
+		
+		
+		<p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	Crearemos las siguientes constantes privadas y atributos
+	
+	  </p>
+		
+		
+		
+		
+		<p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	private final static int UNIDAD_TIEMPO = 1000000000;
+	
+	  </p>
+		
+		
+		<p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	private float delta = 0;
+	
+	  </p>
+	  
+	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+	private final static byte CICLOS = 60;
+	  </p>
+	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+	private final static float LIMITE_CICLOS = UNIDAD_TIEMPO / CICLOS;
+	  </p>
+	  
+	  
+	  
+	  
+	  
+	  
+	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+	La primera guarda la unidad de tiempo con la que vamos a trabajar en este caso nanosegundos, en la segunda vamos a guardar el deltaTime esta la inicializamos con cualquier valor, en la tercera guardamos el numero de ciclos que queremos definir y por ultimo en la cuarta variable el límite de ciclos,  esto lo calculamos como se muestra, partiendo la unidad entre el numero de ciclos.
+	  </p>
+	  
+	  
+	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+	 En nuestro método run también crearemos variables locales, la primera estará fuera del bucle while que la utilizaremos para guardar una referencia del tiempo inicial donde empieza a ejecutarse el hilo en nano segundos seria de esta manera.
+	  </p>
+	  
+	  
+	  
+	  
+	  
+	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	double referencia = System.nanoTime();
+	
+	  </p>
+	  
+	  
+	  
+		
+		
+		<p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	Dentro y al comienzo del bucle while creamos otra variable en este caso final, para que su valor nuca sea modificado en cada repetición del ciclo while, que guarda el tiempo cuando a iniciado el GameLoop, sería así
+	
+	  </p>
+		
+		
+		<p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	final double tiempoInicial = System.nanoTime();
+	
+	  </p>
+		
+		
+		
+		<p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+	Seguido calculamos nuestro deferencial de tiempo de la siguiente manera y o guardamos en nuestro atributo delta
+	  </p>
+		
+		
+		<p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	delta = (float) (tiempoInicial - referencia) / UNIDAD_TIEMPO;
+	
+	  </p>
+		
+		
+		<p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	Se le resta al tiempo inicial la referencia guarda, esto nos da un diferencial de tiempo bastante precisa expresada en varios miles de nanosegundos que a su vez lo dividimos entre la unidad de tiempo para obtener el tiempo en unidades de nanosegundos, no confundir, al restar obtenemos el numero de nanosegundos transcurridos que es bastante grande y al dividir obtenemos el tiempo real en segundos.
+	
+	  </p>
+		
+		
+		<p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	Luego después de todas las operaciones de actualización y dibujo guardamos la nueva referencia en su respectiva variable y cada vuelta del while calculamos de nuevo el diferencial de tiempo, esta diferencial ya quedaría disponible para su uso en cualquier algoritmo del juego.
+	
+	  </p>
+		
+		
+		
+		
+		<p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+	referencia = tiempoInicial;
+	  </p>
+		
+		
+		
+		<p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	Por último limitaremos nuestro bucle a 60 ciclos por segundo de la  siguiente manera creamos un bucle do while dentro de nuestro bucle principal que dormirá el hilo si se cumple cierta condición que se explicara en breve 
+	
+	  </p>
+		
+		
+		
+		<p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	do {
+
+		
+       Thread.yield();
+
+			
+   } while (System.nanoTime() - tiempoInicial < LIMITE_CICLOS);
+
+	
+	  </p>
+		
+		
+		<p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+	El do while se cumplirá si el tiempo obtenido del sistema menos el tiempo inicial es menor que el límite de tiempo que calculamos antes, en este caso el numero de nanosegundos que obtenemos en dividir la unidad de tiempo entre los ciclos que queremos limitar, ósea cada turno dura esa cantidad de nanosegundos, esto dormirá el hilo, en caso contrario no se dormirá y seguirá activo.
+	  </p>
+		
+		
+		<p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	Ya con esto tendremos nuestro juego corriendo en distintas Pcs a la misma velocidad con un límite de 60 cuadros en la actualización y dibujo, también obtenemos nuestro deltaTime que podemos utilizar en cualquier algoritmo del juego, aquí el código para las distintas versiones de la clase Juego.
+	
+	  </p>
+		
+		
+	
+	 <h1><p id="codigo">
+     Código 25 versión 1:  <a data-ajax="false" href="codigo/Codigo paso 4/Ejemplo 3/Version 1/Juego.java">Juego.java</a>
+	 
+       </p>	</h1>
+	  
+	  	  <h1><p id="codigo">
+    Código 26 versión 2:   <a data-ajax="false" href="codigo/Codigo paso 4/Ejemplo 3/Version 2/Juego.java">Juego.java</a>
+	 
+       </p>	</h1>
+	   
+	   
+	     <h1><p id="codigo">
+     Código 27 versión 3:  <a data-ajax="false" href="codigo/Codigo paso 4/Ejemplo 3/Version 3/Juego.java">Juego.java</a>
+	 
+       </p>	</h1>
+	  
+	  	  <h1><p id="codigo">
+    Código 28 versión 4:   <a data-ajax="false" href="codigo/Codigo paso 4/Ejemplo 3/Version 4/Juego.java">Juego.java</a>
+	 
+       </p>	</h1>
+	
+	
+	  <h1><p id="codigo">
+     Código 29:   <a  data-ajax="false" href="codigo/Codigo paso 4/Inicio.java">Inicio.java</a>
+	 
+       </p>	</h1>
+
+
+   <h1><p id="codigo">
+     Código 30:   <a  data-ajax="false" href="codigo/Codigo paso 4/FinalMision.java">FinalMision.java</a></h1>
+
+
+
+	
+	
+	
+	
+      <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	Si nos damos cuenta aquí tenemos varios problemas en el dibujo hay titileos en algunas versiones de la clase Juego y en otras el dibujo no se mueve fluido, esto se debe que hay distintos hilos que realizan esta tarea y no están sincronizados, en el próximo paso solucionaremos esto.
+	
+	  </p>
+	  
+	  
+	
+		</div>  
+		
+		
+		
+	
+		
+		 <div data-role="collapsible">
+		<h1 id="titulo">
+            Paso 5. Optimizando gráficos, implementado doble búfer y mostrar en pantalla completa el dibujo:
+        </h1>	
+		
+		
+		
+		
+		
+		
+	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	Hasta este capítulo tendremos varias versiones de la clase Juego, ya escogeremos cual la versión es la más optima para nuestro juego que será usada de aquí en adelante.
+	
+	  </p>
+	  
+	  
+	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	Lo primero que vamos a implementar es la técnica de doble búfer, consiste en dibujar todo lo que queremos en un lienzo invisible al usuario y luego mostrarlo en un lienzo principal, esto optimiza mucho el dibujo ya que mientras estamos mostrado un dibujo en pantalla ya tendremos el siguiente fotograma listo para dibujar y así sucesivamente, esto hace que nuestro dibujo se muestre completo sin perdidas porque fue pintado anteriormente, una manera básica en Java sería la siguiente.
+	
+	  </p>
+	  
+	 
+
+	<h3><p id="pasos">
+	Ejemplo 1:
+     </p> </h3>
+
+
+	 
+	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	Para esta versión lo primero es crear un nuevo atributo de clase BufferedImage, que se encuentra en el paquete java.awt.image, en la clase Juego que inicializamos en el constructor esta clase representa una imagen que podemos dibujar en pantalla, con el objeto grafico,
+	
+	  </p>
+	  
+	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	bufer = new BufferedImage(Juego.ANCHO_PANTALLA,Juego.ALTO_PANTALLA, BufferedImage.TYPE_INT_RGB);
+	
+	  </p>
+	  
+	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	Para saber más de esta clase ver Doc de Java, luego creamos un nuevo objeto grafico en el método paint donde guardamos la referencia del objeto grafico que nos devuelve la imagen para dibujar en el, así quedaría.
+	
+	  </p>
+
+
+	  
+	  
+	  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+	
+	Graphics g1 =bufer.getGraphics();
+	  </p>
+	  
+	  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	Por último dibujamos todo lo que queramos y mostramos la imagen en pantalla con nuestro objeto grafico principal
+	  </p>
+	  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	g1.setColor(Color.RED);
+	  </p>
+	  
+	  
+	  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	g1.fillRect(0,0,Juego.ANCHO_PANTALLA, Juego.ALTO_PANTALLA);
+	  </p>
+	  
+	  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	g1.setColor(Color.BLUE);
+	  </p>
+	  
+	  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	g1.fillRect(x, 10, 100, 100);
+	  </p>
+	  
+	  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	g.drawImage(bufer, 0,0,null);
+	  </p>
+	  
+	  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	Podemos notar la suavidad de pintado de nuestro dibujo excepto otros detalles que no son nada agradable a la vista, que corregiremos, otras modificaciones que hicimos fue dibujar un rectángulo del tamaño del lienzo para limpiar la pantalla en cada ciclo.
+	  </p>
+	  
+	  
+	  
+	  
+	   <h1><p id="codigo">
+     Código 31 versión 1:  <a  data-ajax="false" href="codigo/Codigo paso 5/Ejemplo 1/Version 1/Juego.java">Juego.java</a>
+	 
+       </p>	</h1>
+	  
+	  	  <h1><p id="codigo">
+    Código 32 versión 2:   <a  data-ajax="false" href="codigo/Codigo paso 5/Ejemplo 1/Version 2/Juego.java">Juego.java</a>
+	 
+       </p>	</h1>
+	   
+	   
+	     <h1><p id="codigo">
+     Código 33 versión 3:  <a  data-ajax="false"  href="codigo/Codigo paso 5/Ejemplo 1/Version 3/Juego.java">Juego.java</a>
+	 
+       </p>	</h1>
+	  
+	  	  <h1><p id="codigo">
+    Código 34 versión 4:   <a  data-ajax="false"  href="codigo/Codigo paso 5/Ejemplo 1/Version 4/Juego.java">Juego.java</a>
+	 
+       </p>	</h1>
+	  
+  <h1><p id="codigo">
+     Código 35:   <a  data-ajax="false" href="codigo/Codigo paso 5/Inicio.java">Inicio.java</a>
+	 
+       </p>	</h1>
+
+
+   <h1><p id="codigo">
+     Código 36:   <a  data-ajax="false" href="codigo/Codigo paso 5/FinalMision.java">FinalMision.java</a></h1>
+
+
+
+	  
+	  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	Se puede notar la diferencia entre las versiones de la clase Juego, cada una es mas optima que otra, en el caso de la versión de JPanel no es necesario implementar doble búfer ya que esta clase implementa uno de manera automática.
+	  </p>
+	  
+	  
+	  <h3><p id="pasos">
+	Ejemplo 2:
+     </p> </h3>
+	  
+	
+	  
+	  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	Para este ejemplo solo modificaremos la versión que contiene el lienzo Canvas, para mostrar otra manera de obtener doble búfer en Java que ya implementa atreves de métodos de esta clase.
+	  </p>
+	  
+	  
+	  
+	  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	Pa esto eliminamos nuestro atributo BufferedImage y en su lugar creamos un nuevo atributo de la clase BufferStrategy que está en el paquete java.awt.image, lo inicializamos en el constructor después de crear una estrategia grafica o búfer con el método createBufferStrategy(2), este método crea  la cantidad de búfer que le indiquemos y obtenemos la referencia con el método getBufferStrategy(), que guardamos en nuestro atributo bufer.
+	  </p>
+	  
+	  
+	  
+	  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	createBufferStrategy(2);
+	  </p>
+	  
+	  
+	  
+	  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+		bufer = getBufferStrategy();
+		
+
+	  </p>
+	  
+	  
+	  
+	  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	Luego en el método paint obtenemos el objeto grafico del atributo bufer, dibujamos en él y mostramos lo dibujado en pantalla con el método show() de este atributo, no utilizamos nuestro objeto grafico principal ya que lo obtenemos de la estrategia grafica.
+	  </p>
+	  
+	  
+	  
+	  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+		Graphics g1 = bufer.getDrawGraphics();
+	  </p>
+	  
+	  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+	g1.setColor(Color.RED);
+	  </p>
+	  
+	  
+	  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	g1.fillRect(0, 0, Juego.ANCHO_PANTALLA, Juego.ALTO_PANTALLA);
+	
+	  </p>
+	  
+	  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+	g1.setColor(Color.BLUE);
+	  </p>
+	  
+	  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	g1.fillRect(x, 10, 100, 100);
+	
+	  </p>
+	  
+	  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	bufer.show();
+	
+	  </p>
+	  
+	  
+	    <h1><p id="codigo">
+    Código 37 versión 3:   <a  data-ajax="false" href="codigo/Codigo paso 5/Ejemplo 2/Version 3/Juego.java">Juego.java</a> 
+	 
+       </p>	</h1>
+	  <h1><p id="codigo">
+     Código 38:   <a  data-ajax="false" href="codigo/Codigo paso 5/Inicio.java">Inicio.java</a>
+	 
+       </p>	</h1>
+
+
+   <h1><p id="codigo">
+     Código 39:   <a  data-ajax="false" href="codigo/Codigo paso 5/FinalMision.java">FinalMision.java</a></h1>
+
+
+  
+	  
+	   <h3><p id="pasos">
+	Ejemplo 3:
+     </p> </h3>
+	  
+	  
+	  
+	  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	Para este ejemplo nos quedaremos con la versión 3 de la clase Juego, que nos da más flexibilidad que la cuarta versión, pudiendo controlar nuestro búfer a voluntad migrarlo a un objeto JPanel como se puede mostrar a continuación, en este ejemplo también vamos optimizar la clase para un mejor rendimiento y tener la posibilidad de tener una pantalla completa.
+	
+	  </p>
+	  
+	  
+	  
+	  
+	  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	Lo primero es configurar nuestro lienzo Canvas con un fondo por defecto, que tenga el foco y que desactive el hilo donde se llama el método repaint para controlar nosotros mismo el redibujado en nuestro hilo, se invocarían los siguientes métodos 
+	
+	  </p>
+	  
+	  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	setBackground(Color.BLACK);
+	
+	  </p>
+	  
+	  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+	requestFocus();
+
+	
+	  </p>
+	  
+	  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+	setFocusable(true);
+	  </p>
+	  
+	  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	setIgnoreRepaint(true);
+	
+	  </p>
+	  
+	  
+	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	El titulo de la ventana la guardarnos en una constante, obtenemos un objeto JPanel de la ventana y lo configuramos y añadimos nuestro lienzo a este panel
+	
+	  </p>
+	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	JPanel panel = (JPanel) ventana.getContentPane();
+	
+	  </p>
+	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	panel.setSize(Juego.ANCHO_PANTALLA, Juego.ALTO_PANTALLA);
+	
+	  </p>
+	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	panel.setLayout(null);
+	
+	  </p>
+	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+	panel.add(this);
+	  </p>
+	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	Luego configuramos nuestra ventana, quitamos la decoración, desactivamos el rescaldado etc.
+	
+	  </p>
+	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	ventana.setLayout(null);
+	
+	  </p>
+	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	ventana.setUndecorated(true);
+	
+	  </p>
+	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	ventana.setResizable(false);
+	
+	  </p>
+	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+ventana.setVisible(true);
+
+	
+	  </p>
+	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	Después obtenemos la configuración grafica de la ventana  para obtener un array de modos de pantallas soportados.
+	
+	  </p>
+	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	DisplayMode[] dis = ventana.getGraphicsConfiguration().getDevice().getDisplayModes();
+	
+	  </p>
+	  
+	    <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+También obtendremos el dispositivo grafico de la ventana de la siguiente manera 
+
+	
+	  </p>  
+	  
+	 
+ <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	GraphicsDevice g = ventana.getGraphicsConfiguration().getDevice();
+	
+	  </p>  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	Seguido le pasamos la referencia de la ventana al método del dispositivo grafico que se encarga de colocar en pantalla complétala ventana 
+	
+	  </p>  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	ventana.getGraphicsConfiguration().getDevice().setFullScreenWindow(ventana);
+	
+	  </p>  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	Por último hacemos un recorrido con un bucle for al array de dispositivos para saber que resoluciones son soportadas, luego comprobamos si nuestra Pc es compatible con el cambio de resolución  después otro condicional que se cumpla cuando coincida con el modo de pantalla que comprobamos en el mismo condicional al conseguirlo se lo aplicamos al dispositivo grafico. 
+	
+	  </p>  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+		for (int i = 0; i < dis.length; i++) {
+
+			if (dis != null && g.isDisplayChangeSupported()) {
+
+				try {
+
+					if ((dis[i].getWidth() == 640) &&  (dis[i].getHeight() == 480) && (dis[i].getBitDepth() == 32)
+						&& (dis[i].getRefreshRate() == 60)) {
+
+						g.setDisplayMode(dis[i]);
+
+					}
+
+				} catch (Exception e) {
+
+				}
+
+			}
+
+		}
+
+
+
+	  </p>  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	Lo siguiente es eliminar el método sobrescrito paint y obtener un objeto grafico en nuestro método run fuera de nuestro bucle while, 
+Este objeto grafico va a ser de la clase Graphics2D que esta mas optimizada y agrega nuevas características 
+
+	
+	  </p>  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	final Graphics2D pincel = (Graphics2D) bufer.getDrawGraphics();
+	
+	  </p>  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	Finalmente dibujamos todo lo anterior en nuestro bucle while con nuestro objeto grafico 2D.
+	
+	  </p>  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	x++;
+	
+	  </p>  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	pincel.setColor(Color.RED);
+	
+	  </p>  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	pincel.fillRect(0, 0, Juego.ANCHO_PANTALLA, Juego.ALTO_PANTALLA);
+	
+	  </p>  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	pincel.setColor(Color.BLUE);
+	
+	  </p>  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	pincel.fillRect(x, 10, 100, 100);
+	
+	  </p>  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+				
+bufer.show();
+
+	  </p>  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	De esta forma quedaría totalmente optimizado nuestros gráficos, notamos que nuestro objeto grafico está definido como final eso es para que no pueda ser modificado ya que con el mismo dibujaremos todos los gráficos de nuestro juego, otra cosa a notar también es que nuestra ventana queda activa y no hay forma de poder cerrarla, esto se solucionara en el siguiente paso.
+	
+	  </p>  
+	  
+	  
+	  
+	  <h1><p id="codigo">
+    Código 40 versión 3:   <a  data-ajax="false" href="codigo/Codigo paso 5/Ejemplo 3/Version 3/Juego.java">Juego.java</a> 
+	 
+       </p>	</h1>
+	  
+	   <h1><p id="codigo">
+     Código 41:   <a  data-ajax="false" href="codigo/Codigo paso 5/Inicio.java">Inicio.java</a>
+	 
+       </p>	</h1>
+
+
+   <h1><p id="codigo">
+     Código 42:   <a  data-ajax="false" href="codigo/Codigo paso 5/FinalMision.java">FinalMision.java</a></h1>
+
+
+
+		
+
+	</div>  
+
+	
+	
+		<div data-role="collapsible">
+		<h1 id="titulo">
+          Paso 6. Controlando estados del Juego y manejar eventos de teclado:
+        </h1>
+
+		
+		
+		
+		
+			   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	En este paso vamos controlar los estados de un juego a través de métodos específicos , estos estados podrían ser cuando cambiemos de una pantalla de juego a otra donde se llamaría una serie de métodos que podemos gestionar ciertas cosas antes de pasar a la siguiente pantalla, lo normal es que estos estados lo controle el sistema operativo cuando por ejemplo estemos fuera de la ventana del juego, el juego entraría en un modo de pausa ósea el hilo se detendría hasta que volvamos a nuestra ventana de juego esto ayuda a evitar el uso innecesario de recursos y ciclos de reloj de nuestro procesador, también gestionaremos los eventos de teclado.
+	
+	  </p>  
+	  
+	  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	Lo primero es implementar la interfaz  KeyListener  que está en el paquete java.awt.event, implementamos sus métodos y se lo aplicamos a nuestro lienzo, en el método keyPressed escribimos un código para manejar el cierre de la ventana
+	
+	  </p>  
+	  
+	  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+	if (ev.getKeyCode() == KeyEvent.VK_ESCAPE) {
+
+			System.exit(0);
+
+		}
+
+	  </p>  
+	  	 
+	     <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	Con esto al presionar la tecla escape cerramos la ventana.
+	
+	  </p>  
+	  	 
+		 
+			 <h3><p id="nota">
+	Nota:
+     </p> </h3>
+
+
+	 
+	     <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+	 Este tutorial no explica los conceptos de programación básicos ni el paradigma  POO, el lector tiene que tener suficiente conocimiento para poder seguir este tutorial, me limito a explicar la forma de utilizar las APIS graficas de Java para realizar un juego2D en Java, el que todavía no tenga suficiente conocimiento de programación ver otro tutorial para adquirir esos conocimientos y para el que no tenga noción de las Apis de Java ver documentación oficial.
+	  </p>  
+	  	 
+		 
+		
+		 
+		 
+		 
+	     <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+	En nuestra clase Juego vamos a crear una serie de métodos para controlar los estados del juego y vamos a crear otros métodos para la gestión de dibujo y actualización del Juego
+	  </p>  
+	  	 
+	     <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	public void reajustarPantalla(int ancho, int alto)
+	
+	  </p>  
+	  	 
+	     <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	public void resumen() 
+		
+
+	
+	  </p>  
+	  	 
+	     <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	public void pausa() 
+	
+	  </p>  
+	  	 
+	     <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+	El primero controla si la pantalla es maximizada hace los cambios pertinentes, el segundo crea un nuevo objeto de la clase Thread que sustituye la referencia actual, este nuevo hilo es iniciado con su método start(), esto deja a la antigua referencia libre para que el recolector de basura la elimine, también este método inicia el bucle while del hilo colocando verdadera a el atributo que controla eso, el ultimo método detiene el bucle while del método run y controla una interrupción con un while infinito del hilo y devuelve el control al programa con una intrusión return.
+	  </p>  
+	  	 
+	     <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	public void reajustarPantalla(int ancho, int alto) {
+		
+	}
+
+	
+	  </p>  
+	  	 
+	     <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	public void resumen() {
+		
+
+			iniciar = true;
+			hilo = new Thread(this);
+			hilo.start();
+		
+		
+	}
+
+	
+	  </p>  
+	  	 
+	     <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+		public void pausa() {
+	
+			iniciar = false;
+			while (true) {
+				try {
+					hilo.join();
+
+					return;
+
+				} catch (InterruptedException e) {
+
+				}
+
+			}
+
+		
+	}
+
+	
+	  </p>  
+	  	 
+	     <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+Luego crearemos tres métodos que controlen la actualización, colisiones y renderizado del dibujo 
+
+	
+	  </p>  
+	  	 
+	     <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	public void renderizar(Graphics2D pincel, float delta)
+	
+	  </p>  
+	  	 
+	     <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+	
+public void actualizar(float delta) 
+
+	  </p>  
+	  	 
+	     <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+	public void colisiones() 
+	  </p>  
+	  	 
+	     <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	En el primero es el encargado de dibujar todos los gráficos de nuestro juego, recibe como parámetro la referencia del objeto grafico y el diferencial de tiempo, el segundo es el encargado de actualizar toda la lógica del juego excepto la colisiones recibe un solo parámetro que sería el diferencial del tiempo y el ultimo método es el encargado de gestionar todas las colisiones del juego aunque esto se pudo manejar en el método actualizar, estos métodos será llamados en el bucle principal del Juego sustituyendo todo el código de dibujo anterior excepto el rectángulo encargado de limpiar la pantalla, prodrimos añadir un método privado para calcular los FPS y luego dibujarlos en pantalla en el medo renderizar.
+	
+	  </p>  
+	  	 
+	     <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	public int getFPS() {
+
+		return (int) (1 / delta);
+	}
+
+	
+	  </p>  
+	  	 
+	     <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+	Dentro del método renderizar 
+	  </p>  
+	  	 
+	  
+
+	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+	pincel.setColor(Color.BLUE);
+	  </p>  
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	pincel.drawString(getFPS() + " FPS", 0, 10);
+	
+	  </p>  
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	Con esto ya tenemos un marco bastante sólido donde podemos dibujar, además de bastante optimizado pero aun falta gestionar muchas cosas, ose será para el siguiente paso.
+	
+	  </p>  
+	  
+	  
+	  <h1><p id="codigo">
+    Código 43:   <a  data-ajax="false" href="codigo/Codigo paso 6/Juego.java">Juego.java</a> 
+	 
+       </p>	</h1>
+	  
+	   <h1><p id="codigo">
+     Código 44:   <a  data-ajax="false" href="codigo/Codigo paso 6/Inicio.java">Inicio.java</a>
+	 
+       </p>	</h1>
+
+
+   <h1><p id="codigo">
+     Código 45:   <a  data-ajax="false" href="codigo/Codigo paso 6/FinalMision.java">FinalMision.java</a></h1>
+
+
+
+	 
+	 
+	 
+	   
+	   </div>
+	
+	
+	
+	
+			<div data-role="collapsible">
+		<h1 id="titulo">
+        Paso 7. Creando Pantallas del Juego y como gestionarlas:
+        </h1>
+	  
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	En este paso vamos crear una nueva clase abstracta llamada Pantalla esta definirá y controlara todos los aspecto de un juego necesarios que se muestran en una pantalla especifica, de menú, de configuración o del juego, pantalla de juego etc. Además aprenderemos como gestionarla de una buena manera.
+	
+	  </p>  
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	Creamos en nuestro paquete núcleo, una nueva clase abstracta llamada Pantalla que recibe como parámetro en su constructor una referencia de la clase FinalMision que a sus vez es un Juego esto es para tener acceso a todos los métodos y atributos permitidos en nuestras clases que hereden de Pantalla, crearemos también un atributo final de tipo FinalMision para guardar dicha referencia, además implementaremos la interfaz ImageObserver que se encuentra en el paquete java.awt.image, para trabajar con imágenes, implementado su método imageUpdate de la siguiente manera 
+	
+	  </p>  
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	@Override
+	public boolean imageUpdate(Image img, int infoflags, int x, int y, int w, int h) {
+		return (infoflags & (ALLBITS | ABORT)) == 0;
+	}
+
+	
+	  </p>  
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	Esto es útil si trabajamos con un Applet . 
+	
+	  </p>  
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+	También crearemos los siguientes métodos abstractos 
+	  </p>  
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	public abstract void pausa();
+	
+	  </p>  
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	public abstract void resume();
+	
+	  </p>  
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	public abstract void actualizar(float delta);
+	
+	  </p>  
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+	public abstract void dibujar(Graphics2D pincel, float delta);
+	  </p>  
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+		public abstract void colisiones();
+	
+	  </p>  
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	public abstract void ocultar();
+	
+	  </p>  
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+	public abstract void mostrar();
+
+	
+	  </p>  
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	public abstract void reajustarPantalla(int ancho, int alto);
+	
+	  </p>  
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	public abstract void teclaPresionada(KeyEvent ev);
+	
+	  </p>  
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+		public abstract void teclaLevantada(KeyEvent ev);
+	
+	  </p>  
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	public abstract void teclaTipo(KeyEvent ev);
+	
+	  </p>  
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	Estos métodos son los encargados de las siguientes tareas que son auto-explicativas.
+	
+	  </p>  
+	  
+	  
+	   <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	Para gestionar  la pantalla creamos un objeto nulo de la clase Pantalla en la clase Juego donde vamos a gestionarla con los siguientes métodos, aquí vamos a recibir las referencia de la pantalla que se está ejecutando en ese momento y manejar sus métodos, en todos los métodos donde gestionamos la pantalla hacemos una comprobación para saber si la pantalla recibida es nula si no es nula procedemos a llamar los métodos respectivos, hay dos métodos en la clase Juego que reciben y devuelven la referencia de una pantalla, que son implementados de la siguiente manera.
+	
+	  </p>  
+	  
+	  
+	    <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+		public void setPantalla(Pantalla pantalla) {
+		if (this.pantalla != null) {
+			this.pantalla.ocultar();
+		}
+
+		this.pantalla = pantalla;
+
+		if (this.pantalla != null) {
+			this.pantalla.mostrar();
+			this.pantalla.reajustarPantalla(getWidth(), getHeight());
+
+		}
+	}
+
+	public Pantalla getPantalla() {
+		return pantalla;
+
+	}
+
+	
+	  </p>  
+	    <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+Otro método es el encargado de liberar los recurso de la pantalla actual seria este
+	
+	  </p>  
+	    <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	public void liberarRecursos() {
+		if (pantalla != null) {
+			pantalla.ocultar();
+		}
+	}
+
+	
+	  </p>  
+	    <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	Se llaman los métodos receptivos de la pantalla actual.
+	
+	  </p>  
+	    <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+	Para probar nuestro Juego creamos un nuevo paquete que se llame pantalla siguiendo la nomenclatura descrita, donde también crearemos dos clases que hereden de Pantalla una llamada PantallaJuego y la otra PantallaMenu, creamos un objeto de la clase PantallaMenu en nuestra clase FinalMision, se lo pasamos a nuestro método setPantalla, esto mostrara esta pantalla en la ventana, para cambiar de pantalla podemos pasarle un objeto de la clase PantallaJuego, para probar dibujare un rectángulo verde en el método dibujar de la Clase PantallaMenu y cambiare de pantalla con la tecla D del teclado en el método teclaPresionada de la clase PantallaMenu.
+	  </p>  
+	  
+	  
+	  
+	   <h1><p id="codigo">
+    Código 46:   <a  data-ajax="false" href="codigo/Codigo paso 7/Juego.java">Juego.java</a> 
+	 
+       </p>	</h1>
+	  
+		  <h1><p id="codigo">
+     Código 47:   <a  data-ajax="false" href="codigo/Codigo paso 7/Inicio.java">Inicio.java</a>
+	 
+       </p>	</h1>
+
+
+   <h1><p id="codigo">
+     Código 48:   <a  data-ajax="false" href="codigo/Codigo paso 7/FinalMision.java">FinalMision.java</a></h1>
+
+
+  <h1><p id="codigo">
+     Código 49:   <a  data-ajax="false" href="codigo/Codigo paso 7/Pantalla.java">Pantalla.java</a>
+	 
+       </p>	</h1>
+
+
+   <h1><p id="codigo">
+     Código 50:   <a  data-ajax="false" href="codigo/Codigo paso 7/PantallaJuego.java">PantallaJuego.java</a></h1>
+	 
+
+<h1><p id="codigo">
+     Código 51:   <a  data-ajax="false" href="codigo/Codigo paso 7/PantallaMenu.java">PantallaMenu.java</a></h1>
+
+
+
+	   
+	   </div>
+	
+
+
+	  	<div data-role="collapsible">
+		<h1 id="titulo">
+        Paso 8. Como cargar recursos del Juego y manejarlos:
+        </h1>
+	  
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+	En este paso vamos cargar los recursos necesarios para realizar un juego, imágenes, sonidos etc. Y manejarlos de una forma adecuada.
+	  </p>  
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+	Lo primero que tenemos que hacer es crear un paquete llamado utilidad que contendrá una clase llamada Recurso que se encargara de cargar en memoria todos los recursos del juego necesarios, implementara la interfaz ImageObserver porque que va a tratar con imágenes, contendrá dos colecciones de tipo HashMap como atributos para guardar las imágenes y los audios en memoria y poderlas usar en el momento que necesitemos estos recursos, tendrá un método para crear imágenes compatibles, que se dibujaran mas óptimamente en nuestra Pc, todos los audio se reproducirá en hilos temporales para evitar la espera en el hilo principal, esto evita caídas de fotogramas, los métodos son auto explicativos se usan para cargar imágenes o sonidos, los recursos estarán en un paquete que llamaremos res, para probar vamos hacer dos modificaciones en nuestro código, lo primero es crear un objeto de la clase Recurso en la clase PantallaMenu y cargar un archivo de audio  ubicado en el paquete res, lo reproduciremos en el constructor, lo otro es crear un atributo privado en la clase Recurso en la clase Juego para cambiar la imagen de nuestro cursos.
+	  </p>  
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+	En el constructor colocamos este código.
+	  </p>  
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	recurso = new Recurso();
+	
+	  </p>  
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+	BufferedImage cursor = recurso.createCompatible(10, 10, Transparency.BITMASK);
+	  </p>  
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	cursor.getGraphics().drawImage(recurso.cargarImagen("burbuja.png"), 0, 0, 5, 5, this);
+	  </p>  
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	Toolkit t = Toolkit.getDefaultToolkit();
+	
+	  </p>  
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	Cursor c = t.createCustomCursor(cursor, new Point(5, 5), "null");
+
+
+	
+	  </p>  
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+			
+setCursor(c);
+
+	
+	  </p>  
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+Este código creara una imagen compatible donde obtendremos su objeto grafico para dibujar nuestra imagen y luego crear un nuevo cursor con ella, si queremos esconder el cursor solo  hay que comentar esta línea de código
+
+	
+	  </p>  
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+	//cursor.getGraphics().drawImage(recurso.cargarImagen("burbuja.png"), 0, 0, 5, 5, this);
+	  </p>  
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	Con esto terminamos este paso.
+	
+	  </p>  
+	  
+	  
+	  	  <h1><p id="codigo">
+    Código 52:   <a  data-ajax="false" href="codigo/Codigo paso 8/Juego.java">Juego.java</a> 
+	 
+       </p>	</h1>
+	   
+	   
+	     <h1><p id="codigo">
+     Código 53:   <a  data-ajax="false" href="codigo/Codigo paso 8/Inicio.java">Inicio.java</a>
+	 
+       </p>	</h1>
+
+
+   <h1><p id="codigo">
+     Código 54:   <a  data-ajax="false" href="codigo/Codigo paso 8/FinalMision.java">FinalMision.java</a></h1>
+
+
+  <h1><p id="codigo">
+     Código 55:   <a  data-ajax="false" href="codigo/Codigo paso 8/Pantalla.java">Pantalla.java</a>
+	 
+       </p>	</h1>
+
+
+   <h1><p id="codigo">
+     Código 56:   <a  data-ajax="false" href="codigo/Codigo paso 8/PantallaJuego.java">PantallaJuego.java</a></h1>
+	 
+
+<h1><p id="codigo">
+     Código 57:   <a  data-ajax="false" href="codigo/Codigo paso 8/PantallaMenu.java">PantallaMenu.java</a></h1>
+
+
+	   
+	<h1><p id="codigo">
+     Código 58:   <a  data-ajax="false" href="codigo/Codigo paso 8/Recurso.java">Recurso.java</a></h1>
+
+
+	 <h1><p id="codigo">
+     Recurso:   <a  data-ajax="false" href="codigo/Codigo paso 8/burbuja.png">burbuja.png</a></h1>
+
+
+	 <h1><p id="codigo">
+     Recurso:   <a  data-ajax="false" href="codigo/Codigo paso 8/explosion.wav">explosion.wav</a></h1>    
+	   
+	    
+	   
+	  
+
+	   
+	   </div>
+	
+	
+	
+	
+	
+		  	<div data-role="collapsible">
+		<h1 id="titulo">
+       Paso 9. Definiendo nuestros sprites o actores de nuestro juego:
+        </h1>
+	  
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+	Los esprites son los actores de un juego 2D, estos definen los personajes del mismo, el jugador, los enemigos, las explosiones los obstáculos etc. Para crear estos actores crearemos una clase abstracta en el paquete núcleo que defina el comportamiento general de los mismos y así podemos heredar  esas características en  nuestras clases hijas, además vamos ver una forma de gestionarlos de una manera sencilla.
+	  </p>  
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	La clase implementara la interfaz ImageObserver, tendrá los métodos respectivos que controlen la posición, el tamaño, las colisiones, el dibujado, las actualizaciones, también métodos que nos devuelvan su posición, su tamaño y otros que carguen una imagen.
+	  </p>  
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	En nuestra clase Pantalla crearemos una colección de la clase Actor que pueda agregar todos los actores de nuestro juego.
+	
+	  </p>  
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	protected ArrayList<Actor> actores = new ArrayList<Actor>();
+	
+	  </p>  
+	  
+	  
+	  	  <h1><p id="codigo">
+    Código 59 Clase Actor:   <a data-ajax="false" href="codigo/Codigo paso 9/Actor.java">Actor.java</a> 
+	 
+       </p>	</h1>
+	  
+	  
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+	Como se puede ver en esta clase hay métodos abstractos estos métodos los van a implementar las subclases con su algoritmo propio.
+	  </p>  
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+	Ahora creamos un nuevo paquete con el nombre de actor, en este paquete vamos a colocar todas las clases que hereden de la Clase Actor, vamos a crear una nueva clase llamada Jugador de herede de la clase Actor en el paquete actor, esta clase tendrá un manejador de evento de teclado, el código de esta clase se mostrara a continuación. 
+	  </p>  
+	  
+	  
+	  
+	  <h1><p id="codigo">
+    Código 60 Clase Jugador:   <a  data-ajax="false" href="codigo/Codigo paso 9/Jugador.java">Jugador.java</a> 
+	 
+       </p>	</h1>
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	Otra modificación que vamos hacer es en la clase Juego es que el atributo de la clase recurso lo vamos acceder a través del método getRecurso(), para poder tener acceso a los recursos de manera global en todas la pantallas, y por ultimo vamos a crear un atributo de la clase Jugador en nuestra clase PantallaJuego  y después de instanciarlo y configurar todos sus atributos lo agregamos en nuestra colección para acceder a nuestro actor dibujamos todos los actores que están en la colección a través de bucles for eacha, para los métodos nuevos de la clase hija se hace un casting para a acceder a ellos, con estos ya tenemos un actor en la pantalla que podemos mover.
+	
+	  </p>  
+	  
+	  <h1><p id="codigo">
+    Código 61 Clase PantallaJuego:   <a  data-ajax="false" href="codigo/Codigo paso 9/PantallaJuego.java">PantallaJuego.java</a> 
+	 
+       </p>	</h1>
+	  
+	  
+	  
+	    <h1><p id="codigo">
+     Código 62:   <a  data-ajax="false" href="codigo/Codigo paso 9/Inicio.java">Inicio.java</a>
+	 
+       </p>	</h1>
+
+
+   <h1><p id="codigo">
+     Código 63:   <a  data-ajax="false" href="codigo/Codigo paso 9/FinalMision.java">FinalMision.java</a></h1>
+
+
+  <h1><p id="codigo">
+     Código 64:   <a  data-ajax="false" href="codigo/Codigo paso 9/Pantalla.java">Pantalla.java</a>
+	 
+       </p>	</h1>
+	 
+
+<h1><p id="codigo">
+     Código 65:   <a  data-ajax="false" href="codigo/Codigo paso 9/PantallaMenu.java">PantallaMenu.java</a></h1>
+
+<h1><p id="codigo">
+     Código 66:   <a  data-ajax="false" href="codigo/Codigo paso 9/Recurso.java">Recurso.java</a></h1>
+	 
+	 
+	 <h1><p id="codigo">
+     Código 67:   <a  data-ajax="false" href="codigo/Codigo paso 9/PantallaCarga.java">PantallaCarga.java</a></h1>
+
+<h1><p id="codigo">
+     Código 68:   <a  data-ajax="false" href="codigo/Codigo paso 9/Datos.java">Datos.java</a></h1>
+	 
+	 
+	 <h1><p id="codigo">
+     Código 69:   <a  data-ajax="false" href="codigo/Codigo paso 9/DatosJuego.java">DatosJuego.java</a></h1>
+
+<h1><p id="codigo">
+     Código 70:   <a  data-ajax="false" href="codigo/Codigo paso 9/Configuraciones.java">Configuraciones.java</a></h1>
+	 
+	 <h1><p id="codigo">
+     Código 71:   <a  data-ajax="false" href="codigo/Codigo paso 9/Juego.java">Juego.java</a></h1>
+	 
+
+ <h1><p id="codigo">
+     Recurso:   <a  data-ajax="false" href="codigo/Codigo paso 9/burbuja.png">burbuja.png</a></h1>
+
+
+	 <h1><p id="codigo">
+     Recurso:   <a  data-ajax="false" href="codigo/Codigo paso 9/explosion.wav">explosion.wav</a></h1>    
+	
+
+	  
+	   
+	   </div>
+	
+	
+	
+	
+	
+	
+	
+		  	<div data-role="collapsible">
+		<h1 id="titulo">
+        Paso 10. Implementando persistencia de Datos y colisiones:
+        </h1>
+	  
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	En todo Juego es necesario guardar datos como puntuaciones, configuraciones etc, para cuando el usuario vuelva a jugar no se pierda su avancen en el mismo, este aspecto lo vamos a implementar creando una interfaz en el paquete núcleo que contendrá dos métodos uno para escribir los datos en disco y otro para leer los datos del disco, estos métodos devolverán un Stream de datos de salida o de entrada respectivamente, también recibirá como parámetro el nombre del archivo, y pasaran una excepción del tipo respectivo, la clase que implementara esta interfaz se va llamar DatosJuego, que colocaremos en un nuevo paquete llamado dato, la clase tendrá una constante con el nombre del archivo, los métodos implementados retornaran un nuevo objeto de Stream de datos de archivos de salida y entrada con esto la clase quedaría concluida. Para usar nuestra clase crearemos una nueva clase llamada Configuraciones que estará en el paquete dato, sus atributos van hacer un booleano que configura el sonido y un array de números enteros que guarda las puntuaciones, estos parámetros son accedidos a través de métodos, también tendrá un métodos que ordene las puntuaciones de mayor a menor al añadir una nueva, tendrá dos métodos uno encargados de guardar los datos y el otro de escribir los datos que recibe como parámetro de un objeto de la interfaz Datos.
+	
+	  </p>  
+	  
+	  
+	  
+	  <h1><p id="codigo">
+    Código 72 Interfaz Datos:   <a  data-ajax="false" href="codigo/Codigo paso 10/Datos.java">Datos.java</a> 
+	 
+       </p>	</h1>
+	   
+	   
+	   <h1><p id="codigo">
+    Código 73 Clase DatosJuego:   <a   data-ajax="false" href="codigo/Codigo paso 10/DatosJuego.java">DatosJuego.java</a> 
+	 
+       </p>	</h1>
+	   
+	   <h1><p id="codigo">
+    Código 74 Clase Configuraciones:   <a  data-ajax="false" href="codigo/Codigo paso 10/Configuraciones.java">Configuraciones.java</a> 
+	 
+       </p>	</h1>
+	  
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	La clase encarda de manejar los datos y configuraciones será la clase Juego, crearemos dos atributos uno de tipo DatosJuego y el otro de tipo  Configuraciones, para tener acceso global en todas nuestras pantallas, serán accedidos a través de métodos, crearemos una nueva clase llamada PantallaCarga que cargara todos los recursos del juego y lo guardara en memoria y también encargada de cargar la configuración o datos por defecto de nuestro juego
+	
+	  </p>  
+	  
+	  
+	     <h1><p id="codigo">
+    Código 75 Clase PantallaCarga: <a  data-ajax="false" href="codigo/Codigo paso 10/PantallaCarga.java">PantallaCarga.java</a> 
+	 
+       </p>	</h1>
+	   
+	   
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	Para gestionar las colisiones del  juego de todos los actores de nuestro juego se hace con un bucle for anidado que recorre todos los actores y comprueba si su rectángulo de colisión ha intersectado con el de otro actor, si es así se llama al método colisión de cada actor, en el se detalla la tarea que se desencadena, este código estará en la clase PantallaJuego en su método colisión.
+	
+	  </p>  
+	  
+	  
+	      <h1><p id="codigo">
+    Código 76 Clase PantallaJuego: <a  data-ajax="false" href="codigo/Codigo paso 10/PantallaJuego.java">PantallaJuego.java</a> 
+	 
+       </p>	</h1>
+	  
+	  
+	  
+	 	    <h1><p id="codigo">
+     Código 77:   <a  data-ajax="false" href="codigo/Codigo paso 10/Inicio.java">Inicio.java</a>
+	 
+       </p>	</h1>
+
+
+   <h1><p id="codigo">
+     Código 78:   <a  data-ajax="false" href="codigo/Codigo paso 10/FinalMision.java">FinalMision.java</a></h1>
+
+
+  <h1><p id="codigo">
+     Código 79:   <a  data-ajax="false" href="codigo/Codigo paso 10/Pantalla.java">Pantalla.java</a>
+	 
+       </p>	</h1>
+	 
+
+<h1><p id="codigo">
+     Código 80:   <a  data-ajax="false" href="codigo/Codigo paso 10/PantallaMenu.java">PantallaMenu.java</a></h1>
+
+<h1><p id="codigo">
+     Código 81:   <a  data-ajax="false" href="codigo/Codigo paso 10/Recurso.java">Recurso.java</a></h1>
+	 
+	 
+	 <h1><p id="codigo">
+     Código 82:   <a  data-ajax="false" href="codigo/Codigo paso 10/Juego.java">Juego.java</a></h1>
+	 
+	 
+	 <h1><p id="codigo">
+     Código 83:   <a  data-ajax="false" href="codigo/Codigo paso 10/Actor.java">Actor.java</a></h1>
+	 
+	 
+	 <h1><p id="codigo">
+     Código 84:   <a  data-ajax="false" href="codigo/Codigo paso 10/Juego.java">Jugador.java</a></h1>
+
+ <h1><p id="codigo">
+     Recurso:   <a  data-ajax="false" href="codigo/Codigo paso 10/burbuja.png">burbuja.png</a></h1>
+
+
+	 <h1><p id="codigo">
+     Recurso:   <a  data-ajax="false" href="codigo/Codigo paso 10/explosion.wav">explosion.wav</a></h1>    
+	
+
+	   
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	Con esto ya hemos terminado nuestro marco de trabajo o motor de juego 2D,  está preparado para realizar juegos 2D casi de cualquier tipo, aunque todavía se pueden hacer algunas mejoras.
+	
+	  </p>  
+	  
+
+
+	   
+	   </div>
+	
+	
+	
+		  	<div data-role="collapsible">
+		<h1 id="titulo">
+     Paso 11. Comenzando con la creación de nuestro juego y dibujando una escena:
+        </h1>
+	  
+	  
+	  	  <p>  &nbsp;&nbsp;&nbsp;&nbsp;
+	
+Por fin vamos a empezar a desarrollar nuestro juego, como ya mencione vamos hacer una réplica del juego Final Mission de la NES, vamos a intentar ser lo más fiel con el original, y vamos a escribir todos estos detalles con lenguaje java.
+
+	
+	  </p>  
+	  
+
+	  
+
+  
+	   </div>
+	
+	
+	
+
+	
+	
+</div>
+
+
+
+
+<div data-role="footer" data-position="fixed">
+<nav data-role="navbar">
+<ul>
+<li><a href="#principal" data-transition="pop" id= "menu3" data-icon="home"></a> </li>
+<li><a href="#segunda" data-transition="flip" id= "siguiente3" data-icon="arrow-l"></a> </li>
+<li><a href="#principal" data-transition="flip" id= "atras3" data-icon="arrow-r"></a> </li>
+<li><a href="#sexta3" data-transition="pop" data-rel="dialog" id= "ayuda3" data-icon="info"></a> </li>
+</ul>
+
+
+
+</nav>
+
+
+</div>
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+<div data-role="page" id="sexta">
+
+
+
+
+
+
+<div data-role="header" data-position="fixed">
+<p align="center">Acerca De La Aplicación</p>
+	  
+</div>
+
+
+
+
+<div data-role="content">
+
+<p> &nbsp;&nbsp;&nbsp;&nbsp; 
+
+  Esta aplicación es un tutorial de de programación en Java, donde se realiza un demo de un juego, paso a paso, para aprender las mecánicas de programación de Juegos en general, y concretamente juegos 2D.
+</p>
+	  
+	 
+
+	 <p> &nbsp;&nbsp;&nbsp;&nbsp;El material aquí citado es de uso público siempre y cuando no
+	 sea modificado, solo puede ser modificado con el permiso del autor, también 
+	 se utilizan material externo de apoyo pero sin el plagio del mismo, siempre 
+	 indicando el nombre del autor y los link de referencia.</p>
+    
+
+	<p> &nbsp;&nbsp;&nbsp;&nbsp;Todos los derechos reservados, alguna modificación se debe comunicar al autor en su blog o pagina y atreves del correo <a href="danielpdiamon@gmail.com" >danielpdiamon@gmail.com</a>, todos los usuarios tienen derecho a dar sus comentarios acerca de la aplicación ya que está en fase de desarrollo, cualquier error en su escrito se puede informar para corrección del mismo.</p>
+      <p align="center" > Autor </p>
+      <p align="center" > Daniel Diamon </p>
+
+
+	
+
+
+</div>
+
+
+
+
+
+<div data-role="footer" data-position="fixed">
+<nav data-role="navbar">
+<ul>
+
+<li><a href="#principal" data-transition="pop" id= "botonaceptar1" data-icon="check">Aceptar</a> </li>
+</ul>
+
+
+
+</nav>
+
+</div>
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+<div data-role="page" id="sexta2">
+
+
+
+
+
+
+<div data-role="header" data-position="fixed">
+<p align="center">Acerca De La Aplicación</p>
+	  
+</div>
+
+
+
+
+<div data-role="content">
+
+<p> &nbsp;&nbsp;&nbsp;&nbsp; 
+
+  Esta aplicación es un tutorial de de programación en Java, donde se realiza un demo de un juego, paso a paso, para aprender las mecánicas de programación de Juegos en general, y concretamente juegos 2D.
+</p>
+	  
+	 
+
+	 <p> &nbsp;&nbsp;&nbsp;&nbsp;El material aquí citado es de uso público siempre y cuando no
+	 sea modificado, solo puede ser modificado con el permiso del autor, también 
+	 se utilizan material externo de apoyo pero sin el plagio del mismo, siempre 
+	 indicando el nombre del autor y los link de referencia.</p>
+    
+
+	<p> &nbsp;&nbsp;&nbsp;&nbsp;Todos los derechos reservados, alguna modificación se debe comunicar al autor en su blog o pagina y atreves del correo <a href="danielpdiamon@gmail.com" >danielpdiamon@gmail.com</a>, todos los usuarios tienen derecho a dar sus comentarios acerca de la aplicación ya que está en fase de desarrollo, cualquier error en su escrito se puede informar para corrección del mismo.</p>
+      <p align="center" > Autor </p>
+      <p align="center" > Daniel Diamon </p>
+
+
+	
+
+
+</div>
+
+
+
+
+
+<div data-role="footer" data-position="fixed">
+<nav data-role="navbar">
+<ul>
+
+<li><a href="#segunda" data-transition="pop" id= "botonaceptar2" data-icon="check">Aceptar</a> </li>
+</ul>
+
+
+
+</nav>
+
+</div>
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+<div data-role="page" id="sexta3">
+
+
+
+
+
+
+<div data-role="header" data-position="fixed">
+<p align="center">Acerca De La Aplicación</p>
+	  
+</div>
+
+
+
+
+<div data-role="content">
+
+<p> &nbsp;&nbsp;&nbsp;&nbsp; 
+
+  Esta aplicación es un tutorial de de programación en Java, donde se 
+  realiza un demo de un juego, paso a paso, para aprender las mecánicas
+  de programación de Juegos en general, y concretamente juegos 2D.
+</p>
+	  
+	 
+
+	 <p> &nbsp;&nbsp;&nbsp;&nbsp;El material aquí citado es de uso público siempre y cuando no
+	 sea modificado, solo puede ser modificado con el permiso del autor, también 
+	 se utilizan material externo de apoyo pero sin el plagio del mismo, siempre 
+	 indicando el nombre del autor y los link de referencia.</p>
+    
+
+	<p> &nbsp;&nbsp;&nbsp;&nbsp;Todos los derechos reservados, alguna 
+	  modificación se debe comunicar al autor en su blog o pagina y
+	  atreves del correo <a href="danielpdiamon@gmail.com" >danielpdiamon@gmail.com</a>, 
+	  todos los usuarios tienen derecho a dar sus comentarios acerca de la aplicación ya que
+	  está en fase de desarrollo, cualquier error en su escrito se puede informar para corrección del mismo.</p>
+      <p align="center" > Autor </p>
+      <p align="center" > Daniel Diamon </p>
+
+
+	
+
+
+</div>
+
+
+
+
+
+<div data-role="footer" data-position="fixed">
+<nav data-role="navbar">
+<ul>
+
+<li><a href="#tercera" data-transition="pop" id= "botonaceptar3" data-icon="check">Aceptar</a> </li>
+</ul>
+
+
+
+</nav>
+
+</div>
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

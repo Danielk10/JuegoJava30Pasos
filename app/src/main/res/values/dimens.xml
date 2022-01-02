@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+	
+<resources>
+<dimen name="fab_margin">16dp</dimen>
+<dimen name="margenDeActividadesHorizontal">16dp</dimen>
+<dimen name="margenDeActividadesVertical">16dp</dimen>
+<dimen name="tamanoDeTextoEncabezado">30sp</dimen>
+<dimen name="tamanoDeTextoPieDePagina">30sp</dimen>
+<dimen name="tamanoDeTextoDelContenido">26sp</dimen>
+<dimen name="tamanoDeBotonVertical">150dp</dimen>
+<dimen name="tamanoDeTextoVertical">70dp</dimen>
+</resources>
