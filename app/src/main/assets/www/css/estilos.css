@@ -10,7 +10,13 @@
 		}
 
 
-
+div {
+	width: auto;
+	overflow: auto;
+	border: 1px solid #666;
+	background-color: #ccc;
+	padding: 8px;
+}
 
 
 #pagina,#lista,#titulo,#algoritmo,#codigo,#grupos
