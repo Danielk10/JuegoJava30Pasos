@@ -52,6 +52,8 @@ public class PantallaJuego extends Pantalla {
 
 	private boolean musicaIntro2;
 
+	private boolean agrega[];
+
 	public PantallaJuego(Juego juego) {
 		super(juego);
 
@@ -64,14 +66,22 @@ public class PantallaJuego extends Pantalla {
 		musicaMuriendo2 = true;
 
 		musicaIntro1 = false;
-		
+
 		musicaIntro2 = true;
+
+		agrega = new boolean[7];
 
 		iniciar();
 
 	}
 
 	private void iniciar() {
+
+		for (int i = 0; i < agrega.length - 1; i++) {
+
+			agrega[i] = true;
+
+		}
 
 		int posicion = 0;
 
@@ -219,7 +229,7 @@ public class PantallaJuego extends Pantalla {
 		Random r = new Random();
 
 		for (int i = 0; i < voladores.length; i++) {
-			
+
 			voladores[i] = new Volador(this);
 
 			voladores[i].setTamano(32, 32);
@@ -323,7 +333,7 @@ public class PantallaJuego extends Pantalla {
 
 	private void moverFondo() {
 
-		if ((int) fondo[4].getX() <= 0 && (int) fondo[4].getY() <= 0) {
+		if (fondo[4].getX() <= 0 && fondo[4].getY() == 0) {
 
 			fondo[4].setPosicion(0, 0);
 
@@ -351,7 +361,7 @@ public class PantallaJuego extends Pantalla {
 
 		}
 
-		if ((int) fondo[7].getX() <= 0 && (int) fondo[7].getY() <= 0) {
+		if (fondo[7].getX() == 0 && fondo[7].getY() >= 0) {
 
 			fondo[7].setPosicion(0, 0);
 
@@ -379,7 +389,7 @@ public class PantallaJuego extends Pantalla {
 
 		}
 
-		if ((int) fondo[10].getX() <= 0 && (int) fondo[10].getY() <= 0) {
+		if (fondo[10].getX() <= 0 && (int) fondo[10].getY() == 0) {
 
 			fondo[10].setPosicion(0, 0);
 
@@ -395,7 +405,7 @@ public class PantallaJuego extends Pantalla {
 
 		}
 
-		if ((int) fondo[11].getX() <= 0 && (int) fondo[11].getY() <= 0) {
+		if (fondo[11].getX() == 0 && fondo[11].getY() <= 0) {
 
 			fondo[11].setPosicion(0, 0);
 
@@ -417,7 +427,7 @@ public class PantallaJuego extends Pantalla {
 
 		}
 
-		if ((int) fondo[13].getX() <= 0 && (int) fondo[13].getY() <= 0) {
+		if (fondo[13].getX() <= 0 && fondo[13].getY() == 0) {
 
 			fondo[13].setPosicion(0, 0);
 
@@ -439,7 +449,7 @@ public class PantallaJuego extends Pantalla {
 
 		}
 
-		if ((int) fondo[15].getX() <= 0 && (int) fondo[15].getY() <= 0) {
+		if (fondo[15].getX() == 0 && fondo[15].getY() <= 0) {
 
 			fondo[15].setPosicion(0, 0);
 
@@ -481,7 +491,7 @@ public class PantallaJuego extends Pantalla {
 
 		if (!fondo[20].isParar()) {
 
-			if ((int) fondo[20].getX() <= 0 && (int) fondo[20].getY() <= 0) {
+			if (fondo[20].getX() <= 0 && (int) fondo[20].getY() == 0) {
 
 				fondo[20].setParar(true);
 
@@ -632,40 +642,67 @@ public class PantallaJuego extends Pantalla {
 
 		if (tiemoParaEnemigos / 10 >= 1) {
 
-			if (10 == tiemoParaEnemigos) {
+			if (tiemoParaEnemigos >= 10) {
 
-				agregarMaquinaAntiAreo();
+				if (agrega[0]) {
 
-				agregarVolador();
+					agregarMaquinaAntiAreo();
+
+					agregarVolador();
+
+					agrega[0] = false;
+
+				}
+
 			}
 
 		}
 
 		if (tiemoParaEnemigos / 13.33f >= 1) {
 
-			if (13.33f == tiemoParaEnemigos) {
+			if (tiemoParaEnemigos >= 13.33f) {
 
-				agregarSaltador();
+				if (agrega[1]) {
+
+					agregarSaltador();
+
+					agrega[1] = false;
+
+				}
+
 			}
 
 		}
 
 		if (tiemoParaEnemigos / 41.66 >= 1) {
 
-			if (41.66f == tiemoParaEnemigos) {
-				agregarRobot();
+			if (tiemoParaEnemigos >= 41.66f) {
 
-				agregarLanzaMisil();
+				if (agrega[2]) {
 
-				
+					agregarRobot();
+
+					agregarLanzaMisil();
+
+					agrega[2] = false;
+
+				}
+
 			}
 
 		}
 
 		if (tiemoParaEnemigos / 45.83f >= 1) {
 
-			if (45.83f == tiemoParaEnemigos) {
-				agregarMaquinaPared();
+			if (tiemoParaEnemigos >= 45.83f) {
+
+				if (agrega[3]) {
+
+					agregarMaquinaPared();
+
+					agrega[3] = false;
+
+				}
 
 			}
 
@@ -673,27 +710,47 @@ public class PantallaJuego extends Pantalla {
 
 		if (tiemoParaEnemigos / 50 >= 1) {
 
-			if (50 == tiemoParaEnemigos) {
+			if (tiemoParaEnemigos >= 50) {
 
-				agregarMaquinaPared();
+				if (agrega[4]) {
+
+					agregarMaquinaPared();
+
+					agrega[4] = false;
+				}
+
 			}
 
 		}
 
 		if (tiemoParaEnemigos / 53.33f >= 1) {
 
-			if (53.33f == tiemoParaEnemigos) {
+			if (tiemoParaEnemigos >= 53.33f) {
 
-				agregarMaquinaPared();
+				if (agrega[5]) {
+
+					agregarMaquinaPared();
+
+					agrega[5] = false;
+
+				}
+
 			}
 
 		}
 
 		if (tiemoParaEnemigos / 116.66f >= 1) {
 
-			if (116.66f == tiemoParaEnemigos) {
+			if (tiemoParaEnemigos >= 116.66f) {
 
-				agregarPoder();
+				if (agrega[6]) {
+
+					agregarPoder();
+
+					agrega[6] = false;
+
+				}
+
 			}
 
 		}
@@ -818,7 +875,7 @@ public class PantallaJuego extends Pantalla {
 	}
 
 	private void agregarPoder() {
-		
+
 		int posicionCaja = 64;
 
 		Caja[] cajas = new Caja[4];

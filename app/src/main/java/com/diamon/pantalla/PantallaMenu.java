@@ -51,7 +51,7 @@ public class PantallaMenu extends Pantalla {
 
 		tiemoMovimiento += delta;
 
-		if (tiemoMovimiento / 5f >= 1) {
+		if (tiemoMovimiento / 7f >= 1) {
 
 			juego.setPantalla(new PantallaIntroduccion(juego));
 
