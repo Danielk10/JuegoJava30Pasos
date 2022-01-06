@@ -1,8 +1,8 @@
 package com.diamon.nucleo;
 
 import com.diamon.dato.Configuraciones;
-import com.diamon.dato.DatosJuego;
 import com.diamon.utilidad.Recurso;
+
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -22,12 +22,15 @@ import android.view.View.OnKeyListener;
 import android.view.View.OnTouchListener;
 
 public abstract class Juego extends SurfaceView
-		implements Runnable, OnKeyListener, SensorEventListener, 
-		OnTouchListener, SurfaceHolder.Callback {
+		implements Runnable, OnKeyListener, SensorEventListener, OnTouchListener, SurfaceHolder.Callback {
 
 	public final static int ANCHO_PANTALLA = 640;
 
 	public final static int ALTO_PANTALLA = 480;
+
+	public static final float DELTA_A_PIXEL = 0.0166666666666667F;
+
+	public static final int FPS = 60;
 
 	private Thread hilo;
 
@@ -49,11 +52,11 @@ public abstract class Juego extends SurfaceView
 
 	private Paint lapiz;
 
-	private Recurso recurso;
+	protected Recurso recurso;
 
-	private DatosJuego datos;
+	protected Camara2D camara;
 
-	private Configuraciones configuracioin;
+	protected Configuraciones configuracion;
 
 	private Bitmap bufer;
 
@@ -61,9 +64,11 @@ public abstract class Juego extends SurfaceView
 	public Juego(Context contexto, Bitmap bufer) {
 		super(contexto);
 
-		configuracioin = new Configuraciones();
+		configuracion = new Configuraciones();
 
-		datos = new DatosJuego();
+		configuracion = configuracion.caragarConfiguraciones();
+
+		camara = new Camara2D();
 
 		delta = 0;
 
@@ -74,9 +79,9 @@ public abstract class Juego extends SurfaceView
 		pantalla = null;
 
 		holder = getHolder();
-		
+
 		holder.addCallback(this);
-		
+
 		holder.setType(SurfaceHolder.SURFACE_TYPE_GPU);
 
 		this.bufer = bufer;
@@ -84,7 +89,6 @@ public abstract class Juego extends SurfaceView
 		lapiz = new Paint();
 
 		recurso = new Recurso(contexto);
-		
 
 		setOnKeyListener(this);
 
@@ -157,7 +161,6 @@ public abstract class Juego extends SurfaceView
 
 	}
 
-
 	public void renderizar(Canvas pincel, float delta) {
 		if (pantalla != null) {
 			pantalla.dibujar(pincel, delta);
@@ -201,9 +204,6 @@ public abstract class Juego extends SurfaceView
 		}
 	}
 
-	
-	
-	
 	public void pausa() {
 		if (pantalla != null) {
 
@@ -308,35 +308,19 @@ public abstract class Juego extends SurfaceView
 
 	}
 
-	public DatosJuego getDatos() {
-		return datos;
-	}
-
-	public Configuraciones getConfiguracioin() {
-		return configuracioin;
-	}
-
-	public Recurso getRecurso() {
-		return recurso;
-	}
-	
 	@Override
-	public void surfaceCreated(SurfaceHolder p1)
-	{
+	public void surfaceCreated(SurfaceHolder p1) {
 		// TODO: Implement this method
 	}
 
 	@Override
-	public void surfaceChanged(SurfaceHolder p1, int p2, int p3, int p4)
-	{
+	public void surfaceChanged(SurfaceHolder p1, int p2, int p3, int p4) {
 		// TODO: Implement this method
 	}
 
 	@Override
-	public void surfaceDestroyed(SurfaceHolder p1)
-	{
+	public void surfaceDestroyed(SurfaceHolder p1) {
 		// TODO: Implement this method
 	}
-	
 
 }

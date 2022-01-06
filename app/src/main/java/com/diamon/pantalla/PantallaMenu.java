@@ -1,6 +1,5 @@
 package com.diamon.pantalla;
 
-import com.diamon.juego.FinalMision;
 import com.diamon.nucleo.Juego;
 import com.diamon.nucleo.Pantalla;
 
@@ -18,26 +17,22 @@ public class PantallaMenu extends Pantalla {
 
 	private int posicionY;
 
-	private int ciclo;
+	private float tiemoMovimiento;
 
 	private boolean toque;
 
-	public PantallaMenu(FinalMision juego) {
+	public PantallaMenu(Juego juego) {
 		super(juego);
 
-		fondo = this.crearBitmap(juego.getRecurso().getImagen("menu2.png"), Juego.ANCHO_PANTALLA, Juego.ALTO_PANTALLA);
+		fondo = this.crearBitmap(recurso.getImagen("menu2.png"), Juego.ANCHO_PANTALLA, Juego.ALTO_PANTALLA);
 
-		selector = this.crearBitmap(juego.getRecurso().getImagen("selector1.png"), 16, 16);
+		selector = this.crearBitmap(recurso.getImagen("selector1.png"), 16, 16);
 
 		posicionY = 320;
 
-		juego.getRecurso().playMusica("menu.wav", 1);
-
-		ciclo = 0;
+		recurso.playMusica("menu.wav", 1);
 
 		toque = false;
-		
-	
 
 	}
 
@@ -54,13 +49,13 @@ public class PantallaMenu extends Pantalla {
 	@Override
 	public void actualizar(float delta) {
 
-		ciclo++;
+		tiemoMovimiento += delta;
 
-		if (ciclo % 300 == 0) {
+		if (tiemoMovimiento / 5f >= 1) {
 
 			juego.setPantalla(new PantallaIntroduccion(juego));
 
-			ciclo = 0;
+			tiemoMovimiento = 0;
 		}
 
 	}
@@ -71,9 +66,6 @@ public class PantallaMenu extends Pantalla {
 		dibujarImagen(pincel, fondo, 0, 0);
 
 		dibujarImagen(pincel, selector, 186, posicionY);
-		
-
-	
 
 	}
 
@@ -89,11 +81,6 @@ public class PantallaMenu extends Pantalla {
 
 	@Override
 	public void mostrar() {
-
-	}
-
-	@Override
-	public void reajustarPantalla(int ancho, int alto) {
 
 	}
 
@@ -172,7 +159,6 @@ public class PantallaMenu extends Pantalla {
 
 	}
 
-	@SuppressWarnings("unused")
 	@Override
 	public void multiToque(MotionEvent ev) {
 
@@ -181,13 +167,12 @@ public class PantallaMenu extends Pantalla {
 		int punteroIndice = (ev.getAction()
 				& MotionEvent.ACTION_POINTER_INDEX_MASK) >> MotionEvent.ACTION_POINTER_INDEX_SHIFT;
 
+		@SuppressWarnings("unused")
 		int punteroID = ev.getPointerId(punteroIndice);
 
 		switch (accion) {
 
 		case MotionEvent.ACTION_DOWN:
-
-			
 
 			break;
 		case MotionEvent.ACTION_POINTER_DOWN:
@@ -199,16 +184,14 @@ public class PantallaMenu extends Pantalla {
 			break;
 		case MotionEvent.ACTION_UP:
 
-				toque = !toque;
-				if (toque) {
-					posicionY = 320;
+			toque = !toque;
+			if (toque) {
+				posicionY = 320;
 
-				} else {
+			} else {
 
-					posicionY = 354;
-				}
-			///
-				//juego.setPantalla(new PantallaNivel(juego));
+				posicionY = 354;
+			}
 
 			break;
 		case MotionEvent.ACTION_POINTER_UP:
@@ -236,6 +219,12 @@ public class PantallaMenu extends Pantalla {
 
 	@Override
 	public void acelerometro(SensorEvent ev) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void reajustarPantalla(float ancho, float alto) {
 		// TODO Auto-generated method stub
 
 	}

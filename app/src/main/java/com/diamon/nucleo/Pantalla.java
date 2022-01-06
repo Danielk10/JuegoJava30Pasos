@@ -2,7 +2,8 @@ package com.diamon.nucleo;
 
 import java.util.ArrayList;
 
-import com.diamon.juego.FinalMision;
+import com.diamon.dato.Configuraciones;
+import com.diamon.utilidad.Recurso;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -13,13 +14,27 @@ import android.view.MotionEvent;
 
 public abstract class Pantalla {
 
-	protected final FinalMision juego;
+	protected final Juego juego;
 
-	protected ArrayList<Actor> actores = new ArrayList<Actor>();
+	protected ArrayList<Actor> actores;
 
-	public Pantalla(FinalMision juego) {
+	protected Recurso recurso;
+
+	protected Configuraciones configuracion;
+
+	protected Camara2D camara;
+
+	public Pantalla(Juego juego) {
 
 		this.juego = juego;
+
+		actores = new ArrayList<Actor>();
+
+		this.recurso = juego.recurso;
+
+		this.configuracion = juego.configuracion;
+
+		this.camara = juego.camara;
 
 	}
 
@@ -37,7 +52,7 @@ public abstract class Pantalla {
 
 	public abstract void mostrar();
 
-	public abstract void reajustarPantalla(int ancho, int alto);
+	public abstract void reajustarPantalla(float ancho, float alto);
 
 	public abstract void teclaPresionada(KeyEvent ev);
 
@@ -49,30 +64,22 @@ public abstract class Pantalla {
 
 	public abstract void acelerometro(SensorEvent ev);
 
-	public void dibujarImagen(Canvas pincel, Bitmap imagen, int x, int y) {
+	public void dibujarImagen(Canvas pincel, Bitmap imagen, float x, float y) {
 
 		pincel.drawBitmap(imagen, x, y, null);
 
 	}
 
-	public Bitmap crearBitmap(Bitmap imagen, int ancho, int alto) {
+	public Bitmap crearBitmap(Bitmap imagen, float ancho, float alto) {
 
 		int w = imagen.getWidth();
 		int h = imagen.getHeight();
-		float sw = ((float) ancho) / w;
-		float sh = ((float) alto) / h;
+		float sw = ancho / w;
+		float sh = alto / h;
 		Matrix max = new Matrix();
 		max.postScale(sw, sh);
 		return Bitmap.createBitmap(imagen, 0, 0, w, h, max, false);
 
-	}
-
-	public ArrayList<Actor> getActores() {
-		return actores;
-	}
-
-	public FinalMision getJuego() {
-		return juego;
 	}
 
 }

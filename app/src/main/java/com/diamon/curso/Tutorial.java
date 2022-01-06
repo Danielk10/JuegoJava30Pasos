@@ -16,38 +16,37 @@ import com.microsoft.appcenter.crashes.Crashes;
 public class Tutorial extends Activity {
 
 	private ImageButton botonTutorial;
-	
+
 	private ImageButton botonDemo;
-	
+
 	private ImageButton botonTerminos;
 
 	private PantallaCompleta pantallaCompleta;
-	
+
 	private MostrarPublicidad publicidad;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 
 		super.onCreate(savedInstanceState);
-		
-		AppCenter.start(getApplication(), "cf7ac082-49cd-4cef-bd2d-3f1a3377efa9",
-                  Analytics.class, Crashes.class);
+
+		AppCenter.start(getApplication(), "cf7ac082-49cd-4cef-bd2d-3f1a3377efa9", Analytics.class, Crashes.class);
 
 		pantallaCompleta = new PantallaCompleta(this);
 
 		pantallaCompleta.pantallaCompleta();
 
 		pantallaCompleta.ocultarBotonesVirtuales();
-		
+
 		publicidad = new MostrarPublicidad(this);
 
 		setContentView(R.layout.main);
 
-		 botonTutorial = (ImageButton) findViewById(R.id.boton);
-		
-		 botonDemo = (ImageButton) findViewById(R.id.boton1);
-		
-		 botonTerminos = (ImageButton) findViewById(R.id.boton2);
+		botonTutorial = (ImageButton) findViewById(R.id.boton);
+
+		botonDemo = (ImageButton) findViewById(R.id.boton1);
+
+		botonTerminos = (ImageButton) findViewById(R.id.boton2);
 
 		botonTutorial.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -57,8 +56,7 @@ public class Tutorial extends Activity {
 
 			}
 		});
-		
-		
+
 		botonDemo.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -67,8 +65,7 @@ public class Tutorial extends Activity {
 
 			}
 		});
-		
-		
+
 		botonTerminos.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -78,40 +75,31 @@ public class Tutorial extends Activity {
 			}
 		});
 
-
-
 	}
 
 	public void accionBoton() {
 		Intent nuevaActividad = new Intent(Tutorial.this, Pagina.class);
 		startActivity(nuevaActividad);
-		
+
 		publicidad.mostrarInterstitial();
 	}
 
-	
 	public void accionBoton1() {
 		Intent nuevaActividad = new Intent(Tutorial.this, Inicio.class);
 		startActivity(nuevaActividad);
 	}
-	
+
 	public void accionBoton2() {
 		Intent nuevaActividad = new Intent(Tutorial.this, Terminos.class);
 		startActivity(nuevaActividad);
 	}
-	
 
-	
-	
 	@Override
 	public void onBackPressed() {
-		
 
-       publicidad.botonAtrasInterstitial();
-       
+		publicidad.botonAtrasInterstitial();
+
 		super.onBackPressed();
-		
-		
 
 	}
 

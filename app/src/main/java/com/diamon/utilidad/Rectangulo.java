@@ -2,25 +2,22 @@ package com.diamon.utilidad;
 
 import android.graphics.RectF;
 
-public class Rectangulo extends RectF{ 
+public class Rectangulo extends RectF {
 
-	private float X1, Y1;
-	private float P1, Q1;
-
+	private float X1, Y1; // Posición del rectángulo móvil
+	private float P1, Q1; // Posición del rectángulo estático
+	// Base y altura del rectángulo 1
 	private float BaseRect1, AlturaRect1;
-
+	// Base y altura del rectángulo 2
 	private float BaseRect2, AlturaRect2;
 
 	public Rectangulo(float x, float y, float ancho, float alto) {
-		super((int )x,(int )y,(int )ancho,(int )alto);
-		
-	
+		super((int) x, (int) y, (int) ancho, (int) alto);
 
 		X1 = x;
 		Y1 = y;
 		BaseRect1 = ancho;
 		AlturaRect1 = alto;
-
 
 	}
 
@@ -29,13 +26,13 @@ public class Rectangulo extends RectF{
 		Q1 = r.Y1;
 		BaseRect2 = r.BaseRect1;
 		AlturaRect2 = r.AlturaRect1;
-
+		// Deduce el punto (X2, Y2) del rectángulo 1
 		float X2, Y2;
 		X2 = X1 + BaseRect1;
-		Y2 = Y1 + AlturaRect1;
+		Y2 = Y1 + AlturaRect1; // Deduce el punto (P2, Q2) del rectángulo 2
 		float P2, Q2;
 		P2 = P1 + BaseRect2;
-		Q2 = Q1 + AlturaRect2;
+		Q2 = Q1 + AlturaRect2; // Chequea si hay colisión
 		if (X1 >= P1 && X1 <= P2 && Y1 >= Q1 && Y1 <= Q2)
 			return true;
 		if (X2 >= P1 && X2 <= P2 && Y1 >= Q1 && Y1 <= Q2)
@@ -52,27 +49,25 @@ public class Rectangulo extends RectF{
 			return true;
 		if (P2 >= X1 && P2 <= X2 && Q2 >= Y1 && Q2 <= Y2)
 			return true;
-
+		// No se detectó colisión
 		return false;
 	}
-	public boolean IntersecionR(Rectangulo r)
-	{
-		 if (X1 + BaseRect1 < r.X1) {
-         return false;
-     }
-     if (Y1 + AlturaRect1 < r.Y1) {
-         return false;
-     }
-     if (X1 > r.X1 + r.BaseRect1) {
-         return false;
-     }
-     if (Y1 > r.Y1 + r.AlturaRect1) {
-         return false;
-     }
-     return true;
 
-		
+	public boolean IntersecionR(Rectangulo r) {
+		if (X1 + BaseRect1 < r.X1) {
+			return false;
+		}
+		if (Y1 + AlturaRect1 < r.Y1) {
+			return false;
+		}
+		if (X1 > r.X1 + r.BaseRect1) {
+			return false;
+		}
+		if (Y1 > r.Y1 + r.AlturaRect1) {
+			return false;
+		}
+		return true;
+
 	}
-	
-	
+
 }

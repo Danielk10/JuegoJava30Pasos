@@ -1,6 +1,5 @@
 package com.diamon.pantalla;
 
-import com.diamon.juego.FinalMision;
 import com.diamon.nucleo.Juego;
 import com.diamon.nucleo.Pantalla;
 
@@ -20,37 +19,32 @@ public class PantallaFinal extends Pantalla {
 
 	private Bitmap selector;
 
-	private int posicionY;
+	private float posicionY;
 
 	private boolean cambio;
 
 	private boolean cambio2;
 
-	private int ciclo;
+	private float tiemoMovimiento;
 
 	private boolean toque;
 
-	public PantallaFinal(FinalMision juego) {
+	public PantallaFinal(Juego juego) {
 		super(juego);
 
-		fondo = this.crearBitmap(juego.getRecurso().getImagen("finNivel.png"), Juego.ANCHO_PANTALLA,
-				Juego.ALTO_PANTALLA);
+		fondo = this.crearBitmap(recurso.getImagen("finNivel.png"), Juego.ANCHO_PANTALLA, Juego.ALTO_PANTALLA);
 
-		creditos = this.crearBitmap(juego.getRecurso().getImagen("creditos.png"), Juego.ANCHO_PANTALLA,
-				Juego.ALTO_PANTALLA);
+		creditos = this.crearBitmap(recurso.getImagen("creditos.png"), Juego.ANCHO_PANTALLA, Juego.ALTO_PANTALLA);
 
-		menuFinal = this.crearBitmap(juego.getRecurso().getImagen("menuFinal.png"), Juego.ANCHO_PANTALLA,
-				Juego.ALTO_PANTALLA);
+		menuFinal = this.crearBitmap(recurso.getImagen("menuFinal.png"), Juego.ANCHO_PANTALLA, Juego.ALTO_PANTALLA);
 
-		selector = this.crearBitmap(juego.getRecurso().getImagen("selector2.png"), 16, 16);
+		selector = this.crearBitmap(recurso.getImagen("selector2.png"), 16, 16);
 
 		posicionY = 288;
 
 		cambio = false;
 
 		cambio2 = false;
-
-		ciclo = 0;
 
 		toque = false;
 	}
@@ -70,20 +64,19 @@ public class PantallaFinal extends Pantalla {
 	@Override
 	public void actualizar(float delta) {
 
-		ciclo++;
+		tiemoMovimiento += delta;
 
-		if (ciclo % 300 == 0) {
+		if (tiemoMovimiento / 5 >= 1) {
 
 			cambio = true;
 
 		}
 
-		if (ciclo % 2000 == 0) {
+		if (tiemoMovimiento / 33.33f >= 1) {
 
 			cambio2 = true;
 
-			ciclo = 0;
-
+			tiemoMovimiento = 0;
 		}
 
 	}
@@ -124,12 +117,6 @@ public class PantallaFinal extends Pantalla {
 
 	@Override
 	public void mostrar() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void reajustarPantalla(int ancho, int alto) {
 		// TODO Auto-generated method stub
 
 	}
@@ -186,7 +173,6 @@ public class PantallaFinal extends Pantalla {
 
 	}
 
-	@SuppressWarnings("unused")
 	@Override
 	public void multiToque(MotionEvent ev) {
 		int accion = ev.getAction() & MotionEvent.ACTION_MASK;
@@ -194,13 +180,12 @@ public class PantallaFinal extends Pantalla {
 		int punteroIndice = (ev.getAction()
 				& MotionEvent.ACTION_POINTER_INDEX_MASK) >> MotionEvent.ACTION_POINTER_INDEX_SHIFT;
 
+		@SuppressWarnings("unused")
 		int punteroID = ev.getPointerId(punteroIndice);
 
 		switch (accion) {
 
 		case MotionEvent.ACTION_DOWN:
-
-			
 
 			break;
 		case MotionEvent.ACTION_POINTER_DOWN:
@@ -213,15 +198,15 @@ public class PantallaFinal extends Pantalla {
 
 			break;
 		case MotionEvent.ACTION_UP:
-			
-				toque = !toque;
-				if (toque) {
-					posicionY = 288;
 
-				} else {
+			toque = !toque;
+			if (toque) {
+				posicionY = 288;
 
-					posicionY = 322;
-				}
+			} else {
+
+				posicionY = 322;
+			}
 
 			break;
 		case MotionEvent.ACTION_POINTER_UP:
@@ -251,6 +236,12 @@ public class PantallaFinal extends Pantalla {
 
 	@Override
 	public void acelerometro(SensorEvent ev) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void reajustarPantalla(float ancho, float alto) {
 		// TODO Auto-generated method stub
 
 	}

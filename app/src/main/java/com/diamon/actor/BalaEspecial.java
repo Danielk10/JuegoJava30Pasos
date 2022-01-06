@@ -3,9 +3,9 @@ package com.diamon.actor;
 import com.diamon.nucleo.Actor;
 import com.diamon.nucleo.Juego;
 import com.diamon.nucleo.Pantalla;
+import com.diamon.utilidad.Texturas;
 
 import android.graphics.Bitmap;
-import com.diamon.utilidad.*;
 
 public class BalaEspecial extends Actor {
 
@@ -17,15 +17,15 @@ public class BalaEspecial extends Actor {
 
 	public final static byte BALA_B = 4;
 
-	public final static int VELOCIDAD_BALA = 10;
+	public final static float VELOCIDAD_BALA = 10;
 
 	private boolean lado;
 
 	private byte bala;
 
-	private int cicloExplosion;
+	private float tiemoExplosion;
 
-	private int velocidad;
+	private float velocidad;
 
 	public BalaEspecial(Pantalla pantalla) {
 		super(pantalla);
@@ -34,8 +34,6 @@ public class BalaEspecial extends Actor {
 
 		bala = 0;
 
-		cicloExplosion = 0;
-
 		velocidad = VELOCIDAD_BALA;
 	}
 
@@ -43,11 +41,11 @@ public class BalaEspecial extends Actor {
 		return bala;
 	}
 
-	public int getVelocidad() {
+	public float getVelocidad() {
 		return velocidad;
 	}
 
-	public void setVelocidad(int velocidad) {
+	public void setVelocidad(float velocidad) {
 		this.velocidad = velocidad;
 	}
 
@@ -70,7 +68,7 @@ public class BalaEspecial extends Actor {
 
 		} else {
 
-			x -= velocidad;
+			x -= velocidad / Juego.DELTA_A_PIXEL * delta;
 
 			if (x <= -ancho) {
 
@@ -79,21 +77,20 @@ public class BalaEspecial extends Actor {
 
 		}
 
-		cicloExplosion++;
+		tiemoExplosion += delta;
 
-		if (cicloExplosion % 5 == 0) {
+		if (tiemoExplosion / 0.083f >= 1) {
 
-			for (int i = 0; i < pantalla.getActores().size(); i++) {
+			for (int i = 0; i < actores.size(); i++) {
 
-				if (pantalla.getActores().get(i) instanceof ExplosionB) {
-					ExplosionB e = (ExplosionB) pantalla.getActores().get(i);
+				if (actores.get(i) instanceof ExplosionB) {
+					ExplosionB e = (ExplosionB) actores.get(i);
 
 					e.remover();
 
 				}
 			}
-
-			cicloExplosion = 0;
+			tiemoExplosion = 0;
 
 		}
 
@@ -107,16 +104,14 @@ public class BalaEspecial extends Actor {
 
 		explosion.setPosicion(x - 32, y - 32);
 
-		explosion.setImagenes(
-				new Bitmap[] { Texturas.explosionB2, Texturas.explosionB3,
-						Texturas.explosionB4, Texturas.explosionB5 });
+		explosion.setImagenes(new Bitmap[] { Texturas.explosionB2, Texturas.explosionB3, Texturas.explosionB4,
+				Texturas.explosionB5 });
 
-						
 		explosion.setCuadros(2);
 
 		if (explosion.getX() <= 640) {
 
-			pantalla.getActores().add(explosion);
+			actores.add(explosion);
 
 		}
 
@@ -131,7 +126,8 @@ public class BalaEspecial extends Actor {
 
 		if (actor instanceof Volador || actor instanceof LanzaMisil || actor instanceof Caja
 				|| actor instanceof MaquinaFinal || actor instanceof MaquinaPared || actor instanceof Robot
-			|| actor instanceof Saltador || actor instanceof Misil || actor instanceof AntiAreo || actor instanceof BalaEnemigoDestruible) {
+				|| actor instanceof Saltador || actor instanceof Misil || actor instanceof AntiAreo
+				|| actor instanceof BalaEnemigoDestruible) {
 			if (bala == BalaEspecial.BALA_B) {
 				explosion();
 			}

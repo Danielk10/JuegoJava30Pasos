@@ -4,7 +4,6 @@ import android.graphics.Bitmap;
 
 public class Texturas {
 
-    
 	public static Bitmap antiAreoD1;
 	public static Bitmap antiAreoD2;
 	public static Bitmap antiAreoEspecialD;
@@ -188,10 +187,5 @@ public class Texturas {
 	public static Bitmap voladorI1;
 	public static Bitmap voladorI2;
 	public static Bitmap voladorI3;
-
-	
-
-		
-	
 
 }

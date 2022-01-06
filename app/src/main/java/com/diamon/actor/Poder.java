@@ -1,13 +1,14 @@
 package com.diamon.actor;
 
 import com.diamon.nucleo.Actor;
+import com.diamon.nucleo.Juego;
 import com.diamon.nucleo.Pantalla;
 
 public class Poder extends Actor {
 
-	public final static int VELOCIDAD_PODER = 2;
+	public final static float VELOCIDAD_PODER = 2;
 
-	private int cicloDesplazamiento;
+	private float tiempoDesplazamiento;
 
 	private boolean mover;
 
@@ -17,8 +18,6 @@ public class Poder extends Actor {
 
 	public Poder(Pantalla pantalla) {
 		super(pantalla);
-
-		cicloDesplazamiento = 0;
 
 		mover = false;
 
@@ -59,21 +58,22 @@ public class Poder extends Actor {
 
 		super.actualizar(delta);
 
-		x--;
+		x -= 1 / Juego.DELTA_A_PIXEL * delta;
+		;
 
-		cicloDesplazamiento++;
+		tiempoDesplazamiento += delta;
 
-		if (cicloDesplazamiento % 150 == 0) {
+		if (tiempoDesplazamiento / 2.5f >= 1) {
 
 			mover = true;
 
-			cicloDesplazamiento = 0;
+			tiempoDesplazamiento = 0;
 
 		}
 
 		if (mover) {
 
-			x -= Poder.VELOCIDAD_PODER;
+			x -= Poder.VELOCIDAD_PODER / Juego.DELTA_A_PIXEL * delta;
 		}
 
 		if (x <= -ancho) {

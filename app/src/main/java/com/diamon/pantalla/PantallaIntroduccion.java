@@ -1,6 +1,5 @@
 package com.diamon.pantalla;
 
-import com.diamon.juego.FinalMision;
 import com.diamon.nucleo.Juego;
 import com.diamon.nucleo.Pantalla;
 
@@ -12,25 +11,23 @@ import android.view.MotionEvent;
 
 public class PantallaIntroduccion extends Pantalla {
 
-	private int ciclo;
+	private float tiemoMovimiento;
 
 	private Bitmap fondo1;
 
 	private Bitmap fondo2;
 
-	private int x;
+	private float x;
 
-	public PantallaIntroduccion(FinalMision juego) {
+	public PantallaIntroduccion(Juego juego) {
 		super(juego);
 
-		fondo1 = this.crearBitmap(juego.getRecurso().getImagen("fondoIntroduccion3.png"), Juego.ANCHO_PANTALLA,
+		fondo1 = this.crearBitmap(recurso.getImagen("fondoIntroduccion3.png"), Juego.ANCHO_PANTALLA,
 				Juego.ALTO_PANTALLA);
-		fondo2 = this.crearBitmap(juego.getRecurso().getImagen("fondoIntroduccion3.png"), Juego.ANCHO_PANTALLA,
+		fondo2 = this.crearBitmap(recurso.getImagen("fondoIntroduccion3.png"), Juego.ANCHO_PANTALLA,
 				Juego.ALTO_PANTALLA);
 
-		ciclo = 0;
-
-		juego.getRecurso().playMusica("introduccion.wav", 1);
+		recurso.playMusica("introduccion.wav", 1);
 
 		x = 0;
 	}
@@ -50,16 +47,16 @@ public class PantallaIntroduccion extends Pantalla {
 	@Override
 	public void actualizar(float delta) {
 
-		ciclo++;
+		tiemoMovimiento += delta;
 
-		if (ciclo % 6330 == 0) {
+		if (tiemoMovimiento / 105.50f >= 1) {
 
 			juego.setPantalla(new PantallaMenu(juego));
 
-			ciclo = 0;
+			tiemoMovimiento = 0;
 		}
 
-		x--;
+		x -= 1 / Juego.DELTA_A_PIXEL * delta;
 
 		if (x <= -Juego.ANCHO_PANTALLA) {
 
@@ -86,18 +83,12 @@ public class PantallaIntroduccion extends Pantalla {
 	@Override
 	public void ocultar() {
 
-		juego.getRecurso().pararMusica(juego.getRecurso().getMusica("introduccion.wav"));
+		recurso.pararMusica(recurso.getMusica("introduccion.wav"));
 
 	}
 
 	@Override
 	public void mostrar() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void reajustarPantalla(int ancho, int alto) {
 		// TODO Auto-generated method stub
 
 	}
@@ -153,7 +144,6 @@ public class PantallaIntroduccion extends Pantalla {
 
 	}
 
-	@SuppressWarnings("unused")
 	@Override
 	public void multiToque(MotionEvent ev) {
 
@@ -162,6 +152,7 @@ public class PantallaIntroduccion extends Pantalla {
 		int punteroIndice = (ev.getAction()
 				& MotionEvent.ACTION_POINTER_INDEX_MASK) >> MotionEvent.ACTION_POINTER_INDEX_SHIFT;
 
+		@SuppressWarnings("unused")
 		int punteroID = ev.getPointerId(punteroIndice);
 
 		switch (accion) {
@@ -198,6 +189,12 @@ public class PantallaIntroduccion extends Pantalla {
 
 	@Override
 	public void acelerometro(SensorEvent ev) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void reajustarPantalla(float ancho, float alto) {
 		// TODO Auto-generated method stub
 
 	}

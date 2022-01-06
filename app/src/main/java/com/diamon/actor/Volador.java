@@ -3,27 +3,23 @@ package com.diamon.actor;
 import com.diamon.nucleo.Actor;
 import com.diamon.nucleo.Juego;
 import com.diamon.nucleo.Pantalla;
+import com.diamon.utilidad.Texturas;
 
 import android.graphics.Bitmap;
-import com.diamon.utilidad.*;
 
 public class Volador extends Actor {
 
-	public final static int VELOCIDAD_MAQUINA = 2;
+	public final static float VELOCIDAD_MAQUINA = 2;
 
-	private int cicloDisparo;
+	private float tiempoDisparo;
 
-	private int cicloExplosion;
+	private float tiempoExplosion;
 
-	private int velocidadY;
+	private float velocidadY;
 
 	public Volador(Pantalla pantalla) {
 
 		super(pantalla);
-
-		cicloDisparo = 0;
-
-		cicloExplosion = 0;
 
 		velocidadY = 0;
 
@@ -38,7 +34,7 @@ public class Volador extends Actor {
 
 		super.actualizar(delta);
 
-		x -= Volador.VELOCIDAD_MAQUINA;
+		x -= Volador.VELOCIDAD_MAQUINA / Juego.DELTA_A_PIXEL * delta;
 
 		if (x <= -ancho) {
 
@@ -46,33 +42,33 @@ public class Volador extends Actor {
 
 		}
 
-		cicloDisparo++;
+		tiempoExplosion += delta;
 
-		cicloExplosion++;
+		tiempoDisparo += delta;
 
-		if (cicloExplosion % 30 == 0) {
+		if (tiempoExplosion / 0.5f >= 1) {
 
-			for (int i = 0; i < pantalla.getActores().size(); i++) {
+			for (int i = 0; i < actores.size(); i++) {
 
-				if (pantalla.getActores().get(i) instanceof Explosion) {
-					Explosion e = (Explosion) pantalla.getActores().get(i);
+				if (actores.get(i) instanceof Explosion) {
+					Explosion e = (Explosion) actores.get(i);
 
 					e.remover();
 
 				}
 			}
 
-			cicloExplosion = 0;
+			tiempoExplosion = 0;
 
 		}
-		if (cicloDisparo % 40 == 0) {
+		if (tiempoDisparo / 0.66f >= 1) {
 
 			if (Math.random() < 0.08f) {
 				disparar();
 
 			}
 
-			cicloDisparo = 0;
+			tiempoDisparo = 0;
 
 		}
 
@@ -80,7 +76,7 @@ public class Volador extends Actor {
 
 		if (y <= 0 || y >= Juego.ALTO_PANTALLA - alto) {
 
-			velocidadY = -velocidadY;
+			velocidadY = -velocidadY / Juego.DELTA_A_PIXEL * delta;
 
 		}
 
@@ -96,14 +92,13 @@ public class Volador extends Actor {
 
 		bala.setLado(BalaEnemigo.LADO_IZQUIERDO);
 
-		bala.setImagenes(new Bitmap[] { Texturas.balaE1, Texturas.balaE2,
-				Texturas.balaE3, Texturas.balaE4 });
+		bala.setImagenes(new Bitmap[] { Texturas.balaE1, Texturas.balaE2, Texturas.balaE3, Texturas.balaE4 });
 
 		bala.setCuadros(3);
 
 		if (bala.getX() <= 640) {
 
-			pantalla.getActores().add(bala);
+			actores.add(bala);
 		}
 
 	}
@@ -117,14 +112,13 @@ public class Volador extends Actor {
 		explosion.setPosicion(x - 32, y - 32);
 
 		explosion.setImagenes(
-			new Bitmap[] { Texturas.explosion1, Texturas.explosion2,
-				Texturas.explosion3, Texturas.explosion4 });
-				
+				new Bitmap[] { Texturas.explosion1, Texturas.explosion2, Texturas.explosion3, Texturas.explosion4 });
+
 		explosion.setCuadros(4);
 
 		if (explosion.getX() <= 640) {
 
-			pantalla.getActores().add(explosion);
+			actores.add(explosion);
 
 		}
 
@@ -136,7 +130,7 @@ public class Volador extends Actor {
 		if (actor instanceof Bala || actor instanceof Jugador || actor instanceof BalaEspecial
 				|| actor instanceof ExplosionB) {
 
-			pantalla.getJuego().getRecurso().playMusica("explosion.wav", 1);
+			recurso.playMusica("explosion.wav", 1);
 
 			explosion();
 			remover = true;

@@ -1,6 +1,5 @@
 package com.diamon.pantalla;
 
-import com.diamon.juego.FinalMision;
 import com.diamon.nucleo.Juego;
 import com.diamon.nucleo.Pantalla;
 
@@ -14,13 +13,12 @@ public class PantallaAyuda extends Pantalla {
 
 	private Bitmap fondo;
 
-	public PantallaAyuda(FinalMision juego) {
+	public PantallaAyuda(Juego juego) {
 		super(juego);
 
-		fondo = this.crearBitmap(juego.getRecurso().getImagen("ayuda.png"), Juego.ANCHO_PANTALLA, Juego.ALTO_PANTALLA);
-	
-		
-		}
+		fondo = this.crearBitmap(recurso.getImagen("ayuda.png"), Juego.ANCHO_PANTALLA, Juego.ALTO_PANTALLA);
+
+	}
 
 	@Override
 	public void pausa() {
@@ -52,8 +50,6 @@ public class PantallaAyuda extends Pantalla {
 		// TODO Auto-generated method stub
 
 	}
-	
-	
 
 	@Override
 	public void ocultar() {
@@ -63,12 +59,6 @@ public class PantallaAyuda extends Pantalla {
 
 	@Override
 	public void mostrar() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void reajustarPantalla(int ancho, int alto) {
 		// TODO Auto-generated method stub
 
 	}
@@ -125,7 +115,6 @@ public class PantallaAyuda extends Pantalla {
 
 	}
 
-	@SuppressWarnings("unused")
 	@Override
 	public void multiToque(MotionEvent ev) {
 
@@ -134,6 +123,7 @@ public class PantallaAyuda extends Pantalla {
 		int punteroIndice = (ev.getAction()
 				& MotionEvent.ACTION_POINTER_INDEX_MASK) >> MotionEvent.ACTION_POINTER_INDEX_SHIFT;
 
+		@SuppressWarnings("unused")
 		int punteroID = ev.getPointerId(punteroIndice);
 
 		switch (accion) {
@@ -146,7 +136,7 @@ public class PantallaAyuda extends Pantalla {
 			break;
 		case MotionEvent.ACTION_UP:
 
-				juego.setPantalla(new PantallaCarga(juego));
+			juego.setPantalla(new PantallaCarga(juego));
 
 			break;
 		case MotionEvent.ACTION_POINTER_UP:
@@ -170,6 +160,12 @@ public class PantallaAyuda extends Pantalla {
 
 	@Override
 	public void acelerometro(SensorEvent ev) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void reajustarPantalla(float ancho, float alto) {
 		// TODO Auto-generated method stub
 
 	}

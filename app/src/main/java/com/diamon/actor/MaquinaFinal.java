@@ -2,19 +2,20 @@ package com.diamon.actor;
 
 import com.diamon.nucleo.Actor;
 import com.diamon.nucleo.Pantalla;
+import com.diamon.utilidad.Texturas;
 
 import android.graphics.Bitmap;
-import com.diamon.utilidad.*;
+
 
 public class MaquinaFinal extends Actor {
 
-	private int cicloExplosion;
+	private float tiempoDisparo;
 
-	private int cicloDisparo;
+	private float tiempoExplosion;
 
-	private int cicloDisparoDestruible;
+	private float tiempoChoque;
 
-	private int cicloChoque;
+	private float tiempoDisparoDestruible;
 
 	private int vida;
 
@@ -24,14 +25,6 @@ public class MaquinaFinal extends Actor {
 
 	public MaquinaFinal(Pantalla pantalla) {
 		super(pantalla);
-
-		cicloExplosion = 0;
-
-		cicloDisparo = 0;
-
-		cicloChoque = 0;
-
-		cicloDisparoDestruible = 0;
 
 		vida = 50;
 
@@ -61,31 +54,31 @@ public class MaquinaFinal extends Actor {
 		// TODO Auto-generated method stub
 		super.actualizar(delta);
 
-		cicloDisparo++;
+		tiempoDisparo += delta;
 
-		cicloChoque++;
+		tiempoChoque += delta;
 
-		cicloDisparoDestruible++;
+		tiempoDisparoDestruible += delta;
 
 		if (vida == 0) {
 
 			vida = 0;
 
-			cicloExplosion++;
+			tiempoExplosion += delta;
 
-			if (cicloExplosion % 30 == 0) {
+			if (tiempoExplosion / 0.5f >= 1) {
 
-				for (int i = 0; i < pantalla.getActores().size(); i++) {
+				for (int i = 0; i < actores.size(); i++) {
 
-					if (pantalla.getActores().get(i) instanceof Explosion) {
-						Explosion e = (Explosion) pantalla.getActores().get(i);
+					if (actores.get(i) instanceof Explosion) {
+						Explosion e = (Explosion) actores.get(i);
 
 						e.remover();
 
 					}
 				}
 
-				cicloExplosion = 0;
+				tiempoExplosion = 0;
 
 			}
 
@@ -93,19 +86,19 @@ public class MaquinaFinal extends Actor {
 
 		if (disparar) {
 
-			if (cicloDisparo % 120 == 0) {
+			if (tiempoDisparo / 2 >= 1) {
 
 				disparar();
 
-				cicloDisparo = 0;
+				tiempoDisparo = 0;
 
 			}
 
-			if (cicloDisparoDestruible % 60 == 0) {
+			if (tiempoDisparoDestruible / 1 >= 1) {
 
 				dispararBalaDestruible();
 
-				cicloDisparoDestruible = 0;
+				tiempoDisparoDestruible = 0;
 
 			}
 
@@ -113,11 +106,11 @@ public class MaquinaFinal extends Actor {
 
 		if (choque) {
 
-			if (cicloChoque % 20 == 0) {
+			if (tiempoChoque / 0.33f >= 1) {
 
 				vida--;
 
-				cicloChoque = 0;
+				tiempoChoque = 0;
 
 				choque = false;
 
@@ -136,14 +129,13 @@ public class MaquinaFinal extends Actor {
 		explosion.setPosicion(x - 32, y - 32);
 
 		explosion.setImagenes(
-			new Bitmap[] { Texturas.explosion1, Texturas.explosion2,
-				Texturas.explosion3, Texturas.explosion4 });
-				
+				new Bitmap[] { Texturas.explosion1, Texturas.explosion2, Texturas.explosion3, Texturas.explosion4 });
+
 		explosion.setCuadros(4);
 
 		if (explosion.getX() <= 640) {
 
-			pantalla.getActores().add(explosion);
+			actores.add(explosion);
 
 		}
 
@@ -159,11 +151,11 @@ public class MaquinaFinal extends Actor {
 
 		bala.setLado(BalaEnemigo.LADO_IZQUIERDO);
 
-		bala.setImagenes(new Bitmap[] { Texturas.balaParedI});
+		bala.setImagenes(new Bitmap[] { Texturas.balaParedI });
 
 		if (bala.getX() <= 640) {
 
-			pantalla.getActores().add(bala);
+			actores.add(bala);
 		}
 
 	}
@@ -178,11 +170,11 @@ public class MaquinaFinal extends Actor {
 
 		bala1.setCuadros(20);
 
-		bala1.setImagenes(new Bitmap[] { Texturas.balaSaltador1,Texturas.balaSaltador2 });
+		bala1.setImagenes(new Bitmap[] { Texturas.balaSaltador1, Texturas.balaSaltador2 });
 
 		if (bala1.getX() <= 640) {
 
-			pantalla.getActores().add(bala1);
+			actores.add(bala1);
 		}
 
 		BalaEnemigoDestruible bala2 = new BalaEnemigoDestruible(pantalla);
@@ -193,11 +185,11 @@ public class MaquinaFinal extends Actor {
 
 		bala2.setCuadros(20);
 
-		bala2.setImagenes(new Bitmap[] { Texturas.balaSaltador1,Texturas.balaSaltador2 });
+		bala2.setImagenes(new Bitmap[] { Texturas.balaSaltador1, Texturas.balaSaltador2 });
 
 		if (bala2.getX() <= 640) {
 
-			pantalla.getActores().add(bala2);
+			actores.add(bala2);
 		}
 
 	}
@@ -208,7 +200,7 @@ public class MaquinaFinal extends Actor {
 		if (actor instanceof Bala || actor instanceof Jugador || actor instanceof BalaEspecial
 				|| actor instanceof ExplosionB) {
 
-		pantalla.getJuego().getRecurso().playMusica("explosion.wav",1);
+			recurso.playMusica("explosion.wav", 1);
 			if (vida == 0) {
 
 				explosion();

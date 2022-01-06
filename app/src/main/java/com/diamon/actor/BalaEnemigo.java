@@ -6,7 +6,7 @@ import com.diamon.nucleo.Pantalla;
 
 public class BalaEnemigo extends Actor {
 
-	public final static int VELOCIDAD_BALA = 3;
+	public final static float VELOCIDAD_BALA = 3;
 
 	public final static int LADO_IZQUIERDO = 1;
 
@@ -18,11 +18,11 @@ public class BalaEnemigo extends Actor {
 
 	public final static int MOVER_ABAJO = 4;
 
-	private int velocidad;
+	private float velocidad;
 
 	private int lado;
 
-	private int velocidadY;
+	private float velocidadY;
 
 	public BalaEnemigo(Pantalla pantalla) {
 		super(pantalla);
@@ -49,19 +49,19 @@ public class BalaEnemigo extends Actor {
 		this.lado = lado;
 	}
 
-	public int getVelocidad() {
+	public float getVelocidad() {
 		return velocidad;
 	}
 
-	public void setVelocidad(int velocidad) {
+	public void setVelocidad(float velocidad) {
 		this.velocidad = velocidad;
 	}
 
-	public int getVelocidadY() {
+	public float getVelocidadY() {
 		return velocidadY;
 	}
 
-	public void setVelocidadY(int velocidadY) {
+	public void setVelocidadY(float velocidadY) {
 		this.velocidadY = velocidadY;
 	}
 
@@ -71,7 +71,7 @@ public class BalaEnemigo extends Actor {
 		super.actualizar(delta);
 
 		if (lado == BalaEnemigo.LADO_DERECHO) {
-			x += velocidad;
+			x += velocidad / Juego.DELTA_A_PIXEL * delta;
 
 			if (x >= Juego.ANCHO_PANTALLA) {
 
@@ -82,7 +82,7 @@ public class BalaEnemigo extends Actor {
 
 		if (lado == BalaEnemigo.LADO_IZQUIERDO) {
 
-			x -= velocidad;
+			x -= velocidad / Juego.DELTA_A_PIXEL * delta;
 
 			if (x <= -ancho) {
 
@@ -93,7 +93,7 @@ public class BalaEnemigo extends Actor {
 
 		if (mover == BalaEnemigo.MOVER_ABAJO) {
 
-			y += velocidadY;
+			y += velocidadY / Juego.DELTA_A_PIXEL * delta;
 
 			if (y >= Juego.ALTO_PANTALLA) {
 
@@ -104,7 +104,7 @@ public class BalaEnemigo extends Actor {
 
 		if (mover == BalaEnemigo.MOVER_ARRIBA) {
 
-			y -= velocidadY;
+			y -= velocidadY / Juego.DELTA_A_PIXEL * delta;
 
 			if (y <= -alto) {
 

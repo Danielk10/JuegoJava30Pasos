@@ -1,12 +1,10 @@
 package com.diamon.juego;
 
-
 import com.diamon.nucleo.Juego;
 import com.diamon.publicidad.MostrarPublicidad;
 import com.diamon.utilidad.PantallaCompleta;
 import com.startapp.sdk.ads.banner.Banner;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.Configuration;
@@ -27,8 +25,8 @@ public class Inicio extends Activity {
 
 	private PantallaCompleta pantallaCompleta;
 
+	@SuppressWarnings("unused")
 	private MostrarPublicidad publicidad;
-
 
 	@SuppressWarnings({ "deprecation", "unused" })
 	@Override
@@ -55,17 +53,15 @@ public class Inicio extends Activity {
 
 		juego = new FinalMision(this, imagenBufer);
 
-		 RelativeLayout mainLayout = new RelativeLayout(this);
-		 
-		 FrameLayout frame = new FrameLayout(this);
+		RelativeLayout mainLayout = new RelativeLayout(this);
+
+		FrameLayout frame = new FrameLayout(this);
 
 		Banner baner = new Banner(this);
 
 		baner.setScaleX(0.5f);
 
-		baner.setScaleY(0.5f); 
-
-
+		baner.setScaleY(0.5f);
 
 		RelativeLayout.LayoutParams mrecParameters = new RelativeLayout.LayoutParams(
 				RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
@@ -74,25 +70,17 @@ public class Inicio extends Activity {
 
 		mainLayout.addView(baner, mrecParameters);
 
-		
 		frame.addView(juego, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT,
 				FrameLayout.LayoutParams.MATCH_PARENT));
 
 		frame.addView(mainLayout);
 
 		setContentView(frame);
-		
-	
 
 		PowerManager powerManejador = (PowerManager) getSystemService(Context.POWER_SERVICE);
 		wakeLock = powerManejador.newWakeLock(PowerManager.FULL_WAKE_LOCK, "GLGame");
 
-
-
-
 	}
-
-
 
 	@Override
 	protected void onPause() {
@@ -100,8 +88,6 @@ public class Inicio extends Activity {
 		super.onPause();
 
 		juego.pausa();
-
-
 
 		wakeLock.release();
 
@@ -139,7 +125,7 @@ public class Inicio extends Activity {
 
 		super.onBackPressed();
 
-
+		System.exit(0);
 
 	}
 

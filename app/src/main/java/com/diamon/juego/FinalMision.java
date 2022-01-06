@@ -6,9 +6,7 @@ import com.diamon.pantalla.PantallaPrecentacion;
 import android.content.Context;
 import android.graphics.Bitmap;
 
-public class FinalMision extends Juego
-{
-
+public class FinalMision extends Juego {
 
 	public FinalMision(Context contexto, Bitmap bufer) {
 		super(contexto, bufer);

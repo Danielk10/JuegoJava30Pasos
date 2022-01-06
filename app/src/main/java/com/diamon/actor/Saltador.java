@@ -3,16 +3,17 @@ package com.diamon.actor;
 import com.diamon.nucleo.Actor;
 import com.diamon.nucleo.Juego;
 import com.diamon.nucleo.Pantalla;
+import com.diamon.utilidad.Texturas;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import com.diamon.utilidad.*;
+
 
 public class Saltador extends Actor {
 
-	private int cicloExplosion;
+	private float tiempoDisparo;
 
-	private int cicloDisparo;
+	private float tiempoExplosion;
 
 	private boolean preparado;
 
@@ -20,18 +21,14 @@ public class Saltador extends Actor {
 
 	private boolean suelo;
 
-	public final static int VELOCIDAD_MAQUINA = 5;
+	public final static float VELOCIDAD_MAQUINA = 5;
 
-	private int velocidadY;
+	private float velocidadY;
 
-	private int xJugador;
+	private float xJugador;
 
 	public Saltador(Pantalla pantalla) {
 		super(pantalla);
-
-		cicloExplosion = 0;
-
-		cicloDisparo = 0;
 
 		xJugador = 0;
 
@@ -49,16 +46,16 @@ public class Saltador extends Actor {
 		// TODO Auto-generated method stub
 		super.actualizar(delta);
 
-		cicloExplosion++;
+		tiempoExplosion += delta;
 
-		cicloDisparo++;
+		tiempoDisparo += delta;
 
-		x--;
+		x -= 1 / Juego.DELTA_A_PIXEL * delta;
 
-		for (int i = 0; i < pantalla.getActores().size(); i++) {
+		for (int i = 0; i < actores.size(); i++) {
 
-			if (pantalla.getActores().get(i) instanceof Jugador) {
-				Jugador j = (Jugador) pantalla.getActores().get(i);
+			if (actores.get(i) instanceof Jugador) {
+				Jugador j = (Jugador) actores.get(i);
 
 				xJugador = j.getX();
 
@@ -66,27 +63,27 @@ public class Saltador extends Actor {
 
 		}
 
-		if (cicloExplosion % 30 == 0) {
+		if (tiempoExplosion / 0.5f >= 1) {
 
-			for (int i = 0; i < pantalla.getActores().size(); i++) {
+			for (int i = 0; i < actores.size(); i++) {
 
-				if (pantalla.getActores().get(i) instanceof Explosion) {
-					Explosion e = (Explosion) pantalla.getActores().get(i);
+				if (actores.get(i) instanceof Explosion) {
+					Explosion e = (Explosion) actores.get(i);
 
 					e.remover();
 
 				}
 			}
 
-			cicloExplosion = 0;
+			tiempoExplosion = 0;
 
 		}
 
-		if (cicloDisparo % 40 == 0) {
+		if (tiempoDisparo / 0.66f >= 1) {
 
 			disparar();
 
-			cicloDisparo = 0;
+			tiempoDisparo = 0;
 
 		}
 
@@ -116,13 +113,13 @@ public class Saltador extends Actor {
 
 		if (salta) {
 
-			y += velocidadY;
+			y += velocidadY / Juego.DELTA_A_PIXEL * delta;
 
 		}
 
 		if (y <= 0 || y >= Juego.ALTO_PANTALLA - alto - 63) {
 
-			velocidadY = -velocidadY;
+			velocidadY = -velocidadY / Juego.DELTA_A_PIXEL * delta;
 
 		}
 
@@ -142,14 +139,13 @@ public class Saltador extends Actor {
 		explosion.setPosicion(x - 32, y - 32);
 
 		explosion.setImagenes(
-			new Bitmap[] { Texturas.explosion1, Texturas.explosion2,
-				Texturas.explosion3, Texturas.explosion4 });
-				
+				new Bitmap[] { Texturas.explosion1, Texturas.explosion2, Texturas.explosion3, Texturas.explosion4 });
+
 		explosion.setCuadros(4);
 
 		if (explosion.getX() <= 640) {
 
-			pantalla.getActores().add(explosion);
+			actores.add(explosion);
 
 		}
 
@@ -163,14 +159,13 @@ public class Saltador extends Actor {
 
 		bala.setPosicion(x, y + 12);
 
-		bala.setImagenes(
-				new Bitmap[] { Texturas.balaSaltador1, Texturas.balaSaltador2 });
+		bala.setImagenes(new Bitmap[] { Texturas.balaSaltador1, Texturas.balaSaltador2 });
 
 		bala.setCuadros(5);
 
 		if (bala.getX() <= 640) {
 
-			pantalla.getActores().add(bala);
+			actores.add(bala);
 		}
 
 	}
@@ -188,8 +183,7 @@ public class Saltador extends Actor {
 
 			if (preparado) {
 				setCuadros(20);
-				setImagenes(new Bitmap[] { Texturas.saltador2, Texturas.saltador1,
-						Texturas.saltador3 });
+				setImagenes(new Bitmap[] { Texturas.saltador2, Texturas.saltador1, Texturas.saltador3 });
 
 			}
 
@@ -211,7 +205,7 @@ public class Saltador extends Actor {
 		if (actor instanceof Bala || actor instanceof Jugador || actor instanceof BalaEspecial
 				|| actor instanceof ExplosionB) {
 
-			pantalla.getJuego().getRecurso().playMusica("explosion.wav", 1);
+			recurso.playMusica("explosion.wav", 1);
 			explosion();
 			remover = true;
 		}

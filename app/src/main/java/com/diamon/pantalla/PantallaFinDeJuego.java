@@ -1,8 +1,5 @@
 package com.diamon.pantalla;
 
-
-
-import com.diamon.juego.FinalMision;
 import com.diamon.nucleo.Juego;
 import com.diamon.nucleo.Pantalla;
 
@@ -14,20 +11,16 @@ import android.view.MotionEvent;
 
 public class PantallaFinDeJuego extends Pantalla {
 
-	private int ciclo;
+	private float tiemoMovimiento;
 
 	private Bitmap fondo;
 
-	public PantallaFinDeJuego(FinalMision juego) {
+	public PantallaFinDeJuego(Juego juego) {
 		super(juego);
 
-		ciclo = 0;
+		fondo = this.crearBitmap(recurso.getImagen("finJuego.png"), Juego.ANCHO_PANTALLA, Juego.ALTO_PANTALLA);
 
-		
-		fondo = this.crearBitmap(juego.getRecurso().getImagen("finJuego.png"), Juego.ANCHO_PANTALLA,
-				Juego.ALTO_PANTALLA);
-		
-		juego.getRecurso().playMusica("finDeJuego.wav",1);
+		recurso.playMusica("finDeJuego.wav", 1);
 	}
 
 	@Override
@@ -45,16 +38,15 @@ public class PantallaFinDeJuego extends Pantalla {
 	@Override
 	public void actualizar(float delta) {
 
-		ciclo++;
+		tiemoMovimiento += delta;
 
-		if (ciclo % 340 == 0) {
+		if (tiemoMovimiento / 5.66f >= 1) {
 
-			juego.getRecurso().pararSonido(juego.getRecurso().getSonido("musica.wav"));
+			recurso.pararSonido(recurso.getSonido("musica.wav"));
 
 			juego.setPantalla(new PantallaContinuar(juego));
 
-			ciclo = 0;
-
+			tiemoMovimiento = 0;
 		}
 
 	}
@@ -62,9 +54,7 @@ public class PantallaFinDeJuego extends Pantalla {
 	@Override
 	public void dibujar(Canvas pincel, float delta) {
 
-		dibujarImagen(pincel,fondo, 0, 0); 
-		
-		
+		dibujarImagen(pincel, fondo, 0, 0);
 
 	}
 
@@ -87,41 +77,39 @@ public class PantallaFinDeJuego extends Pantalla {
 	}
 
 	@Override
-	public void reajustarPantalla(int ancho, int alto) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
 	public void teclaPresionada(KeyEvent ev) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void teclaLevantada(KeyEvent ev) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void toque(MotionEvent ev) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void multiToque(MotionEvent ev) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void acelerometro(SensorEvent ev) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
+	@Override
+	public void reajustarPantalla(float ancho, float alto) {
+		// TODO Auto-generated method stub
 
+	}
 
 }

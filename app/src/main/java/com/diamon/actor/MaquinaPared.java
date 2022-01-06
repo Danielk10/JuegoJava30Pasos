@@ -3,26 +3,28 @@ package com.diamon.actor;
 import com.diamon.nucleo.Actor;
 import com.diamon.nucleo.Juego;
 import com.diamon.nucleo.Pantalla;
+import com.diamon.utilidad.Texturas;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import com.diamon.utilidad.*;
 
 public class MaquinaPared extends Actor {
 
-	private int cicloExplosion;
+	private float tiempoDisparo;
 
-	private int cicloDisparo;
+	private float tiempoExplosion;
 
-	private int yJugador;
+	private float tiempoChoque;
+
+	private float yJugador;
 
 	private boolean disparar;
 
 	private boolean disparando;
 
-	private int velocidadY;
+	private float velocidadY;
 
-	private int mover;
+	private float mover;
 
 	public final static int MOVER_ARRIBA = 1;
 
@@ -36,20 +38,12 @@ public class MaquinaPared extends Actor {
 
 	private boolean choque;
 
-	private int cicloChoque;
-
 	private int lado;
 
 	public MaquinaPared(Pantalla pantalla) {
 		super(pantalla);
 
-		cicloExplosion = 0;
-
-		cicloDisparo = 0;
-
 		mover = 0;
-
-		cicloChoque = 0;
 
 		yJugador = 0;
 
@@ -70,10 +64,10 @@ public class MaquinaPared extends Actor {
 		// TODO Auto-generated method stub
 		super.actualizar(delta);
 
-		for (int i = 0; i < pantalla.getActores().size(); i++) {
+		for (int i = 0; i < actores.size(); i++) {
 
-			if (pantalla.getActores().get(i) instanceof Jugador) {
-				Jugador j = (Jugador) pantalla.getActores().get(i);
+			if (actores.get(i) instanceof Jugador) {
+				Jugador j = (Jugador) actores.get(i);
 
 				yJugador = j.getY();
 
@@ -81,26 +75,23 @@ public class MaquinaPared extends Actor {
 
 		}
 
-		cicloExplosion++;
+		tiempoExplosion += delta;
 
-		cicloDisparo++;
+		tiempoChoque += delta;
 
-		cicloChoque++;
+		if (tiempoExplosion / 0.5f >= 1) {
 
-		if (cicloExplosion % 30 == 0) {
+			for (int i = 0; i < actores.size(); i++) {
 
-			for (int i = 0; i < pantalla.getActores().size(); i++) {
-
-				if (pantalla.getActores().get(i) instanceof Explosion) {
-					Explosion e = (Explosion) pantalla.getActores().get(i);
+				if (actores.get(i) instanceof Explosion) {
+					Explosion e = (Explosion) actores.get(i);
 
 					e.remover();
 
 				}
 			}
 
-			cicloExplosion = 0;
-
+			tiempoExplosion = 0;
 		}
 
 		if (disparando) {
@@ -115,20 +106,23 @@ public class MaquinaPared extends Actor {
 		}
 
 		if (disparar) {
-			cicloDisparo++;
-			if (cicloDisparo % 20 == 0) {
+
+			tiempoDisparo += delta;
+
+			if (tiempoDisparo / 0.33f >= 1) {
 
 				disparar();
 				disparar = false;
 				disparando = true;
 
-				cicloDisparo = 0;
+				tiempoDisparo = 0;
 			}
+
 		}
 
 		if (mover == MaquinaPared.MOVER_ABAJO) {
 
-			y += velocidadY;
+			y += velocidadY / Juego.DELTA_A_PIXEL * delta;
 
 			if (y >= Juego.ALTO_PANTALLA) {
 
@@ -139,7 +133,7 @@ public class MaquinaPared extends Actor {
 
 		if (mover == MaquinaPared.MOVER_ARRIBA) {
 
-			y -= velocidadY;
+			y -= velocidadY / Juego.DELTA_A_PIXEL * delta;
 
 			if (y <= -alto) {
 
@@ -150,11 +144,11 @@ public class MaquinaPared extends Actor {
 
 		if (choque) {
 
-			if (cicloChoque % 20 == 0) {
+			if (tiempoChoque / 0.33f >= 1) {
 
 				vida--;
 
-				cicloChoque = 0;
+				tiempoChoque = 0;
 
 				choque = false;
 
@@ -164,11 +158,19 @@ public class MaquinaPared extends Actor {
 
 	}
 
-	public int getMover() {
+	public float getVelocidadY() {
+		return velocidadY;
+	}
+
+	public void setVelocidadY(float velocidadY) {
+		this.velocidadY = velocidadY;
+	}
+
+	public float getMover() {
 		return mover;
 	}
 
-	public void setMover(int mover) {
+	public void setMover(float mover) {
 		this.mover = mover;
 	}
 
@@ -178,14 +180,6 @@ public class MaquinaPared extends Actor {
 
 	public void setLado(int lado) {
 		this.lado = lado;
-	}
-
-	public int getVelocidadY() {
-		return velocidadY;
-	}
-
-	public void setVelocidadY(int velocidadY) {
-		this.velocidadY = velocidadY;
 	}
 
 	@Override
@@ -201,7 +195,7 @@ public class MaquinaPared extends Actor {
 
 			} else {
 
-				setImagenes(new Bitmap[] { Texturas.maquinaParedI1});
+				setImagenes(new Bitmap[] { Texturas.maquinaParedI1 });
 
 			}
 
@@ -235,13 +229,12 @@ public class MaquinaPared extends Actor {
 		explosion.setPosicion(x - 32, y - 32);
 
 		explosion.setImagenes(
-			new Bitmap[] { Texturas.explosion1, Texturas.explosion2,
-				Texturas.explosion3, Texturas.explosion4 });
+				new Bitmap[] { Texturas.explosion1, Texturas.explosion2, Texturas.explosion3, Texturas.explosion4 });
 		explosion.setCuadros(4);
 
 		if (explosion.getX() <= 640) {
 
-			pantalla.getActores().add(explosion);
+			actores.add(explosion);
 
 		}
 
@@ -263,13 +256,11 @@ public class MaquinaPared extends Actor {
 
 			bala.setVelocidadY(1);
 
-		
-
-			bala.setImagenes(new Bitmap[] {Texturas.balaParedI});
+			bala.setImagenes(new Bitmap[] { Texturas.balaParedI });
 
 			if (bala.getX() <= 640) {
 
-				pantalla.getActores().add(bala);
+				actores.add(bala);
 			}
 
 		}
@@ -288,11 +279,11 @@ public class MaquinaPared extends Actor {
 
 			bala.setVelocidadY(1);
 
-			bala.setImagenes(new Bitmap[] {Texturas.balaParedD});
+			bala.setImagenes(new Bitmap[] { Texturas.balaParedD });
 
 			if (bala.getX() <= 640) {
 
-				pantalla.getActores().add(bala);
+				actores.add(bala);
 			}
 
 		}
@@ -305,7 +296,7 @@ public class MaquinaPared extends Actor {
 		if (actor instanceof Bala || actor instanceof Jugador || actor instanceof BalaEspecial
 				|| actor instanceof ExplosionB) {
 
-			pantalla.getJuego().getRecurso().playMusica("explosion.wav",1);
+			recurso.playMusica("explosion.wav", 1);
 
 			choque = true;
 

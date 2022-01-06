@@ -6,8 +6,6 @@ package com.diamon.curso;
 import com.diamon.publicidad.MostrarPublicidad;
 import com.diamon.utilidad.PantallaCompleta;
 
-
-
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.os.Bundle;
@@ -23,7 +21,6 @@ public class Pagina extends Activity {
 
 	private PantallaCompleta pantallaCompleta;
 
-	
 	@SuppressWarnings("unused")
 	private MostrarPublicidad publicidad;
 
@@ -40,13 +37,13 @@ public class Pagina extends Activity {
 
 		publicidad = new MostrarPublicidad(this);
 
-		 setContentView(R.layout.activity_pagina_web);
+		setContentView(R.layout.activity_pagina_web);
 
-		 pagina = (WebView) findViewById(R.id.pagina);
+		pagina = (WebView) findViewById(R.id.pagina);
 
-		 pagina.getSettings().setJavaScriptEnabled(true);
+		pagina.getSettings().setJavaScriptEnabled(true);
 
-		 pagina.loadUrl("file:///android_asset/www/index.html");
+		pagina.loadUrl("file:///android_asset/www/index.html");
 
 	}
 
@@ -64,8 +61,6 @@ public class Pagina extends Activity {
 
 		super.onResume();
 
-
-
 	}
 
 	@Override
@@ -73,16 +68,12 @@ public class Pagina extends Activity {
 
 		super.onPause();
 
-
-
 	}
 
 	@Override
 	public void onBackPressed() {
 
 		super.onBackPressed();
-		
-		
 
 	}
 

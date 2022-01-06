@@ -243,7 +243,7 @@ public class Recurso implements OnCompletionListener {
 		new Thread(new Runnable() {
 			public void run() {
 
-				int idSonido =(int)idSonidos.get(nombre);
+				int idSonido = (int) idSonidos.get(nombre);
 
 				getSonido(nombre).play(idSonido, volumen, volumen, 0, 0, 1);
 			}
@@ -263,7 +263,6 @@ public class Recurso implements OnCompletionListener {
 
 			preparado = false;
 		}
-		
 
 	}
 
@@ -287,13 +286,13 @@ public class Recurso implements OnCompletionListener {
 
 		preparado = false;
 	}
-	
-	public static Bitmap crearBitmap(Bitmap imagen, int ancho, int alto) {
+
+	public static Bitmap crearBitmap(Bitmap imagen, float ancho, float alto) {
 
 		int w = imagen.getWidth();
 		int h = imagen.getHeight();
-		float sw = ((float) ancho) / w;
-		float sh = ((float) alto) / h;
+		float sw = ancho / w;
+		float sh = alto / h;
 		Matrix max = new Matrix();
 		max.postScale(sw, sh);
 		return Bitmap.createBitmap(imagen, 0, 0, w, h, max, false);

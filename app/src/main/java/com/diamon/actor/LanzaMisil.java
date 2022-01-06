@@ -1,26 +1,24 @@
 package com.diamon.actor;
 
 import com.diamon.nucleo.Actor;
+import com.diamon.nucleo.Juego;
 import com.diamon.nucleo.Pantalla;
+import com.diamon.utilidad.Texturas;
 
 import android.graphics.Bitmap;
-import com.diamon.utilidad.*;
+
 
 public class LanzaMisil extends Actor {
 
-	public final static int VELOCIDAD_MAQUINA = 2;
+	public final static float VELOCIDAD_MAQUINA = 2;
 
-	private int cicloExplosion;
+	private float tiemoDisparo;
 
-	private int cicloDisparo;
+	private float tiemoExplosion;
 
 	public LanzaMisil(Pantalla pantalla) {
 
 		super(pantalla);
-
-		cicloExplosion = 0;
-
-		cicloDisparo = 0;
 
 	}
 
@@ -29,7 +27,7 @@ public class LanzaMisil extends Actor {
 
 		super.actualizar(delta);
 
-		x -= LanzaMisil.VELOCIDAD_MAQUINA;
+		x -= LanzaMisil.VELOCIDAD_MAQUINA / Juego.DELTA_A_PIXEL * delta;
 
 		if (x <= -ancho) {
 
@@ -37,31 +35,31 @@ public class LanzaMisil extends Actor {
 
 		}
 
-		cicloExplosion++;
+		tiemoExplosion += delta;
 
-		if (cicloExplosion % 30 == 0) {
+		if (tiemoExplosion / 0.5f >= 1) {
 
-			for (int i = 0; i < pantalla.getActores().size(); i++) {
+			for (int i = 0; i < actores.size(); i++) {
 
-				if (pantalla.getActores().get(i) instanceof Explosion) {
-					Explosion e = (Explosion) pantalla.getActores().get(i);
+				if (actores.get(i) instanceof Explosion) {
+					Explosion e = (Explosion) actores.get(i);
 
 					e.remover();
 
 				}
 			}
 
-			cicloExplosion = 0;
+			tiemoExplosion = 0;
 
 		}
 
-		cicloDisparo++;
+		tiemoDisparo += delta;
 
-		if (cicloDisparo % 150 == 0) {
+		if (tiemoDisparo / 2.5f >= 1) {
 
 			disparar();
 
-			cicloDisparo = 0;
+			tiemoDisparo = 0;
 
 		}
 
@@ -77,7 +75,7 @@ public class LanzaMisil extends Actor {
 
 		m.setImagenes(new Bitmap[] { Texturas.misilH1 });
 
-		pantalla.getActores().add(m);
+		actores.add(m);
 
 	}
 
@@ -90,14 +88,13 @@ public class LanzaMisil extends Actor {
 		explosion.setPosicion(x - 32, y - 32);
 
 		explosion.setImagenes(
-			new Bitmap[] { Texturas.explosion1, Texturas.explosion2,
-				Texturas.explosion3, Texturas.explosion4 });
-				
+				new Bitmap[] { Texturas.explosion1, Texturas.explosion2, Texturas.explosion3, Texturas.explosion4 });
+
 		explosion.setCuadros(4);
 
 		if (explosion.getX() <= 640) {
 
-			pantalla.getActores().add(explosion);
+			actores.add(explosion);
 
 		}
 
@@ -109,7 +106,7 @@ public class LanzaMisil extends Actor {
 		if (actor instanceof Bala || actor instanceof Jugador || actor instanceof BalaEspecial
 				|| actor instanceof ExplosionB) {
 
-		pantalla.getJuego().getRecurso().playMusica("explosion.wav",1);
+			recurso.playMusica("explosion.wav", 1);
 			explosion();
 
 			remover = true;

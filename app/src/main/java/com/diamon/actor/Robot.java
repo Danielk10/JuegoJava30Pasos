@@ -3,15 +3,16 @@ package com.diamon.actor;
 import com.diamon.nucleo.Actor;
 import com.diamon.nucleo.Juego;
 import com.diamon.nucleo.Pantalla;
+import com.diamon.utilidad.Texturas;
 
 import android.graphics.Bitmap;
-import com.diamon.utilidad.*;
+
 
 public class Robot extends Actor {
 
-	private int cicloDisparo;
+	private float tiempoDisparo;
 
-	private int cicloExplosion;
+	private float tiempoExplosion;
 
 	public final static int LADO_IZQUIERDO = 1;
 
@@ -26,10 +27,6 @@ public class Robot extends Actor {
 	public Robot(Pantalla pantalla) {
 		super(pantalla);
 
-		cicloDisparo = 0;
-
-		cicloExplosion = 0;
-
 		velocidad = 0;
 
 		disparar = false;
@@ -41,15 +38,14 @@ public class Robot extends Actor {
 		super.actualizar(delta);
 
 		if (lado == Robot.LADO_DERECHO) {
-			x += velocidad;
+			x += velocidad / Juego.DELTA_A_PIXEL * delta;
 
 			if (!disparar) {
 
 				if (x <= 100) {
 
-					x += 2;
-					y += 2;
-
+					x += 2 / Juego.DELTA_A_PIXEL * delta;
+					y += 2 / Juego.DELTA_A_PIXEL * delta;
 				}
 
 			}
@@ -57,8 +53,8 @@ public class Robot extends Actor {
 			if (disparar)
 
 			{
-				x -= 2;
-				y -= 2;
+				x -= 2 / Juego.DELTA_A_PIXEL * delta;
+				y -= 2 / Juego.DELTA_A_PIXEL * delta;
 
 			}
 
@@ -71,14 +67,14 @@ public class Robot extends Actor {
 
 		if (lado == Robot.LADO_IZQUIERDO) {
 
-			x -= velocidad;
+			x -= velocidad / Juego.DELTA_A_PIXEL * delta;
 
 			if (!disparar) {
 				if (x >= 500) {
 
-					x -= 2;
+					x -= 2 / Juego.DELTA_A_PIXEL * delta;
 
-					y += 2;
+					y += 2 / Juego.DELTA_A_PIXEL * delta;
 
 				}
 			}
@@ -86,8 +82,8 @@ public class Robot extends Actor {
 			if (disparar)
 
 			{
-				x += 2;
-				y -= 2;
+				x += 2 / Juego.DELTA_A_PIXEL * delta;
+				y -= 2 / Juego.DELTA_A_PIXEL * delta;
 
 			}
 			if (x <= -ancho) {
@@ -97,26 +93,26 @@ public class Robot extends Actor {
 
 		}
 
-		cicloDisparo++;
+		tiempoExplosion += delta;
 
-		cicloExplosion++;
+		tiempoDisparo += delta;
 
-		if (cicloExplosion % 30 == 0) {
+		if (tiempoExplosion / 0.5f >= 1) {
 
-			for (int i = 0; i < pantalla.getActores().size(); i++) {
+			for (int i = 0; i < actores.size(); i++) {
 
-				if (pantalla.getActores().get(i) instanceof Explosion) {
-					Explosion e = (Explosion) pantalla.getActores().get(i);
+				if (actores.get(i) instanceof Explosion) {
+					Explosion e = (Explosion) actores.get(i);
 
 					e.remover();
 
 				}
 			}
 
-			cicloExplosion = 0;
+			tiempoExplosion = 0;
 
 		}
-		if (cicloDisparo % 40 == 0) {
+		if (tiempoDisparo / 0.66f >= 1) {
 
 			if (Math.random() < 0.08f) {
 				disparar();
@@ -125,7 +121,7 @@ public class Robot extends Actor {
 
 			}
 
-			cicloDisparo = 0;
+			tiempoDisparo = 0;
 
 		}
 
@@ -141,8 +137,7 @@ public class Robot extends Actor {
 
 			bala.setPosicion(x + ancho, y + 16);
 
-			bala.setImagenes(new Bitmap[] { Texturas.balaE1, Texturas.balaE2,
-					Texturas.balaE3, Texturas.balaE4 });
+			bala.setImagenes(new Bitmap[] { Texturas.balaE1, Texturas.balaE2, Texturas.balaE3, Texturas.balaE4 });
 
 			bala.setCuadros(3);
 
@@ -150,7 +145,7 @@ public class Robot extends Actor {
 
 			if (bala.getX() <= 640) {
 
-				pantalla.getActores().add(bala);
+				actores.add(bala);
 			}
 
 		}
@@ -163,8 +158,7 @@ public class Robot extends Actor {
 
 			bala.setPosicion(x, y + 16);
 
-			bala.setImagenes(new Bitmap[] { Texturas.balaE1, Texturas.balaE2,
-					Texturas.balaE3, Texturas.balaE4 });
+			bala.setImagenes(new Bitmap[] { Texturas.balaE1, Texturas.balaE2, Texturas.balaE3, Texturas.balaE4 });
 
 			bala.setCuadros(3);
 
@@ -172,7 +166,7 @@ public class Robot extends Actor {
 
 			if (bala.getX() <= 640) {
 
-				pantalla.getActores().add(bala);
+				actores.add(bala);
 			}
 
 		}
@@ -188,14 +182,13 @@ public class Robot extends Actor {
 		explosion.setPosicion(x - 32, y - 32);
 
 		explosion.setImagenes(
-			new Bitmap[] { Texturas.explosion1, Texturas.explosion2,
-				Texturas.explosion3, Texturas.explosion4 });
-				
+				new Bitmap[] { Texturas.explosion1, Texturas.explosion2, Texturas.explosion3, Texturas.explosion4 });
+
 		explosion.setCuadros(4);
 
 		if (explosion.getX() <= 640) {
 
-			pantalla.getActores().add(explosion);
+			actores.add(explosion);
 
 		}
 
@@ -222,7 +215,7 @@ public class Robot extends Actor {
 		if (actor instanceof Bala || actor instanceof Jugador || actor instanceof BalaEspecial
 				|| actor instanceof ExplosionB) {
 
-			pantalla.getJuego().getRecurso().playMusica("explosion.wav", 1);
+			recurso.playMusica("explosion.wav", 1);
 
 			explosion();
 			remover = true;

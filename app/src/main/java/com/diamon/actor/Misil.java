@@ -3,29 +3,23 @@ package com.diamon.actor;
 import com.diamon.nucleo.Actor;
 import com.diamon.nucleo.Juego;
 import com.diamon.nucleo.Pantalla;
+import com.diamon.utilidad.Texturas;
 
 import android.graphics.Bitmap;
-import com.diamon.utilidad.*;
 
 public class Misil extends Actor {
 
-	private int cicloExplosion;
+	private float tiemoDisparoHumo;
 
-	private int cicloDisparoHumo;
+	private float tiempoExplosion;
 
-	private int cicloHumo;
+	private float tiempoHumo;
 
-	public final static int VELOCIDAD_MAQUINA = 2;
+	public final static float VELOCIDAD_MAQUINA = 2;
 
 	public Misil(Pantalla pantalla) {
 
 		super(pantalla);
-
-		cicloExplosion = 0;
-
-		cicloDisparoHumo = 0;
-
-		cicloHumo = 0;
 
 	}
 
@@ -34,29 +28,29 @@ public class Misil extends Actor {
 
 		super.actualizar(delta);
 
-		cicloExplosion++;
+		tiempoExplosion += delta;
 
-		cicloDisparoHumo++;
+		tiemoDisparoHumo += delta;
 
-		cicloHumo++;
+		tiempoHumo += delta;
 
-		if (cicloExplosion % 30 == 0) {
+		if (tiempoExplosion / 0.5f >= 1) {
 
-			for (int i = 0; i < pantalla.getActores().size(); i++) {
+			for (int i = 0; i < actores.size(); i++) {
 
-				if (pantalla.getActores().get(i) instanceof Explosion) {
-					Explosion e = (Explosion) pantalla.getActores().get(i);
+				if (actores.get(i) instanceof Explosion) {
+					Explosion e = (Explosion) actores.get(i);
 
 					e.remover();
 
 				}
 			}
 
-			cicloExplosion = 0;
+			tiempoExplosion = 0;
 
 		}
 
-		x += Misil.VELOCIDAD_MAQUINA;
+		x += Misil.VELOCIDAD_MAQUINA / Juego.DELTA_A_PIXEL * delta;
 
 		if (x >= Juego.ANCHO_PANTALLA) {
 
@@ -64,27 +58,27 @@ public class Misil extends Actor {
 
 		}
 
-		if (cicloDisparoHumo % 15 == 0) {
+		if (tiemoDisparoHumo / 0.25f >= 1) {
 
 			humo();
 
-			cicloDisparoHumo = 0;
+			tiemoDisparoHumo = 0;
 
 		}
 
-		if (cicloHumo % 30 == 0) {
+		if (tiempoHumo / 0.5f >= 1) {
 
-			for (int i = 0; i < pantalla.getActores().size(); i++) {
+			for (int i = 0; i < actores.size(); i++) {
 
-				if (pantalla.getActores().get(i) instanceof Humo) {
-					Humo e = (Humo) pantalla.getActores().get(i);
+				if (actores.get(i) instanceof Humo) {
+					Humo e = (Humo) actores.get(i);
 
 					e.remover();
 
 				}
 			}
 
-			cicloHumo = 0;
+			tiempoHumo = 0;
 
 		}
 
@@ -98,15 +92,14 @@ public class Misil extends Actor {
 
 		explosion.setPosicion(x, y);
 
-		explosion.setImagenes(
-				new Bitmap[] { Texturas.explosionMisil1, Texturas.explosionMisil2,
-						Texturas.explosionMisil3, Texturas.explosionMisil4 });
+		explosion.setImagenes(new Bitmap[] { Texturas.explosionMisil1, Texturas.explosionMisil2,
+				Texturas.explosionMisil3, Texturas.explosionMisil4 });
 
 		explosion.setCuadros(4);
 
 		if (explosion.getX() <= 640) {
 
-			pantalla.getActores().add(explosion);
+			actores.add(explosion);
 
 		}
 
@@ -122,12 +115,11 @@ public class Misil extends Actor {
 
 		humo.setCuadros(5);
 
-		humo.setImagenes(new Bitmap[] { Texturas.humoMisil1, Texturas.humoMisil2,
-				Texturas.humoMisil3 });
+		humo.setImagenes(new Bitmap[] { Texturas.humoMisil1, Texturas.humoMisil2, Texturas.humoMisil3 });
 
 		if (humo.getX() <= 640) {
 
-			pantalla.getActores().add(humo);
+			actores.add(humo);
 		}
 
 	}
@@ -138,7 +130,7 @@ public class Misil extends Actor {
 		if (actor instanceof Bala || actor instanceof Jugador || actor instanceof BalaEspecial
 				|| actor instanceof ExplosionB) {
 
-			pantalla.getJuego().getRecurso().playMusica("explosion.wav", 1);
+			recurso.playMusica("explosion.wav", 1);
 
 			explosion();
 			remover = true;

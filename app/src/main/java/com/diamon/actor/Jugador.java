@@ -3,41 +3,43 @@ package com.diamon.actor;
 import com.diamon.nucleo.Actor;
 import com.diamon.nucleo.Juego;
 import com.diamon.nucleo.Pantalla;
+import com.diamon.utilidad.Texturas;
+
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
-import com.diamon.utilidad.*;
+
 
 public class Jugador extends Actor {
 
-	private int deltaXTactil, deltaYTactil;
+	private float deltaXTactil, deltaYTactil;
 
-	private int xDelta = 0;
+	private float xDelta = 0;
 
-	private int xDeltaReferencia = 0;
+	private float xDeltaReferencia = 0;
 
-	private int x1 = 0;
+	private float x1 = 0;
 
-	private int y1 = 0;
+	private float y1 = 0;
 
-	private int velocidadX;
+	private float velocidadX;
 
-	private int velocidadY;
+	private float velocidadY;
 
-	private final static int VELOCIDAD_JUGADOR = 5;
+	private final static float VELOCIDAD_JUGADOR = 5;
 
 	private boolean arriba, abajo, izquierda, derecha, disparar;
 
-	private int cicloDisparo;
+	private float tiemoDisparo;
 
-	private int cicloDisparoB;
+	private float tiemoDisparoB;
 
-	private int cicloParpadeo;
+	private float tiempoParpadeo;
 
-	private int cuadros = 7;
+	private float cuadros = 7;
 
-	private int timpo = 0;;
+	private float timpo = 0;;
 
 	protected int frames = 0;
 
@@ -51,8 +53,6 @@ public class Jugador extends Actor {
 
 	private boolean lado;
 
-	private boolean pausado;
-
 	private int vida;
 
 	private boolean inmune;
@@ -61,7 +61,7 @@ public class Jugador extends Actor {
 
 	private int tipoPoder;
 
-	private int velocidad;
+	private float velocidad;
 
 	private Satelite satelite1;
 
@@ -80,12 +80,6 @@ public class Jugador extends Actor {
 
 		arriba = abajo = izquierda = derecha = disparar = false;
 
-		cicloParpadeo = 0;
-
-		cicloDisparoB = 0;
-
-		cicloDisparo = 0;
-
 		parpadeo = false;
 
 		velocidad = VELOCIDAD_JUGADOR;
@@ -93,8 +87,6 @@ public class Jugador extends Actor {
 		lado = false;
 
 		poder = false;
-
-		pausado = true;
 
 		vida = 3;
 
@@ -126,22 +118,18 @@ public class Jugador extends Actor {
 
 		satelite2.setDisparar(false);
 
-		pantalla.getActores().add(satelite1);
+		actores.add(satelite1);
 
-		pantalla.getActores().add(satelite2);
+		actores.add(satelite2);
 
 	}
 
-	public int getVelocidad() {
+	public float getVelocidad() {
 		return velocidad;
 	}
 
-	public void setVelocidad(int velocidad) {
+	public void setVelocidad(float velocidad) {
 		this.velocidad = velocidad;
-	}
-
-	public void setPausado(boolean pausado) {
-		this.pausado = pausado;
 	}
 
 	@Override
@@ -162,28 +150,25 @@ public class Jugador extends Actor {
 
 		}
 
-		x += velocidadX;
+		x += velocidadX / Juego.DELTA_A_PIXEL * delta;
 
-		y += velocidadY;
+		y += velocidadY / Juego.DELTA_A_PIXEL * delta;
 
-		timpo++;
+		timpo += delta;
 
 		if (!lado) {
-			if (timpo % cuadros == 0) {
-				timpo = 0;
-				frames = (frames + 1) % imagenes1.length;
 
-			}
+			int frameNumber = (int) (timpo / (cuadros / Juego.FPS));
+
+			frames = frameNumber % imagenes1.length;
 
 		}
 
 		else {
 
-			if (timpo % cuadros == 0) {
-				timpo = 0;
-				frames = (frames + 1) % imagenes2.length;
+			int frameNumber = (int) (timpo / (cuadros / Juego.FPS));
 
-			}
+			frames = frameNumber % imagenes2.length;
 
 		}
 
@@ -191,7 +176,7 @@ public class Jugador extends Actor {
 
 			if (x <= (Juego.ANCHO_PANTALLA / 2) - ancho) {
 
-				x += 3;
+				x += 3 / Juego.DELTA_A_PIXEL * delta;
 
 			} else {
 
@@ -224,9 +209,9 @@ public class Jugador extends Actor {
 
 		}
 
-		cicloDisparoB++;
+		tiemoDisparo += delta;
 
-		cicloDisparo++;
+		tiemoDisparoB += delta;
 
 		if (disparar) {
 
@@ -242,7 +227,7 @@ public class Jugador extends Actor {
 
 		}
 
-		if (cicloParpadeo % 2 == 0) {
+		if (tiempoParpadeo % 2 == 0) {
 
 			parpadeo = true;
 
@@ -251,14 +236,16 @@ public class Jugador extends Actor {
 			parpadeo = false;
 		}
 
-		if (cicloParpadeo <= 0) {
-			cicloParpadeo = 0;
+		if (tiempoParpadeo <= 0) {
+
+			tiempoParpadeo = 0;
 
 			inmune = true;
 		} else {
 			inmune = false;
 		}
-		cicloParpadeo--;
+
+		tiempoParpadeo -= 1;
 
 		if (vida == 0) {
 
@@ -335,7 +322,7 @@ public class Jugador extends Actor {
 
 				velocidad = Jugador.VELOCIDAD_JUGADOR;
 
-				cicloParpadeo = 100;
+				tiempoParpadeo = 100;
 
 				vida--;
 
@@ -347,7 +334,7 @@ public class Jugador extends Actor {
 
 			Poder p = (Poder) actor;
 
-			pantalla.getJuego().getRecurso().playMusica("poder.wav", 1);
+			recurso.playMusica("poder.wav", 1);
 
 			if (p.getPoder() != Caja.AGILIDAD_S) {
 
@@ -378,10 +365,7 @@ public class Jugador extends Actor {
 			izquierda = true;
 			dezplazamientoInicial = false;
 
-			if (pausado) {
-
-				lado = true;
-			}
+			lado = true;
 
 			break;
 
@@ -390,9 +374,7 @@ public class Jugador extends Actor {
 			derecha = true;
 			dezplazamientoInicial = false;
 
-			if (pausado) {
-				lado = false;
-			}
+			lado = false;
 
 			break;
 		case KeyEvent.KEYCODE_2:
@@ -485,8 +467,6 @@ public class Jugador extends Actor {
 		switch (ev.getAction()) {
 
 		case MotionEvent.ACTION_DOWN:
-			
-				if (pausado) {
 
 			xDeltaReferencia = x;
 
@@ -513,19 +493,19 @@ public class Jugador extends Actor {
 
 			}
 
-			if (y1 >= ((Juego.ALTO_PANTALLA -32)- alto)) {
+			if (y1 >= ((Juego.ALTO_PANTALLA - 32) - alto)) {
 
-				y1 = (Juego.ALTO_PANTALLA-32) - alto;
+				y1 = (Juego.ALTO_PANTALLA - 32) - alto;
 
 			}
-			if (x1 >= (Juego.ANCHO_PANTALLA -32) - ancho) {
-				x1 = (Juego.ANCHO_PANTALLA  -32)- ancho;
+			if (x1 >= (Juego.ANCHO_PANTALLA - 32) - ancho) {
+				x1 = (Juego.ANCHO_PANTALLA - 32) - ancho;
 			}
 
 			if (y1 <= 32) {
 				y1 = 32;
 
-			}}
+			}
 
 			break;
 
@@ -542,9 +522,7 @@ public class Jugador extends Actor {
 			break;
 		case MotionEvent.ACTION_MOVE:
 
-				if (pausado) {
-					
-					xDelta = (int) ev.getX();
+			xDelta = (int) ev.getX();
 
 			if (xDelta >= xDeltaReferencia) {
 
@@ -567,12 +545,12 @@ public class Jugador extends Actor {
 
 				x1 = 32;
 			}
-			if (y1 >= (Juego.ALTO_PANTALLA-32) - alto) {
-				y1 = (Juego.ALTO_PANTALLA-32) - alto;
+			if (y1 >= (Juego.ALTO_PANTALLA - 32) - alto) {
+				y1 = (Juego.ALTO_PANTALLA - 32) - alto;
 			}
 
-			if (x1 >= (Juego.ANCHO_PANTALLA-32) - ancho) {
-				x1 = (Juego.ANCHO_PANTALLA-32) - ancho;
+			if (x1 >= (Juego.ANCHO_PANTALLA - 32) - ancho) {
+				x1 = (Juego.ANCHO_PANTALLA - 32) - ancho;
 			}
 			if (y1 <= 32) {
 
@@ -585,7 +563,6 @@ public class Jugador extends Actor {
 
 			dezplazamientoInicial = false;
 
-			}
 			break;
 
 		default:
@@ -625,7 +602,7 @@ public class Jugador extends Actor {
 
 	public void disparar() {
 
-		if (cicloDisparo % 20 == 0) {
+		if (tiemoDisparo / 0.33f >= 1) {
 
 			if (!lado) {
 				Bala bala = new Bala(pantalla);
@@ -638,7 +615,7 @@ public class Jugador extends Actor {
 
 				bala.setImagenes(new Bitmap[] { Texturas.balaHD });
 
-				pantalla.getActores().add(bala);
+				actores.add(bala);
 
 			} else {
 				Bala bala = new Bala(pantalla);
@@ -651,14 +628,13 @@ public class Jugador extends Actor {
 
 				bala.setImagenes(new Bitmap[] { Texturas.balaHI });
 
-				pantalla.getActores().add(bala);
+				actores.add(bala);
 
 			}
 
-			cicloDisparo = 0;
+			tiemoDisparo = 0;
 
-			pantalla.getJuego().getRecurso().playMusica("disparo.wav", 1);
-
+			recurso.playMusica("disparo.wav", 1);
 		}
 
 	}
@@ -667,7 +643,7 @@ public class Jugador extends Actor {
 
 		if (!lado) {
 
-			if (cicloDisparo % 20 == 0) {
+			if (tiemoDisparo / 0.33f >= 1) {
 
 				if (tipoPoder == BalaEspecial.BALA_W) {
 
@@ -684,12 +660,11 @@ public class Jugador extends Actor {
 
 					bala.setImagenes(new Bitmap[] {
 
-							Texturas.balaWD1, Texturas.balaWD2,
-							Texturas.balaWD3
+							Texturas.balaWD1, Texturas.balaWD2, Texturas.balaWD3
 
 					});
 
-					pantalla.getActores().add(bala);
+					actores.add(bala);
 
 				}
 
@@ -709,22 +684,21 @@ public class Jugador extends Actor {
 
 					bala.setImagenes(new Bitmap[] {
 
-							Texturas.balaLD1, Texturas.balaLD2,
-							Texturas.balaLD3
+							Texturas.balaLD1, Texturas.balaLD2, Texturas.balaLD3
 
 					});
 
-					pantalla.getJuego().getRecurso().playMusica("disparoL.wav", 1);
+					recurso.playMusica("disparoL.wav", 1);
 
-					pantalla.getActores().add(bala);
+					actores.add(bala);
 
 				}
 
-				cicloDisparo = 0;
+				tiemoDisparo = 0;
 
 			}
 
-			if (cicloDisparoB % 30 == 0) {
+			if (tiemoDisparoB / 0.5f >= 1) {
 
 				if (tipoPoder == BalaEspecial.BALA_B) {
 
@@ -746,19 +720,18 @@ public class Jugador extends Actor {
 
 					});
 
-					pantalla.getJuego().getRecurso().playMusica("disparo.wav", 1);
+					recurso.playMusica("disparo.wav", 1);
 
-					pantalla.getActores().add(bala);
+					actores.add(bala);
 
 				}
 
-				cicloDisparoB = 0;
-
+				tiemoDisparoB = 0;
 			}
 
 		} else {
 
-			if (cicloDisparo % 20 == 0) {
+			if (tiemoDisparo / 0.33f >= 1) {
 
 				if (tipoPoder == BalaEspecial.BALA_W) {
 
@@ -776,12 +749,11 @@ public class Jugador extends Actor {
 
 					bala.setImagenes(new Bitmap[] {
 
-							Texturas.balaWI1, Texturas.balaWI2,
-							Texturas.balaWI3
+							Texturas.balaWI1, Texturas.balaWI2, Texturas.balaWI3
 
 					});
 
-					pantalla.getActores().add(bala);
+					actores.add(bala);
 
 				}
 
@@ -801,22 +773,21 @@ public class Jugador extends Actor {
 
 					bala.setImagenes(new Bitmap[] {
 
-							Texturas.balaLI1, Texturas.balaLI2,
-							Texturas.balaLI3
+							Texturas.balaLI1, Texturas.balaLI2, Texturas.balaLI3
 
 					});
 
-					pantalla.getJuego().getRecurso().playMusica("disparoL.wav", 1);
+					recurso.playMusica("disparoL.wav", 1);
 
-					pantalla.getActores().add(bala);
+					actores.add(bala);
 
 				}
 
-				cicloDisparo = 0;
+				tiemoDisparo = 0;
 
 			}
 
-			if (cicloDisparoB % 30 == 0) {
+			if (tiemoDisparoB / 0.5f >= 1) {
 
 				if (tipoPoder == BalaEspecial.BALA_B) {
 
@@ -838,12 +809,12 @@ public class Jugador extends Actor {
 
 					});
 
-					pantalla.getJuego().getRecurso().playMusica("disparo.wav", 1);
+					recurso.playMusica("disparo.wav", 1);
 
-					pantalla.getActores().add(bala);
+					actores.add(bala);
 				}
 
-				cicloDisparoB = 0;
+				tiemoDisparoB = 0;
 
 			}
 

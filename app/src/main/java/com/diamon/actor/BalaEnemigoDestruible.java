@@ -3,24 +3,24 @@ package com.diamon.actor;
 import com.diamon.nucleo.Actor;
 import com.diamon.nucleo.Juego;
 import com.diamon.nucleo.Pantalla;
+import com.diamon.utilidad.Texturas;
 
 import android.graphics.Bitmap;
-import com.diamon.utilidad.*;
+
 
 public class BalaEnemigoDestruible extends Actor {
 
-	public final static int VELOCIDAD_BALA = 3;
+	public final static float VELOCIDAD_BALA = 3;
 
-	private int velocidad;
+	private float velocidad;
 
-	private int cicloExplosion;
+	private float tiemoExplosion;
 
 	public BalaEnemigoDestruible(Pantalla pantalla) {
 		super(pantalla);
 
 		velocidad = VELOCIDAD_BALA;
 
-		cicloExplosion = 0;
 	}
 
 	@Override
@@ -28,9 +28,9 @@ public class BalaEnemigoDestruible extends Actor {
 
 		super.actualizar(delta);
 
-		cicloExplosion++;
+		tiemoExplosion += delta;
 
-		x -= velocidad;
+		x -= velocidad / Juego.DELTA_A_PIXEL * delta;
 
 		if (x <= -ancho) {
 
@@ -53,21 +53,23 @@ public class BalaEnemigoDestruible extends Actor {
 			remover = true;
 		}
 
-		if (cicloExplosion % 30 == 0) {
+		if (tiemoExplosion / 0.5f >= 1) {
 
-			for (int i = 0; i < pantalla.getActores().size(); i++) {
+			for (int i = 0; i < actores.size(); i++) {
 
-				if (pantalla.getActores().get(i) instanceof Explosion) {
-					Explosion e = (Explosion) pantalla.getActores().get(i);
+				if (actores.get(i) instanceof Explosion) {
+					Explosion e = (Explosion) actores.get(i);
 
 					e.remover();
 
 				}
+
+				tiemoExplosion = 0;
+
 			}
 
-			cicloExplosion = 0;
-
 		}
+
 	}
 
 	public void explosion() {
@@ -79,15 +81,13 @@ public class BalaEnemigoDestruible extends Actor {
 		explosion.setPosicion(x - 32, y - 32);
 
 		explosion.setImagenes(
-			new Bitmap[] { Texturas.explosion1, Texturas.explosion2,
-				Texturas.explosion3, Texturas.explosion4 });
-				
-				
+				new Bitmap[] { Texturas.explosion1, Texturas.explosion2, Texturas.explosion3, Texturas.explosion4 });
+
 		explosion.setCuadros(4);
 
 		if (explosion.getX() <= 640) {
 
-			pantalla.getActores().add(explosion);
+			actores.add(explosion);
 
 		}
 
@@ -98,7 +98,7 @@ public class BalaEnemigoDestruible extends Actor {
 
 		if (actor instanceof Jugador || actor instanceof Bala || actor instanceof BalaEspecial) {
 
-			pantalla.getJuego().getRecurso().playMusica("explosion.wav", 1);
+			recurso.playMusica("explosion.wav", 1);
 
 			explosion();
 

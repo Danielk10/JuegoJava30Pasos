@@ -1,6 +1,5 @@
 package com.diamon.pantalla;
 
-import com.diamon.juego.FinalMision;
 import com.diamon.nucleo.Juego;
 import com.diamon.nucleo.Pantalla;
 
@@ -14,11 +13,10 @@ public class PantallaPrecentacion extends Pantalla {
 
 	private Bitmap fondo;
 
-	public PantallaPrecentacion(FinalMision juego) {
+	public PantallaPrecentacion(Juego juego) {
 		super(juego);
 
-		fondo = this.crearBitmap(juego.getRecurso().getImagen("precentacion.png"), Juego.ANCHO_PANTALLA,
-				Juego.ALTO_PANTALLA);
+		fondo = this.crearBitmap(recurso.getImagen("precentacion.png"), Juego.ANCHO_PANTALLA, Juego.ALTO_PANTALLA);
 
 	}
 
@@ -66,12 +64,6 @@ public class PantallaPrecentacion extends Pantalla {
 	}
 
 	@Override
-	public void reajustarPantalla(int ancho, int alto) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
 	public void teclaPresionada(KeyEvent ev) {
 
 		switch (ev.getKeyCode()) {
@@ -99,7 +91,6 @@ public class PantallaPrecentacion extends Pantalla {
 
 		case MotionEvent.ACTION_DOWN:
 
-			
 			break;
 
 		case MotionEvent.ACTION_CANCEL:
@@ -109,8 +100,6 @@ public class PantallaPrecentacion extends Pantalla {
 
 			break;
 		case MotionEvent.ACTION_MOVE:
-
-			
 
 			break;
 
@@ -122,7 +111,6 @@ public class PantallaPrecentacion extends Pantalla {
 
 	}
 
-	@SuppressWarnings("unused")
 	@Override
 	public void multiToque(MotionEvent ev) {
 
@@ -131,6 +119,7 @@ public class PantallaPrecentacion extends Pantalla {
 		int punteroIndice = (ev.getAction()
 				& MotionEvent.ACTION_POINTER_INDEX_MASK) >> MotionEvent.ACTION_POINTER_INDEX_SHIFT;
 
+		@SuppressWarnings("unused")
 		int punteroID = ev.getPointerId(punteroIndice);
 
 		switch (accion) {
@@ -146,8 +135,6 @@ public class PantallaPrecentacion extends Pantalla {
 		case MotionEvent.ACTION_UP:
 
 			juego.setPantalla(new PantallaAyuda(juego));
-			
-				
 
 			break;
 		case MotionEvent.ACTION_POINTER_UP:
@@ -171,6 +158,12 @@ public class PantallaPrecentacion extends Pantalla {
 
 	@Override
 	public void acelerometro(SensorEvent ev) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void reajustarPantalla(float ancho, float alto) {
 		// TODO Auto-generated method stub
 
 	}

@@ -1,25 +1,29 @@
 package com.diamon.nucleo;
 
+import java.util.ArrayList;
+
+import com.diamon.dato.Configuraciones;
 import com.diamon.utilidad.Rectangulo;
+import com.diamon.utilidad.Recurso;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 
 public abstract class Actor {
 
-	protected int x;
+	protected float x;
 
-	protected int y;
+	protected float y;
 
-	protected int ancho;
+	protected float ancho;
 
-	protected int alto;
+	protected float alto;
 
 	protected boolean remover;
 
-	private int cuadros;
+	private float cuadros;
 
-	private int timpo;
+	private float timpo;
 
 	private int frames;
 
@@ -27,11 +31,27 @@ public abstract class Actor {
 
 	protected Pantalla pantalla;
 
+	protected Recurso recurso;
+
+	protected Configuraciones configuracion;
+
+	protected ArrayList<Actor> actores;
+
+	public Camara2D camara;
+
 	private boolean animar;
 
 	public Actor(Pantalla pantalla) {
 
 		this.pantalla = pantalla;
+
+		this.recurso = pantalla.recurso;
+
+		this.configuracion = pantalla.configuracion;
+
+		actores = pantalla.actores;
+
+		this.camara = pantalla.camara;
 
 		x = 0;
 
@@ -55,13 +75,13 @@ public abstract class Actor {
 
 	}
 
-	public void setPosicion(int x, int y) {
+	public void setPosicion(float x, float y) {
 		this.x = x;
 		this.y = y;
 
 	}
 
-	public void setCuadros(int cuadros) {
+	public void setCuadros(float cuadros) {
 		this.cuadros = cuadros;
 
 		animar = true;
@@ -80,13 +100,32 @@ public abstract class Actor {
 	public void actualizar(float delta) {
 
 		if (animar) {
-			timpo++;
 
-			if (timpo % cuadros == 0) {
-				timpo = 0;
-				frames = (frames + 1) % imagenes.length;
+			if (delta == 0) {
+
+				return;
 
 			}
+
+			if (delta > 0.1f) {
+
+				delta = 0.1f;
+			}
+
+			timpo += delta;
+
+			int frameNumber = (int) (timpo / (cuadros / Juego.FPS));
+
+			frames = frameNumber % imagenes.length;
+
+			/*
+			 * timpo++;
+			 * 
+			 * if (timpo % cuadros == 0) { timpo = 0; frames = (frames + 1) %
+			 * imagenes.length;
+			 * 
+			 * }
+			 */
 
 		}
 
@@ -98,19 +137,19 @@ public abstract class Actor {
 
 	}
 
-	public int getX() {
+	public float getX() {
 		return x;
 	}
 
-	public void setX(int x) {
+	public void setX(float x) {
 		this.x = x;
 	}
 
-	public int getY() {
+	public float getY() {
 		return y;
 	}
 
-	public void setY(int y) {
+	public void setY(float y) {
 		this.y = y;
 	}
 
@@ -119,23 +158,23 @@ public abstract class Actor {
 
 	}
 
-	public int getAncho() {
+	public float getAncho() {
 		return ancho;
 	}
 
-	public void setAncho(int ancho) {
+	public void setAncho(float ancho) {
 		this.ancho = ancho;
 	}
 
-	public int getAlto() {
+	public float getAlto() {
 		return alto;
 	}
 
-	public void setAlto(int alto) {
+	public void setAlto(float alto) {
 		this.alto = alto;
 	}
 
-	public void setTamano(int ancho, int alto) {
+	public void setTamano(float ancho, float alto) {
 
 		this.ancho = ancho;
 

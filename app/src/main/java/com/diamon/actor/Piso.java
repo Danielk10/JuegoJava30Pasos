@@ -6,7 +6,7 @@ import com.diamon.nucleo.Pantalla;
 
 public class Piso extends Actor {
 
-	private final static int VELOCIDAD_PISO = 1;
+	private final static float VELOCIDAD_PISO = 1;
 
 	public Piso(Pantalla pantalla) {
 
@@ -21,7 +21,8 @@ public class Piso extends Actor {
 
 		super.actualizar(delta);
 
-		x -= VELOCIDAD_PISO;
+		x -= VELOCIDAD_PISO / Juego.DELTA_A_PIXEL * delta;
+		;
 
 		if (x <= -128) {
 

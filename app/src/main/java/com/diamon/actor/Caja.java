@@ -1,10 +1,12 @@
 package com.diamon.actor;
 
 import com.diamon.nucleo.Actor;
+import com.diamon.nucleo.Juego;
 import com.diamon.nucleo.Pantalla;
+import com.diamon.utilidad.Texturas;
 
 import android.graphics.Bitmap;
-import com.diamon.utilidad.*;
+
 
 public class Caja extends Actor {
 
@@ -48,7 +50,7 @@ public class Caja extends Actor {
 
 		super.actualizar(delta);
 
-		x--;
+		x -= 1 / Juego.DELTA_A_PIXEL * delta;
 
 		if (x <= -ancho) {
 
@@ -70,7 +72,7 @@ public class Caja extends Actor {
 
 			poder.setImagenes(new Bitmap[] { Texturas.poderS });
 
-			pantalla.getActores().add(poder);
+			actores.add(poder);
 		}
 
 		if (poderBala == Caja.PODER_W) {
@@ -79,7 +81,7 @@ public class Caja extends Actor {
 
 			poder.setImagenes(new Bitmap[] { Texturas.poderW });
 
-			pantalla.getActores().add(poder);
+			actores.add(poder);
 		}
 
 		if (poderBala == Caja.PODER_L) {
@@ -88,7 +90,7 @@ public class Caja extends Actor {
 
 			poder.setImagenes(new Bitmap[] { Texturas.poderL });
 
-			pantalla.getActores().add(poder);
+			actores.add(poder);
 		}
 
 		if (poderBala == Caja.PODER_B) {
@@ -97,7 +99,7 @@ public class Caja extends Actor {
 
 			poder.setImagenes(new Bitmap[] { Texturas.poderB });
 
-			pantalla.getActores().add(poder);
+			actores.add(poder);
 		}
 
 	}

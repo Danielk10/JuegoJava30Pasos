@@ -2,14 +2,14 @@ package com.diamon.actor;
 
 import com.diamon.nucleo.Actor;
 import com.diamon.nucleo.Pantalla;
+import com.diamon.utilidad.Texturas;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import com.diamon.utilidad.*;
 
 public class Satelite extends Actor {
 
-	private int cicloDisparo;
+	private float tiempoDisparo;
 
 	private boolean disparar;
 
@@ -23,8 +23,6 @@ public class Satelite extends Actor {
 
 	public Satelite(Pantalla pantalla) {
 		super(pantalla);
-
-		cicloDisparo = 0;
 
 		disparar = false;
 
@@ -46,15 +44,15 @@ public class Satelite extends Actor {
 		// TODO Auto-generated method stub
 		super.actualizar(delta);
 
-		cicloDisparo++;
+		tiempoDisparo += delta;
 
 		if (disparar) {
 
-			if (cicloDisparo % 20 == 0) {
+			if (tiempoDisparo / 0.33f >= 1) {
 
 				disparar();
 
-				cicloDisparo = 0;
+				tiempoDisparo = 0;
 
 			}
 
@@ -115,7 +113,7 @@ public class Satelite extends Actor {
 
 		bala.setImagenes(new Bitmap[] { Texturas.balaSatelite });
 
-		pantalla.getActores().add(bala);
+		actores.add(bala);
 
 	}
 

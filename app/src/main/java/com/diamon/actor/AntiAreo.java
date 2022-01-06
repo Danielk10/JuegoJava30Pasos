@@ -1,23 +1,20 @@
 package com.diamon.actor;
 
 import com.diamon.nucleo.Actor;
+import com.diamon.nucleo.Juego;
 import com.diamon.nucleo.Pantalla;
+import com.diamon.utilidad.Texturas;
 
 import android.graphics.Bitmap;
-import com.diamon.utilidad.*;
 
 public class AntiAreo extends Actor {
 
-	private int cicloDisparo;
+	private float tiemoDisparo;
 
-	private int cicloExplosion;
+	private float tiemoExplosion;
 
 	public AntiAreo(Pantalla pantalla) {
 		super(pantalla);
-
-		cicloDisparo = 0;
-
-		cicloExplosion = 0;
 
 	}
 
@@ -32,36 +29,35 @@ public class AntiAreo extends Actor {
 
 		}
 
-		x--;
+		x -= 1 / Juego.DELTA_A_PIXEL * delta;
 
-		cicloDisparo++;
+		tiemoDisparo += delta;
 
-		cicloExplosion++;
+		if (tiemoDisparo / 0.5f >= 1) {
 
-		if (cicloExplosion % 30 == 0) {
+			for (int i = 0; i < actores.size(); i++) {
 
-			for (int i = 0; i < pantalla.getActores().size(); i++) {
-
-				if (pantalla.getActores().get(i) instanceof Explosion) {
-					Explosion e = (Explosion) pantalla.getActores().get(i);
+				if (actores.get(i) instanceof Explosion) {
+					Explosion e = (Explosion) actores.get(i);
 
 					e.remover();
 
 				}
 			}
 
-			cicloExplosion = 0;
-
+			tiemoDisparo = 0;
 		}
-		if (cicloDisparo % 10 == 0) {
+
+		tiemoExplosion += delta;
+
+		if (tiemoExplosion / 0.5f >= 1) {
 
 			if (Math.random() < 0.08f) {
 				disparar();
 
 			}
 
-			cicloDisparo = 0;
-
+			tiemoExplosion = 0;
 		}
 
 		if (x <= -ancho) {
@@ -79,8 +75,7 @@ public class AntiAreo extends Actor {
 
 		bala.setPosicion(x, y + 12);
 
-		bala.setImagenes(new Bitmap[] { Texturas.balaE1, Texturas.balaE2,
-							 Texturas.balaE3, Texturas.balaE4 });
+		bala.setImagenes(new Bitmap[] { Texturas.balaE1, Texturas.balaE2, Texturas.balaE3, Texturas.balaE4 });
 
 		bala.setCuadros(3);
 
@@ -88,7 +83,7 @@ public class AntiAreo extends Actor {
 
 		if (bala.getX() <= 640) {
 
-			pantalla.getActores().add(bala);
+			actores.add(bala);
 		}
 
 	}
@@ -102,14 +97,13 @@ public class AntiAreo extends Actor {
 		explosion.setPosicion(x - 32, y - 32);
 
 		explosion.setImagenes(
-			new Bitmap[] { Texturas.explosion1, Texturas.explosion2,
-				Texturas.explosion3, Texturas.explosion4 });
+				new Bitmap[] { Texturas.explosion1, Texturas.explosion2, Texturas.explosion3, Texturas.explosion4 });
 
 		explosion.setCuadros(4);
 
 		if (explosion.getX() <= 640) {
 
-			pantalla.getActores().add(explosion);
+			actores.add(explosion);
 
 		}
 
@@ -119,7 +113,7 @@ public class AntiAreo extends Actor {
 	public void colision(Actor actor) {
 		if (actor instanceof Bala || actor instanceof Jugador || actor instanceof BalaEspecial
 				|| actor instanceof ExplosionB) {
-			pantalla.getJuego().getRecurso().playMusica("explosion.wav", 1);
+			recurso.playMusica("explosion.wav", 1);
 
 			explosion();
 

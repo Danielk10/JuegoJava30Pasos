@@ -6,7 +6,7 @@ import com.diamon.nucleo.Pantalla;
 
 public class Fondo extends Actor {
 
-	public final static int VELOCIDAD_FONDO = 1;
+	public final static float VELOCIDAD_FONDO = 1;
 
 	public final static int HORIZONTAL_IZQUIERDA = 1;
 
@@ -20,9 +20,9 @@ public class Fondo extends Actor {
 
 	private boolean parar;
 
-	private int velocidad;
+	private float velocidad;
 
-	private int  nombre;
+	private int nombre;
 
 	public Fondo(Pantalla pantalla) {
 
@@ -38,11 +38,13 @@ public class Fondo extends Actor {
 
 	}
 
-	public int getVelocidad() {
+	public float getVelocidad() {
 		return velocidad;
 	}
 
-	
+	public void setVelocidad(float velocidad) {
+		this.velocidad = velocidad;
+	}
 
 	public int getNombre() {
 		return nombre;
@@ -54,10 +56,6 @@ public class Fondo extends Actor {
 
 	public void setNombre(int nombre) {
 		this.nombre = nombre;
-	}
-
-	public void setVelocidad(int velocidad) {
-		this.velocidad = velocidad;
 	}
 
 	public void setParar(boolean parar) {
@@ -72,7 +70,7 @@ public class Fondo extends Actor {
 		if (direccion == Fondo.HORIZONTAL_IZQUIERDA) {
 
 			if (!parar) {
-				x -= velocidad;
+				x -= velocidad / Juego.DELTA_A_PIXEL * delta;
 
 			}
 
@@ -88,7 +86,7 @@ public class Fondo extends Actor {
 
 			if (!parar) {
 
-				y += velocidad;
+				y += velocidad / Juego.DELTA_A_PIXEL * delta;
 			}
 
 			if (y >= Juego.ALTO_PANTALLA) {
@@ -102,7 +100,7 @@ public class Fondo extends Actor {
 		if (direccion == Fondo.VERTICAL_ARRIBA) {
 
 			if (!parar) {
-				y -= velocidad;
+				y -= velocidad / Juego.DELTA_A_PIXEL * delta;
 
 			}
 
@@ -116,7 +114,7 @@ public class Fondo extends Actor {
 		if (direccion == Fondo.HORIZONTAL_DERECHA) {
 
 			if (!parar) {
-				x += velocidad;
+				x += velocidad / Juego.DELTA_A_PIXEL * delta;
 
 			}
 

@@ -1,6 +1,6 @@
 package com.diamon.pantalla;
 
-import com.diamon.juego.FinalMision;
+import com.diamon.nucleo.Juego;
 import com.diamon.nucleo.Pantalla;
 
 import android.graphics.Canvas;
@@ -10,7 +10,7 @@ import android.view.MotionEvent;
 
 public class PantallaExtra extends Pantalla {
 
-	public PantallaExtra(FinalMision juego) {
+	public PantallaExtra(Juego juego) {
 		super(juego);
 		// TODO Auto-generated constructor stub
 	}
@@ -58,12 +58,6 @@ public class PantallaExtra extends Pantalla {
 	}
 
 	@Override
-	public void reajustarPantalla(int ancho, int alto) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
 	public void teclaPresionada(KeyEvent ev) {
 		// TODO Auto-generated method stub
 
@@ -78,19 +72,25 @@ public class PantallaExtra extends Pantalla {
 	@Override
 	public void toque(MotionEvent ev) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void multiToque(MotionEvent ev) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void acelerometro(SensorEvent ev) {
 		// TODO Auto-generated method stub
-		
+
+	}
+
+	@Override
+	public void reajustarPantalla(float ancho, float alto) {
+		// TODO Auto-generated method stub
+
 	}
 
 }

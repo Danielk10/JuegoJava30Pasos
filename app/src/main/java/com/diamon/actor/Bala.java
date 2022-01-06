@@ -10,7 +10,7 @@ public class Bala extends Actor {
 
 	private boolean lado;
 
-	private int velocidad;
+	private float velocidad;
 
 	public Bala(Pantalla pantalla) {
 
@@ -22,11 +22,11 @@ public class Bala extends Actor {
 
 	}
 
-	public int getVelocidad() {
+	public float getVelocidad() {
 		return velocidad;
 	}
 
-	public void setVelocidad(int velocidad) {
+	public void setVelocidad(float velocidad) {
 		this.velocidad = velocidad;
 	}
 
@@ -36,7 +36,7 @@ public class Bala extends Actor {
 		super.actualizar(delta);
 
 		if (lado) {
-			x += velocidad;
+			x += velocidad / Juego.DELTA_A_PIXEL * delta;
 
 			if (x >= Juego.ANCHO_PANTALLA) {
 
@@ -45,7 +45,7 @@ public class Bala extends Actor {
 
 		} else {
 
-			x -= velocidad;
+			x -= velocidad / Juego.DELTA_A_PIXEL * delta;
 
 			if (x <= -ancho) {
 
@@ -63,9 +63,10 @@ public class Bala extends Actor {
 	@Override
 	public void colision(Actor actor) {
 
-		if (actor instanceof Volador || actor instanceof Caja || actor instanceof Saltador || actor instanceof BalaEnemigoDestruible
-				|| actor instanceof MaquinaFinal || actor instanceof MaquinaPared || actor instanceof LanzaMisil
-				|| actor instanceof Misil || actor instanceof Robot || actor instanceof AntiAreo) {
+		if (actor instanceof Volador || actor instanceof Caja || actor instanceof Saltador
+				|| actor instanceof BalaEnemigoDestruible || actor instanceof MaquinaFinal
+				|| actor instanceof MaquinaPared || actor instanceof LanzaMisil || actor instanceof Misil
+				|| actor instanceof Robot || actor instanceof AntiAreo) {
 
 			remover = true;
 

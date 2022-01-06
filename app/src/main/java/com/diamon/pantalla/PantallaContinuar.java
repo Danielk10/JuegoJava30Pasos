@@ -1,6 +1,5 @@
 package com.diamon.pantalla;
 
-import com.diamon.juego.FinalMision;
 import com.diamon.nucleo.Juego;
 import com.diamon.nucleo.Pantalla;
 
@@ -16,20 +15,19 @@ public class PantallaContinuar extends Pantalla {
 
 	private Bitmap selector;
 
-	private int posicionY;
-	
+	private float posicionY;
+
 	private boolean toque;
 
-	public PantallaContinuar(FinalMision juego) {
+	public PantallaContinuar(Juego juego) {
 		super(juego);
 
-		fondo = this.crearBitmap(juego.getRecurso().getImagen("continuar.png"), Juego.ANCHO_PANTALLA,
-				Juego.ALTO_PANTALLA);
+		fondo = this.crearBitmap(recurso.getImagen("continuar.png"), Juego.ANCHO_PANTALLA, Juego.ALTO_PANTALLA);
 
-		selector = this.crearBitmap(juego.getRecurso().getImagen("selector2.png"), 16, 16);
+		selector = this.crearBitmap(recurso.getImagen("selector2.png"), 16, 16);
 
 		posicionY = 288;
-		
+
 		toque = false;
 	}
 
@@ -74,12 +72,6 @@ public class PantallaContinuar extends Pantalla {
 
 	@Override
 	public void mostrar() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void reajustarPantalla(int ancho, int alto) {
 		// TODO Auto-generated method stub
 
 	}
@@ -131,10 +123,9 @@ public class PantallaContinuar extends Pantalla {
 	@Override
 	public void toque(MotionEvent ev) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
-	@SuppressWarnings("unused")
 	@Override
 	public void multiToque(MotionEvent ev) {
 		int accion = ev.getAction() & MotionEvent.ACTION_MASK;
@@ -142,13 +133,12 @@ public class PantallaContinuar extends Pantalla {
 		int punteroIndice = (ev.getAction()
 				& MotionEvent.ACTION_POINTER_INDEX_MASK) >> MotionEvent.ACTION_POINTER_INDEX_SHIFT;
 
+		@SuppressWarnings("unused")
 		int punteroID = ev.getPointerId(punteroIndice);
 
 		switch (accion) {
 
 		case MotionEvent.ACTION_DOWN:
-
-		
 
 			break;
 		case MotionEvent.ACTION_POINTER_DOWN:
@@ -160,15 +150,15 @@ public class PantallaContinuar extends Pantalla {
 			break;
 		case MotionEvent.ACTION_UP:
 
-				toque = !toque;
-				if (toque) {
-					posicionY = 288;
+			toque = !toque;
+			if (toque) {
+				posicionY = 288;
 
-				} else {
+			} else {
 
-					posicionY = 322;
-				}
-			
+				posicionY = 322;
+			}
+
 			break;
 		case MotionEvent.ACTION_POINTER_UP:
 
@@ -190,13 +180,19 @@ public class PantallaContinuar extends Pantalla {
 			break;
 
 		}
-		
+
 	}
 
 	@Override
 	public void acelerometro(SensorEvent ev) {
 		// TODO Auto-generated method stub
-		
+
+	}
+
+	@Override
+	public void reajustarPantalla(float ancho, float alto) {
+		// TODO Auto-generated method stub
+
 	}
 
 }
