@@ -64,6 +64,7 @@ public class PantallaJuego extends Pantalla {
 		musicaMuriendo2 = true;
 
 		musicaIntro1 = false;
+		
 		musicaIntro2 = true;
 
 		iniciar();
@@ -218,6 +219,7 @@ public class PantallaJuego extends Pantalla {
 		Random r = new Random();
 
 		for (int i = 0; i < voladores.length; i++) {
+			
 			voladores[i] = new Volador(this);
 
 			voladores[i].setTamano(32, 32);
@@ -321,7 +323,7 @@ public class PantallaJuego extends Pantalla {
 
 	private void moverFondo() {
 
-		if ((int) fondo[4].getX() == 0 && (int) fondo[4].getY() == 0) {
+		if ((int) fondo[4].getX() <= 0 && (int) fondo[4].getY() <= 0) {
 
 			fondo[4].setPosicion(0, 0);
 
@@ -349,7 +351,7 @@ public class PantallaJuego extends Pantalla {
 
 		}
 
-		if ((int) fondo[7].getX() == 0 && (int) fondo[7].getY() == 0) {
+		if ((int) fondo[7].getX() <= 0 && (int) fondo[7].getY() <= 0) {
 
 			fondo[7].setPosicion(0, 0);
 
@@ -377,7 +379,7 @@ public class PantallaJuego extends Pantalla {
 
 		}
 
-		if ((int) fondo[10].getX() == 0 && (int) fondo[10].getY() == 0) {
+		if ((int) fondo[10].getX() <= 0 && (int) fondo[10].getY() <= 0) {
 
 			fondo[10].setPosicion(0, 0);
 
@@ -393,7 +395,7 @@ public class PantallaJuego extends Pantalla {
 
 		}
 
-		if ((int) fondo[11].getX() == 0 && (int) fondo[11].getY() == 0) {
+		if ((int) fondo[11].getX() <= 0 && (int) fondo[11].getY() <= 0) {
 
 			fondo[11].setPosicion(0, 0);
 
@@ -415,7 +417,7 @@ public class PantallaJuego extends Pantalla {
 
 		}
 
-		if ((int) fondo[13].getX() == 0 && (int) fondo[13].getY() == 0) {
+		if ((int) fondo[13].getX() <= 0 && (int) fondo[13].getY() <= 0) {
 
 			fondo[13].setPosicion(0, 0);
 
@@ -437,7 +439,7 @@ public class PantallaJuego extends Pantalla {
 
 		}
 
-		if ((int) fondo[15].getX() == 0 && (int) fondo[15].getY() == 0) {
+		if ((int) fondo[15].getX() <= 0 && (int) fondo[15].getY() <= 0) {
 
 			fondo[15].setPosicion(0, 0);
 
@@ -479,7 +481,7 @@ public class PantallaJuego extends Pantalla {
 
 		if (!fondo[20].isParar()) {
 
-			if ((int) fondo[20].getX() == 0 && (int) fondo[20].getY() == 0) {
+			if ((int) fondo[20].getX() <= 0 && (int) fondo[20].getY() <= 0) {
 
 				fondo[20].setParar(true);
 
@@ -655,7 +657,7 @@ public class PantallaJuego extends Pantalla {
 
 				agregarLanzaMisil();
 
-				;
+				
 			}
 
 		}
@@ -816,6 +818,7 @@ public class PantallaJuego extends Pantalla {
 	}
 
 	private void agregarPoder() {
+		
 		int posicionCaja = 64;
 
 		Caja[] cajas = new Caja[4];
