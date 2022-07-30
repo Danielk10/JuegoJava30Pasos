@@ -10,8 +10,8 @@ android {
         applicationId "com.diamon.curso"
         minSdkVersion 21
         targetSdkVersion 30
-        versionCode 31
-        versionName "1.0.8"
+        versionCode 32
+        versionName "1.0.9"
 
     }
 
@@ -36,5 +36,6 @@ dependencies {
     def appCenterSdkVersion = '4.3.1'
     implementation "com.microsoft.appcenter:appcenter-analytics:${appCenterSdkVersion}"
     implementation "com.microsoft.appcenter:appcenter-crashes:${appCenterSdkVersion}"
+	implementation 'com.google.android.gms:play-services-ads:21.1.0'
 
 }

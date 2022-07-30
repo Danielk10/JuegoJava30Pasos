@@ -12,6 +12,8 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.Ad_ID" />
+	<uses-permission android:name="com.google.android.gms.permission.AD_ID"/>
+
 	
     <application
         android:allowBackup="true"
@@ -25,9 +27,15 @@
             android:name="com.startapp.sdk.APPLICATION_ID"
             android:value="203554014" />
 			
-			<meta-data
-               android:name="com.startapp.sdk.RETURN_ADS_ENABLED"
-               android:value="false" />
+		<meta-data
+            android:name="com.startapp.sdk.RETURN_ADS_ENABLED"
+            android:value="false" />
+			   
+			   
+		<meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-5141499161332805~8263601193"/>
+	   
 
 
         <activity android:name=".Tutorial"

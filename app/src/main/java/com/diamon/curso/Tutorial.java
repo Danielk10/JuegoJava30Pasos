@@ -13,6 +13,14 @@ import com.microsoft.appcenter.AppCenter;
 import com.microsoft.appcenter.analytics.Analytics;
 import com.microsoft.appcenter.crashes.Crashes;
 
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.initialization.InitializationStatus;
+import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
+
+import com.google.android.gms.ads.interstitial.InterstitialAd;
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
+
+
 public class Tutorial extends Activity {
 
 	private ImageButton botonTutorial;
@@ -24,6 +32,9 @@ public class Tutorial extends Activity {
 	private PantallaCompleta pantallaCompleta;
 
 	private MostrarPublicidad publicidad;
+	
+	private InterstitialAd mInterstitialAd;
+
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +52,74 @@ public class Tutorial extends Activity {
 		publicidad = new MostrarPublicidad(this);
 
 		setContentView(R.layout.main);
+		
+		 MobileAds.initialize(this, new OnInitializationCompleteListener() {
+            @Override
+            public void onInitializationComplete(InitializationStatus initializationStatus) {
+            }
+        });
+		
+		
+		
+		
+		AdRequest adRequest = new AdRequest.Builder().build();
+
+		   InterstitialAd.load(this,"ca-app-pub-5141499161332805/8275351662", adRequest,
+        new InterstitialAdLoadCallback() {
+      @Override
+      public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
+     
+        mInterstitialAd = interstitialAd;
+       
+      }
+
+      @Override
+      public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
+        
+        mInterstitialAd = null;
+      }
+    });
+
+		
+		
+		
+		
+  mInterstitialAd.setFullScreenContentCallback(new FullScreenContentCallback(){
+  @Override
+  public void onAdClicked() {
+   
+  }
+
+  @Override
+  public void onAdDismissedFullScreenContent() {
+
+
+    mInterstitialAd = null;
+  }
+
+  @Override
+  public void onAdFailedToShowFullScreenContent(AdError adError) {
+    
+	
+    mInterstitialAd = null;
+  }
+
+  @Override
+  public void onAdImpression() {
+  
+  
+  }
+
+  @Override
+  public void onAdShowedFullScreenContent() {
+   
+   
+  }
+});
+		
+		
+
+		
 
 		botonTutorial = (ImageButton) findViewById(R.id.boton);
 
@@ -51,6 +130,12 @@ public class Tutorial extends Activity {
 		botonTutorial.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
+				
+				if (mInterstitialAd != null) {
+                 mInterstitialAd.show(Tutorial.this);
+                 } else {
+  
+                  }
 
 				accionBoton();
 
