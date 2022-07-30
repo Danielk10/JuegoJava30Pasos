@@ -63,13 +63,6 @@ public class Tutorial extends Activity {
 		botonTutorial.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				
-				if (mInterstitialAd != null) {
-                 mInterstitialAd.show(Tutorial.this);
-                 } else {
-  
-                  }
-
 				accionBoton();
 
 			}
