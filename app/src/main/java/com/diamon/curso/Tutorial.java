@@ -16,6 +16,14 @@ import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.ads.initialization.InitializationStatus;
 import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
 
+import androidx.annotation.NonNull;
+import com.google.android.gms.ads.AdError;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.FullScreenContentCallback;
+import com.google.android.gms.ads.LoadAdError;
+
+
+
 
 public class Tutorial extends Activity {
 
@@ -28,6 +36,9 @@ public class Tutorial extends Activity {
 	private PantallaCompleta pantallaCompleta;
 
 	private MostrarPublicidad publicidad;
+	
+	private InterstitialAd interstitialAd;
+
 
 
 
@@ -53,6 +64,26 @@ public class Tutorial extends Activity {
             public void onInitializationComplete(InitializationStatus initializationStatus) {
             }
         });
+		
+		
+		 AdRequest adRequest = new AdRequest.Builder().build();
+
+      InterstitialAd.load(this,"ca-app-pub-3940256099942544/1033173712", adRequest,
+        new InterstitialAdLoadCallback() {
+      @Override
+      public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
+       
+        mInterstitialAd = interstitialAd;
+       
+      }
+
+      @Override
+      public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
+      
+        mInterstitialAd = null;
+      }
+    });
+
 
 		botonTutorial = (ImageButton) findViewById(R.id.boton);
 
@@ -63,6 +94,13 @@ public class Tutorial extends Activity {
 		botonTutorial.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
+				
+				
+				if (mInterstitialAd != null) {
+  mInterstitialAd.show(Tutorial.this);
+} else {
+ 
+}
 				accionBoton();
 
 			}
