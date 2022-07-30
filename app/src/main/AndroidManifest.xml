@@ -51,7 +51,7 @@
             android:name=".Pagina"
             android:label="@string/tutorial"
 			android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale"
-			android:exported="true"
+		
 			
 
 		></activity>
@@ -61,7 +61,7 @@
             android:label="@string/juego"
 			android:configChanges="orientation|keyboardHidden|orientation"
 			android:screenOrientation="landscape"
-			android:exported="true"
+		
 
 		></activity>
 
@@ -70,7 +70,7 @@
             android:name=".Terminos"
             android:label="@string/juego"
 			android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale"
-			android:exported="true"
+			
 
 
 		></activity>
