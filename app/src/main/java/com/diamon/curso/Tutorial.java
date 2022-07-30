@@ -20,6 +20,11 @@ import com.google.android.gms.ads.initialization.OnInitializationCompleteListene
 import com.google.android.gms.ads.interstitial.InterstitialAd;
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
 
+import com.google.android.gms.ads.AdRequest;
+
+import com.google.android.gms.ads.FullScreenContentCallback;
+
+
 
 public class Tutorial extends Activity {
 
