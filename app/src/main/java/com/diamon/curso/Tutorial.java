@@ -13,20 +13,6 @@ import com.microsoft.appcenter.AppCenter;
 import com.microsoft.appcenter.analytics.Analytics;
 import com.microsoft.appcenter.crashes.Crashes;
 
-import com.google.android.gms.ads.MobileAds;
-import com.google.android.gms.ads.initialization.InitializationStatus;
-import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
-
-import com.google.android.gms.ads.interstitial.InterstitialAd;
-import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
-
-import androidx.annotation.NonNull;
-import com.google.android.gms.ads.AdError;
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.FullScreenContentCallback;
-import com.google.android.gms.ads.LoadAdError;
-
-
 public class Tutorial extends Activity {
 
 	private ImageButton botonTutorial;
@@ -38,8 +24,7 @@ public class Tutorial extends Activity {
 	private PantallaCompleta pantallaCompleta;
 
 	private MostrarPublicidad publicidad;
-	
-	private InterstitialAd mInterstitialAd;
+
 
 
 	@Override
@@ -68,23 +53,6 @@ public class Tutorial extends Activity {
 		
 		
 		
-		AdRequest adRequest = new AdRequest.Builder().build();
-
-		   InterstitialAd.load(this,"ca-app-pub-5141499161332805/8275351662", adRequest,
-        new InterstitialAdLoadCallback() {
-      @Override
-      public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
-     
-        mInterstitialAd = interstitialAd;
-       
-      }
-
-      @Override
-      public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
-        
-        mInterstitialAd = null;
-      }
-    });
 
 
 		botonTutorial = (ImageButton) findViewById(R.id.boton);
