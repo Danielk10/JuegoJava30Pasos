@@ -86,46 +86,6 @@ public class Tutorial extends Activity {
       }
     });
 
-		
-		
-		
-		
-  mInterstitialAd.setFullScreenContentCallback(new FullScreenContentCallback(){
-  @Override
-  public void onAdClicked() {
-   
-  }
-
-  @Override
-  public void onAdDismissedFullScreenContent() {
-
-
-    mInterstitialAd = null;
-  }
-
-  @Override
-  public void onAdFailedToShowFullScreenContent(AdError adError) {
-    
-	
-    mInterstitialAd = null;
-  }
-
-  @Override
-  public void onAdImpression() {
-  
-  
-  }
-
-  @Override
-  public void onAdShowedFullScreenContent() {
-   
-   
-  }
-});
-		
-		
-
-		
 
 		botonTutorial = (ImageButton) findViewById(R.id.boton);
 
