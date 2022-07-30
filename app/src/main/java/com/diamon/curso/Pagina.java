@@ -11,6 +11,8 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.webkit.WebView;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
 
 
 /**
@@ -22,9 +24,8 @@ public class Pagina extends Activity {
 	private WebView pagina;
 
 	private PantallaCompleta pantallaCompleta;
-
-
-
+	
+	private AdView mAdView;
 
 	@SuppressWarnings("unused")
 	private MostrarPublicidad publicidad;
@@ -43,6 +44,15 @@ public class Pagina extends Activity {
 		publicidad = new MostrarPublicidad(this);
 
 		setContentView(R.layout.activity_pagina_web);
+		
+		mAdView = findViewById(R.id.adView);
+		
+		
+        AdRequest adRequest = new AdRequest.Builder().build();
+		
+		
+        mAdView.loadAd(adRequest);
+
 		
 		pagina = (WebView) findViewById(R.id.pagina);
 
