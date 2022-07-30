@@ -9,7 +9,7 @@ android {
     defaultConfig {
         applicationId "com.diamon.curso"
         minSdkVersion 21
-        targetSdkVersion 30
+        targetSdkVersion 31
         versionCode 32
         versionName "1.0.9"
 
