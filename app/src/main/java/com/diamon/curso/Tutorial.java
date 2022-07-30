@@ -67,14 +67,14 @@ public class Tutorial extends Activity {
 		   InterstitialAd.load(this,"ca-app-pub-5141499161332805/8275351662", adRequest,
         new InterstitialAdLoadCallback() {
       @Override
-      public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
+      public void onAdLoaded(InterstitialAd interstitialAd) {
      
         mInterstitialAd = interstitialAd;
        
       }
 
       @Override
-      public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
+      public void onAdFailedToLoad( LoadAdError loadAdError) {
         
         mInterstitialAd = null;
       }
