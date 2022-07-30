@@ -37,9 +37,7 @@ public class Tutorial extends Activity {
 
 	private MostrarPublicidad publicidad;
 	
-	private InterstitialAd interstitialAd;
-
-
+	private InterstitialAd mInterstitialAd;
 
 
 	@Override
@@ -68,7 +66,7 @@ public class Tutorial extends Activity {
 		
 		 AdRequest adRequest = new AdRequest.Builder().build();
 
-      InterstitialAd.load(this,"ca-app-pub-3940256099942544/1033173712", adRequest,
+      InterstitialAd.load(this,"ca-app-pub-5141499161332805/8275351662", adRequest,
         new InterstitialAdLoadCallback() {
       @Override
       public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
