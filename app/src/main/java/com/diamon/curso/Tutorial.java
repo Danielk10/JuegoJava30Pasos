@@ -12,6 +12,10 @@ import android.widget.ImageButton;
 import com.microsoft.appcenter.AppCenter;
 import com.microsoft.appcenter.analytics.Analytics;
 import com.microsoft.appcenter.crashes.Crashes;
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.initialization.InitializationStatus;
+import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
+
 
 public class Tutorial extends Activity {
 
@@ -44,16 +48,11 @@ public class Tutorial extends Activity {
 
 		setContentView(R.layout.main);
 		
-		 MobileAds.initialize(this, new OnInitializationCompleteListener() {
+		MobileAds.initialize(this, new OnInitializationCompleteListener() {
             @Override
             public void onInitializationComplete(InitializationStatus initializationStatus) {
             }
         });
-		
-		
-		
-		
-
 
 		botonTutorial = (ImageButton) findViewById(R.id.boton);
 
