@@ -20,10 +20,11 @@ import com.google.android.gms.ads.initialization.OnInitializationCompleteListene
 import com.google.android.gms.ads.interstitial.InterstitialAd;
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
 
+import androidx.annotation.NonNull;
+import com.google.android.gms.ads.AdError;
 import com.google.android.gms.ads.AdRequest;
-
 import com.google.android.gms.ads.FullScreenContentCallback;
-
+import com.google.android.gms.ads.LoadAdError;
 
 
 public class Tutorial extends Activity {
@@ -72,14 +73,14 @@ public class Tutorial extends Activity {
 		   InterstitialAd.load(this,"ca-app-pub-5141499161332805/8275351662", adRequest,
         new InterstitialAdLoadCallback() {
       @Override
-      public void onAdLoaded(InterstitialAd interstitialAd) {
+      public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
      
         mInterstitialAd = interstitialAd;
        
       }
 
       @Override
-      public void onAdFailedToLoad( LoadAdError loadAdError) {
+      public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
         
         mInterstitialAd = null;
       }
