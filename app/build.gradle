@@ -3,15 +3,15 @@ plugins {
 }
 
 android {
-    compileSdkVersion 32
-    buildToolsVersion "30.0.3"
+    compileSdkVersion 33
+    buildToolsVersion "33.0.0"
 
     defaultConfig {
         applicationId "com.diamon.curso"
         minSdkVersion 21
-        targetSdkVersion 32
-        versionCode 33
-        versionName "1.1.0"
+        targetSdkVersion 33
+        versionCode 34
+        versionName "1.1.1"
 
     }
 
