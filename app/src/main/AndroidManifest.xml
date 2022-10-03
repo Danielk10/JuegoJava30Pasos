@@ -16,7 +16,7 @@
    </intent>
    </queries> />
    <uses-permission android:name="android.permission.Ad_ID" />
-
+   <uses-permission android:name="com.google.android.gms.permission.AD_ID"/>
 
 	
     <application

@@ -13,8 +13,8 @@ android {
         applicationId "com.diamon.curso"
         minSdkVersion 21
         targetSdkVersion 33
-        versionCode 34
-        versionName "1.1.1"
+        versionCode 35
+        versionName "1.1.2"
 
     }
 
