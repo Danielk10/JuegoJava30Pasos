@@ -6,6 +6,9 @@ android {
     compileSdkVersion 33
     buildToolsVersion "30.0.3"
 
+  lintOptions {
+        checkReleaseBuilds false
+    }
     defaultConfig {
         applicationId "com.diamon.curso"
         minSdkVersion 21
