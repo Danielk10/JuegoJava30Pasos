@@ -3,7 +3,7 @@ package com.diamon.actor;
 import com.diamon.nucleo.Actor;
 import com.diamon.nucleo.Juego;
 import com.diamon.nucleo.Pantalla;
-import com.diamon.utilidad.Texturas;
+import com.diamon.utilidad.Texturas; 
 
 import android.graphics.Bitmap;
 
