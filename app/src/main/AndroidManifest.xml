@@ -12,6 +12,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.JuegoJava30Pasos"
         tools:targetApi="31">
+      
+      <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-5141499161332805~8263601193"/>
+      
         <activity
             android:name=".MainActivity"
             android:exported="true">
