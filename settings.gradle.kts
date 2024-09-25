@@ -20,4 +20,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "JuegoJava30Pasos"
-include ':app'
+include(":app")
