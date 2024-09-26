@@ -133,7 +133,11 @@ public abstract class Juego extends SurfaceView
 
 			pincel.getClipBounds(rectangulo);
 
-			pincelBufer.limpiar(Color.BLUE);
+			lapiz.setColor(Color.BLUE);
+			
+			lapiz.setStyle(Style.FILL);
+			
+			pincelBufer.drawRect(0, 0, ANCHO_PANTALLA, ALTO_PANTALLA, lapiz);
 
 			renderizar(pincelBufer, (float) delta);
 
