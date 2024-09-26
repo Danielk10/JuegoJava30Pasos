@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.diamon.curso;
 
 import com.diamon.publicidad.MostrarPublicidad;
