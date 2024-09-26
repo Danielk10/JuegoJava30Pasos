@@ -103,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
 						
 						
 						if (mInterstitialAd != null) {
-		  mInterstitialAd.show(Tutorial.this);
+		  mInterstitialAd.show(MainActivity.this);
 		} else {
 		 
 		}
@@ -131,21 +131,21 @@ public class MainActivity extends AppCompatActivity {
 				});
 	
 	}
-	
+	 
 		public void accionBoton() {
-			Intent nuevaActividad = new Intent(Tutorial.this, Pagina.class);
+			Intent nuevaActividad = new Intent(MainActivity.this, Pagina.class);
 			startActivity(nuevaActividad);
 	
 			publicidad.mostrarInterstitial();
 		}
 	
 		public void accionBoton1() {
-			Intent nuevaActividad = new Intent(Tutorial.this, Inicio.class);
+			Intent nuevaActividad = new Intent(MainActivity.this, Inicio.class);
 			startActivity(nuevaActividad);
 		}
 	
 		public void accionBoton2() {
-			Intent nuevaActividad = new Intent(Tutorial.this, Terminos.class);
+			Intent nuevaActividad = new Intent(MainActivity.this, Terminos.class);
 			startActivity(nuevaActividad);
 		}
 	
