@@ -129,7 +129,7 @@ public abstract class Juego extends SurfaceView
 
 			actualizar((float) delta);
 			
-			pincel = holder.getSurface().lockHardwareCanvas();
+			pincel = holder.lockCanvas();
 
 			pincel.getClipBounds(rectangulo);
 
