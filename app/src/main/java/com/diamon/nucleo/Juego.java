@@ -128,6 +128,10 @@ public abstract class Juego extends SurfaceView
 			colisiones();
 
 			actualizar((float) delta);
+			
+			if (holder.getSurface() != null)
+						{
+						  
 
 			pincel = holder.getSurface().lockHardwareCanvas();
 
@@ -146,7 +150,7 @@ public abstract class Juego extends SurfaceView
 			holder.unlockCanvasAndPost(pincel);
 
 			// Hasta aqu�
-
+}
 			referencia = tiempoInicial;
 
 			// Limite de cuadros
