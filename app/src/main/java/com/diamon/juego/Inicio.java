@@ -3,7 +3,6 @@ package com.diamon.juego;
 import com.diamon.nucleo.Juego;
 import com.diamon.publicidad.MostrarPublicidad;
 import com.diamon.utilidad.PantallaCompleta;
-import com.startapp.sdk.ads.banner.Banner;
 
 import android.app.Activity;
 import android.content.Context;
@@ -57,18 +56,12 @@ public class Inicio extends Activity {
 
 		FrameLayout frame = new FrameLayout(this);
 
-		Banner baner = new Banner(this);
-
-		baner.setScaleX(0.5f);
-
-		baner.setScaleY(0.5f);
 
 		RelativeLayout.LayoutParams mrecParameters = new RelativeLayout.LayoutParams(
 				RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
 		mrecParameters.addRule(RelativeLayout.CENTER_HORIZONTAL);
 		mrecParameters.addRule(RelativeLayout.ALIGN_PARENT_TOP);
 
-		mainLayout.addView(baner, mrecParameters);
 
 		frame.addView(juego, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT,
 				FrameLayout.LayoutParams.MATCH_PARENT));
