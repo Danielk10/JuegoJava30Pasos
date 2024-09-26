@@ -129,15 +129,11 @@ public abstract class Juego extends SurfaceView
 
 			actualizar((float) delta);
 
-			pincel = holder.lockCanvas();
+			pincel = holder.getSurface().lockHardwareCanvas();
 
 			pincel.getClipBounds(rectangulo);
 
-			lapiz.setColor(Color.BLUE);
-
-			lapiz.setStyle(Style.FILL);
-
-			pincelBufer.drawRect(0, 0, ANCHO_PANTALLA, ALTO_PANTALLA, lapiz);
+			pincelBufer.limpiar(Color.BLUE);
 
 			renderizar(pincelBufer, (float) delta);
 
@@ -169,7 +165,7 @@ public abstract class Juego extends SurfaceView
 
 		lapiz.setColor(Color.GREEN);
 
-		pincel.drawText(getFPS() + " FPS", 0, 10, lapiz);
+		pincel.drawText(getFPS() + " FPS", 0, 20, lapiz);
 	}
 
 	public void actualizar(float delta) {
