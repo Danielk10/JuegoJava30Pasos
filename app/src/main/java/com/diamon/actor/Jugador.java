@@ -258,6 +258,9 @@ public class Jugador extends Actor
 	public void actualizar(float delta)
 	{
 
+if (vida > 0)
+		{
+
 		super.actualizar(delta);
 
 
@@ -368,7 +371,7 @@ public class Jugador extends Actor
 
 			satelite2.remover();
 
-			remover = true;
+			//remover = true;
 		}
 
 
@@ -465,14 +468,27 @@ public class Jugador extends Actor
 			ciclo++;
 
 		}
+}
 
+		if (vida == 0)
+		{
+
+			vida = 0;
+
+			satelite1.remover();
+
+			satelite2.remover();
+
+			//remover = true;
+		}
 
 	}
 
 	@Override
 	public void dibujar(Graficos pincel, float delta)
 	{
-
+if (vida > 0)
+		{
 		if (!parpadeo)
 		{
 
@@ -530,6 +546,8 @@ public class Jugador extends Actor
 
 			}
 
+		}
+		
 		}
 
 	}

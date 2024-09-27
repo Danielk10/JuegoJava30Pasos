@@ -89,7 +89,7 @@ public class MaquinaPared extends Actor
 
 		choque = false;
 
-		vida = 20;
+		vida = 4;
 
 	}
 
