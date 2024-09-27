@@ -255,7 +255,7 @@ public class PantallaJuego extends Pantalla2D
 
 		jugador.agregarSatelites();
 
-		Volador[] voladores = new Volador[3];
+Volador[] voladores = new Volador[50];
 
 		Random r = new Random();
 
@@ -265,7 +265,7 @@ public class PantallaJuego extends Pantalla2D
 		for (int i = 0; i < voladores.length; i++)
 		{
 
-			voladores[i] = new Volador(this, texturas, 640, r.nextInt(200), 32, 32, 7);
+			voladores[i] = new Volador(this, texturas, r.nextInt(10000), r.nextInt(420), 32, 32, 7);
 
 			voladores[i].setVelocidad(0.05f);
 
@@ -274,7 +274,6 @@ public class PantallaJuego extends Pantalla2D
 			actores.add(voladores[i]);
 
 		}
-
 
 
 
