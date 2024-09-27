@@ -73,7 +73,7 @@ public class PantallaMenu extends Pantalla2D {
 
 		pincel.dibujarTextura(selector, 186, posicionY);
 
-	}
+	} 
 
 	@Override
 	public void reajustarPantalla(int ancho, int alto) {
