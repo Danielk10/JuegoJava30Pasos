@@ -77,7 +77,7 @@ public class PantallaFinal extends Pantalla2D {
 
 		}
 
-		if (tiemoMovimiento / 33.33f >= 1) {
+		if (tiemoMovimiento / 10f >= 1) {
 
 			cambio2 = true;
 
