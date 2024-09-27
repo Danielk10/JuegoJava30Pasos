@@ -72,20 +72,35 @@ public class PantallaPresentacion extends Pantalla2D {
 	public void teclaLevantada(int codigoDeTecla) {
 
 	}
-
+	
+	
 	@Override
-	public void toquePresionado(float x, float y, int puntero) {
-
-		juego.setPantalla(new PantallaCarga(juego));
-
-	}
-
-	@Override
-	public void toqueLevantado(float x, float y, int puntero) {
-
-		juego.setPantalla(new PantallaAyuda(juego));
-
-	}
+		public void toquePresionado(float x, float y, int puntero)
+		{
+			if (puntero == 1)
+			{
+	
+				juego.setPantalla(new PantallaCarga(juego));
+	
+			}
+	
+	
+	
+		}
+	
+		@Override
+		public void toqueLevantado(float x, float y, int puntero)
+		{
+	
+	
+			if (puntero == 0)
+			{
+				juego.setPantalla(new PantallaAyuda(juego));
+			}
+	
+	
+	
+		}
 
 	@Override
 	public void toqueDeslizando(float x, float y, int puntero) {
