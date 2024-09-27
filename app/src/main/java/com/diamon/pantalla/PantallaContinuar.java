@@ -123,11 +123,15 @@ public class PantallaContinuar extends Pantalla2D {
 
 	}
 
-	@Override
+@Override
 	public void toquePresionado(float x, float y, int puntero) {
 
+		if (puntero == 1)
+		{
+		
 		if (posicionY == 288) {
 			juego.setPantalla(new PantallaNivel(juego));
+		}
 		}
 
 	}
@@ -135,6 +139,9 @@ public class PantallaContinuar extends Pantalla2D {
 	@Override
 	public void toqueLevantado(float x, float y, int puntero) {
 
+		if (puntero == 0)
+		{
+		
 		toque = !toque;
 		if (toque) {
 			posicionY = 288;
@@ -143,13 +150,19 @@ public class PantallaContinuar extends Pantalla2D {
 
 			posicionY = 322;
 		}
-
+		
+		}
+		if (puntero == 1)
+		{
+		
 		if (posicionY == 322) {
 
 			juego.setPantalla(new PantallaMenu(juego));
 		}
+		}
 
 	}
+
 
 	@Override
 	public void toqueDeslizando(float x, float y, int puntero) {
