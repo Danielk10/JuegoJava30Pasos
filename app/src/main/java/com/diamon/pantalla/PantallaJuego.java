@@ -69,7 +69,7 @@ public class PantallaJuego extends Pantalla2D
 
 
 	}
-
+	
 	private void iniciar()
 	{
 
@@ -89,137 +89,136 @@ public class PantallaJuego extends Pantalla2D
 			if (i == 1)
 			{
 
-				fondo[i] = new Fondo(this, recurso.getTextura("vida1.png"), posicion, 0, 640, 480);
+				fondo[i] = new Fondo(this, recurso.getTextura("fondo2.png"), posicion, 0, 640, 480);
 
 			}
 
 			if (i == 2)
 			{
 
-				fondo[i] = new Fondo(this, recurso.getTextura("vida1.png"), posicion, 0, 640, 480);
+				fondo[i] = new Fondo(this, recurso.getTextura("fondo3.png"), posicion, 0, 640, 480);
 
 			}
 
 			if (i == 3)
 			{
 
-				fondo[i] = new Fondo(this, recurso.getTextura("vida1.png"), posicion, 0, 640, 480);
+				fondo[i] = new Fondo(this, recurso.getTextura("fondo4.png"), posicion, 0, 640, 480);
 
 			}
 
 			if (i == 4)
 			{
 
-				fondo[i] = new Fondo(this, recurso.getTextura("vida1.png"), posicion, 0, 640, 480);
+				fondo[i] = new Fondo(this, recurso.getTextura("fondo5.png"), posicion, 0, 640, 480);
 
 			}
 
 			if (i == 5)
 			{
 
-				fondo[i] = new Fondo(this, recurso.getTextura("vida1.png"), posicion, 0, 640, 480);
+				fondo[i] = new Fondo(this, recurso.getTextura("fondo6.png"), posicion, 0, 640, 480);
 
 			}
 
 			if (i == 6)
 			{
 
-				fondo[i] = new Fondo(this, recurso.getTextura("vida1.png"), posicion, 0, 640, 480);
+				fondo[i] = new Fondo(this, recurso.getTextura("fondo7.png"), posicion, 0, 640, 480);
 
 			}
 
 			if (i == 7)
 			{
 
-				fondo[i] = new Fondo(this, recurso.getTextura("vida1.png"), posicion, 0, 640, 480);
+				fondo[i] = new Fondo(this, recurso.getTextura("fondo8.png"), posicion, 0, 640, 480);
 
 			}
 
 			if (i == 8)
 			{
 
-				fondo[i] = new Fondo(this, recurso.getTextura("vida1.png"), posicion, 0, 640, 480);
+				fondo[i] = new Fondo(this, recurso.getTextura("fondo9.png"), posicion, 0, 640, 480);
 
 			}
 
 			if (i == 9)
 			{
 
-				fondo[i] = new Fondo(this, recurso.getTextura("vida1.png"), posicion, 0, 640, 480);
+				fondo[i] = new Fondo(this, recurso.getTextura("fondo10.png"), posicion, 0, 640, 480);
 
 			}
 
 			if (i == 10)
 			{
 
-				fondo[i] = new Fondo(this, recurso.getTextura("vida1.png"), posicion, 0, 640, 480);
+				fondo[i] = new Fondo(this, recurso.getTextura("fondo11.png"), posicion, 0, 640, 480);
 
 			}
 
 			if (i == 11)
 			{
 
-				fondo[i] = new Fondo(this, recurso.getTextura("vida1.png"), posicion, 0, 640, 480);
+				fondo[i] = new Fondo(this, recurso.getTextura("fondo12.png"), posicion, 0, 640, 480);
 
 			}
 
 			if (i == 12)
 			{
 
-				fondo[i] = new Fondo(this, recurso.getTextura("vida1.png"), posicion, 0, 640, 480);
+				fondo[i] = new Fondo(this, recurso.getTextura("fondo13.png"), posicion, 0, 640, 480);
 
 			}
 
 			if (i == 13)
 			{
 
-				fondo[i] = new Fondo(this, recurso.getTextura("vida1.png"), posicion, 0, 640, 480);
+				fondo[i] = new Fondo(this, recurso.getTextura("fondo14.png"), posicion, 0, 640, 480);
 
 			}
 
 			if (i == 14)
 			{
 
-				fondo[i] = new Fondo(this, recurso.getTextura("vida1.png"), posicion, 0, 640, 480);
+				fondo[i] = new Fondo(this, recurso.getTextura("fondo15.png"), posicion, 0, 640, 480);
 
 			}
 
 			if (i == 15)
 			{
 
-				fondo[i] = new Fondo(this, recurso.getTextura("vida1.png"), posicion, 0, 640, 480);
+				fondo[i] = new Fondo(this, recurso.getTextura("fondo16.png"), posicion, 0, 640, 480);
 
 			}
 
 			if (i == 16)
 			{
 
-				fondo[i] = new Fondo(this, recurso.getTextura("vida1.png"), posicion, 0, 640, 480);
+				fondo[i] = new Fondo(this, recurso.getTextura("fondo17.png"), posicion, 0, 640, 480);
 
 			}
 
 			if (i == 17)
 			{
 
-				fondo[i] = new Fondo(this, recurso.getTextura("vida1.png"), posicion, 0, 640, 480);
+				fondo[i] = new Fondo(this, recurso.getTextura("fondo18.png"), posicion, 0, 640, 480);
 
 			}
 
 			if (i == 18)
 			{
 
-				fondo[i] = new Fondo(this, recurso.getTextura("vida1.png"), posicion, 0, 640, 480);
+				fondo[i] = new Fondo(this, recurso.getTextura("fondo19.png"), posicion, 0, 640, 480);
 
 			}
 
 			if (i == 19)
 			{
 
-				fondo[i] = new Fondo(this, recurso.getTextura("fondo1.png"), posicion, 0, 640, 480);
+				fondo[i] = new Fondo(this, recurso.getTextura("fondo20.png"), posicion, 0, 640, 480);
 
 			}
 
-			fondo[i].setVelocidad(0);
 
 			if (posicion > velocidad)
 			{
@@ -232,19 +231,17 @@ public class PantallaJuego extends Pantalla2D
 
 			posicion += 640;
 
-			//actores.add(fondo[i]);
+			actores.add(fondo[i]);
 
 		}
 
-		actores.add(fondo[0]);
-
-		fondo[20] = new Fondo(this, recurso.getTextura("vida1.png"), 640, 0, 640, 480);
+		fondo[20] = new Fondo(this, recurso.getTextura("fondo21MGF.png"), 640, 0, 640, 480);
 
 		fondo[20].setDireccion(Fondo.HORIZONTAL_IZQUIERDA);
 
 		fondo[20].setVelocidad(0);
 
-		//actores.add(fondo[20]);
+		actores.add(fondo[20]);
 
 		Textura[] texturasJ = new Textura[] { recurso.getTextura("jugador1D1.png"),  recurso.getTextura("jugador1I1.png") };
 
@@ -257,8 +254,6 @@ public class PantallaJuego extends Pantalla2D
 		actores.add(jugador);
 
 		jugador.agregarSatelites();
-
-
 
 		Volador[] voladores = new Volador[3];
 
