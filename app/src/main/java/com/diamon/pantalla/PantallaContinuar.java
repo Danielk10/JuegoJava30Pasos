@@ -1,19 +1,18 @@
 package com.diamon.pantalla;
 
+import com.diamon.graficos.Pantalla2D;
+import com.diamon.graficos.Textura2D;
+import com.diamon.nucleo.Graficos;
 import com.diamon.nucleo.Juego;
-import com.diamon.nucleo.Pantalla;
+import com.diamon.nucleo.Textura;
 
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.hardware.SensorEvent;
 import android.view.KeyEvent;
-import android.view.MotionEvent;
 
-public class PantallaContinuar extends Pantalla {
+public class PantallaContinuar extends Pantalla2D {
 
-	private Bitmap fondo;
+	private Textura fondo;
 
-	private Bitmap selector;
+	private Textura selector;
 
 	private float posicionY;
 
@@ -22,9 +21,10 @@ public class PantallaContinuar extends Pantalla {
 	public PantallaContinuar(Juego juego) {
 		super(juego);
 
-		fondo = this.crearBitmap(recurso.getImagen("continuar.png"), Juego.ANCHO_PANTALLA, Juego.ALTO_PANTALLA);
+		fondo = new Textura2D(juego.getRecurso().getTextura("continuar.png").getBipmap(), Juego.ANCHO_PANTALLA,
+				Juego.ALTO_PANTALLA);
 
-		selector = this.crearBitmap(recurso.getImagen("selector2.png"), 16, 16);
+		selector = new Textura2D(juego.getRecurso().getTextura("selector2.png").getBipmap(), 16, 64);
 
 		posicionY = 288;
 
@@ -32,54 +32,58 @@ public class PantallaContinuar extends Pantalla {
 	}
 
 	@Override
-	public void pausa() {
-		// TODO Auto-generated method stub
+	public void mostrar() {
 
 	}
 
 	@Override
 	public void resume() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void actualizar(float delta) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void dibujar(Canvas pincel, float delta) {
-
-		dibujarImagen(pincel, fondo, 0, 0);
-
-		dibujarImagen(pincel, selector, 202, posicionY);
 
 	}
 
 	@Override
 	public void colisiones() {
-		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void actualizar(float delta) {
+
+	}
+
+	@Override
+	public void dibujar(Graficos pincel, float delta) {
+
+		pincel.dibujarTextura(fondo, 0, 0);
+
+		pincel.dibujarTextura(selector, 202, posicionY);
+
+	}
+
+	@Override
+	public void reajustarPantalla(int ancho, int alto) {
+
+	}
+
+	@Override
+	public void pausa() {
 
 	}
 
 	@Override
 	public void ocultar() {
-		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void mostrar() {
-		// TODO Auto-generated method stub
+	public void liberarRecursos() {
 
 	}
 
 	@Override
-	public void teclaPresionada(KeyEvent ev) {
+	public void teclaPresionada(int codigoDeTecla) {
 
-		switch (ev.getKeyCode()) {
+		switch (codigoDeTecla) {
 
 		case KeyEvent.KEYCODE_0:
 
@@ -115,83 +119,45 @@ public class PantallaContinuar extends Pantalla {
 	}
 
 	@Override
-	public void teclaLevantada(KeyEvent ev) {
-		// TODO Auto-generated method stub
+	public void teclaLevantada(int codigoDeTecla) {
 
 	}
 
 	@Override
-	public void toque(MotionEvent ev) {
-		// TODO Auto-generated method stub
+	public void toquePresionado(float x, float y, int puntero) {
 
-	}
-
-	@Override
-	public void multiToque(MotionEvent ev) {
-		int accion = ev.getAction() & MotionEvent.ACTION_MASK;
-
-		int punteroIndice = (ev.getAction()
-				& MotionEvent.ACTION_POINTER_INDEX_MASK) >> MotionEvent.ACTION_POINTER_INDEX_SHIFT;
-
-		@SuppressWarnings("unused")
-		int punteroID = ev.getPointerId(punteroIndice);
-
-		switch (accion) {
-
-		case MotionEvent.ACTION_DOWN:
-
-			break;
-		case MotionEvent.ACTION_POINTER_DOWN:
-
-			if (posicionY == 288) {
-				juego.setPantalla(new PantallaNivel(juego));
-			}
-
-			break;
-		case MotionEvent.ACTION_UP:
-
-			toque = !toque;
-			if (toque) {
-				posicionY = 288;
-
-			} else {
-
-				posicionY = 322;
-			}
-
-			break;
-		case MotionEvent.ACTION_POINTER_UP:
-
-			if (posicionY == 322) {
-				juego.setPantalla(new PantallaMenu(juego));
-			}
-
-			break;
-		case MotionEvent.ACTION_CANCEL:
-
-			break;
-
-		case MotionEvent.ACTION_MOVE:
-
-			break;
-
-		default:
-
-			break;
-
+		if (posicionY == 288) {
+			juego.setPantalla(new PantallaNivel(juego));
 		}
 
 	}
 
 	@Override
-	public void acelerometro(SensorEvent ev) {
-		// TODO Auto-generated method stub
+	public void toqueLevantado(float x, float y, int puntero) {
+
+		toque = !toque;
+		if (toque) {
+			posicionY = 288;
+
+		} else {
+
+			posicionY = 322;
+		}
+
+		if (posicionY == 322) {
+
+			juego.setPantalla(new PantallaMenu(juego));
+		}
 
 	}
 
 	@Override
-	public void reajustarPantalla(float ancho, float alto) {
-		// TODO Auto-generated method stub
+	public void toqueDeslizando(float x, float y, int puntero) {
+
+	}
+
+	@Override
+	public void acelerometro(float x, float y, float z) {
 
 	}
 

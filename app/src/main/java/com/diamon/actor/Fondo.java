@@ -3,6 +3,7 @@ package com.diamon.actor;
 import com.diamon.nucleo.Actor;
 import com.diamon.nucleo.Juego;
 import com.diamon.nucleo.Pantalla;
+import com.diamon.nucleo.Textura;
 
 public class Fondo extends Actor {
 
@@ -24,9 +25,8 @@ public class Fondo extends Actor {
 
 	private int nombre;
 
-	public Fondo(Pantalla pantalla) {
-
-		super(pantalla);
+	public Fondo(Pantalla pantalla, Textura textura, float x, float y, float ancho, float alto) {
+		super(pantalla, textura, x, y, ancho, alto);
 
 		direccion = Fondo.HORIZONTAL_IZQUIERDA;
 
@@ -35,8 +35,39 @@ public class Fondo extends Actor {
 		velocidad = VELOCIDAD_FONDO;
 
 		nombre = 0;
-
 	}
+
+	public Fondo(Pantalla pantalla, Textura textura, float x, float y) {
+		super(pantalla, textura, x, y);
+
+		direccion = Fondo.HORIZONTAL_IZQUIERDA;
+
+		parar = false;
+
+		velocidad = VELOCIDAD_FONDO;
+
+		nombre = 0;
+	}
+
+	public Fondo(Pantalla pantalla, Textura[] texturas, float x, float y, float ancho, float alto,
+			float tiempoAnimacion) {
+		super(pantalla, texturas, x, y, ancho, alto, tiempoAnimacion);
+
+		direccion = Fondo.HORIZONTAL_IZQUIERDA;
+
+		parar = false;
+
+		velocidad = VELOCIDAD_FONDO;
+
+		nombre = 0;
+	}
+
+@Override
+	public void obtenerActores()
+	{
+		// TODO: Implement this method
+	}
+	
 
 	public float getVelocidad() {
 		return velocidad;

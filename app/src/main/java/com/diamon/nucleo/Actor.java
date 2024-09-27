@@ -2,14 +2,15 @@ package com.diamon.nucleo;
 
 import java.util.ArrayList;
 
-import com.diamon.dato.Configuraciones;
+import com.diamon.dato.ConfiguracionesDeJuego;
+import com.diamon.graficos.Animacion2D;
+import com.diamon.graficos.Pantalla2D;
+import com.diamon.graficos.Textura2D;
 import com.diamon.utilidad.Rectangulo;
 import com.diamon.utilidad.Recurso;
 
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-
-public abstract class Actor {
+public abstract class Actor
+{
 
 	protected float x;
 
@@ -21,170 +22,294 @@ public abstract class Actor {
 
 	protected boolean remover;
 
-	private float cuadros;
+	private float tiempo;
 
-	private float timpo;
+    protected Textura[] texturas;
 
-	private int frames;
-
-	protected Bitmap[] imagenes;
+	protected Animacion2D animacion;
 
 	protected Pantalla pantalla;
 
 	protected Recurso recurso;
 
-	protected Configuraciones configuracion;
+    protected  float tiempoAnimacion;
+
+	protected ConfiguracionesDeJuego configuracionesDeJuego;
 
 	protected ArrayList<Actor> actores;
 
-	public Camara2D camara;
+	protected boolean animar;
 
-	private boolean animar;
 
-	public Actor(Pantalla pantalla) {
+
+	public Actor(Pantalla pantalla, Textura textura, float x, float y)
+	{
 
 		this.pantalla = pantalla;
 
-		this.recurso = pantalla.recurso;
+		this.actores = ((Pantalla2D) pantalla).getActores();
 
-		this.configuracion = pantalla.configuracion;
+		this.recurso = ((Pantalla2D) pantalla).getJuego().getRecurso();
 
-		actores = pantalla.actores;
+		this.configuracionesDeJuego = ((Pantalla2D) pantalla).getJuego().getConfiguracionesDeJuego();
 
-		this.camara = pantalla.camara;
+		this.x = x;
 
-		x = 0;
+		this.y = y;
 
-		y = 0;
+		tiempo = 0;
 
-		timpo = 0;
+        texturas = new Textura[1];
 
-		frames = 0;
+	    texturas[0] = textura;
 
-		cuadros = 1;
+        tiempoAnimacion = 1;
 
-		imagenes = null;
+	    animacion = new Animacion2D(tiempoAnimacion  / Juego.FPS, texturas);
 
-		ancho = 0;
+		animacion.setModo(Animacion2D.NORMAL);
 
-		alto = 0;
+		ancho = textura.getAncho();
+
+		alto = textura.getAlto();
 
 		remover = false;
 
 		animar = false;
 
+		obtenerActores();
+
 	}
 
-	public void setPosicion(float x, float y) {
+	public Actor(Pantalla pantalla, Textura textura, float x, float y, float ancho, float alto)
+	{
+
+		this.pantalla = pantalla;
+
+		this.actores = ((Pantalla2D) pantalla).getActores();
+
+		this.recurso = ((Pantalla2D) pantalla).getJuego().getRecurso();
+
+		this.configuracionesDeJuego = ((Pantalla2D) pantalla).getJuego().getConfiguracionesDeJuego();
+
 		this.x = x;
+
+		this.y = y;
+
+		tiempo = 0;
+
+        texturas = new Textura[1];
+
+		texturas[0] = textura;
+
+	    tiempoAnimacion = 1;
+
+	    animacion = new Animacion2D(tiempoAnimacion  / Juego.FPS, texturas);
+
+		animacion.setModo(Animacion2D.NORMAL);
+
+		this.ancho = ancho;
+
+		this.alto = alto;
+
+		this.setTamano(ancho, alto);
+
+		remover = false;
+
+		animar = false;
+
+		obtenerActores();
+
+	}
+
+	public Actor(Pantalla pantalla, Textura[] texturas, float x, float y, float ancho, float alto,
+				 float tiempoAnimacion)
+	{
+
+		this.pantalla = pantalla;
+
+		this.actores = ((Pantalla2D) pantalla).getActores();
+
+		this.recurso = ((Pantalla2D) pantalla).getJuego().getRecurso();
+
+		this.configuracionesDeJuego = ((Pantalla2D) pantalla).getJuego().getConfiguracionesDeJuego();
+
+		this.x = x;
+
+		this.y = y;
+
+		tiempo = 0;
+
+		this.texturas =  texturas;
+
+		this.tiempoAnimacion = tiempoAnimacion;
+
+	    animacion = new Animacion2D(tiempoAnimacion  / Juego.FPS, texturas);
+
+		animacion.setModo(Animacion2D.REPETIR);
+
+		this.ancho = ancho;
+
+		this.alto = alto;
+
+		this.setTamano(ancho, alto);
+
+		remover = false;
+
+		animar = true;
+
+		obtenerActores();
+
+	}
+
+	public void setAnimacion(Animacion2D animacion)
+	{
+		this.animacion = animacion;
+	}
+
+	public Animacion2D getAnimacion()
+	{
+		return animacion;
+	}
+
+	public void setPosicion(float x, float y)
+	{
+
+		this.x = x;
+
 		this.y = y;
 
 	}
 
-	public void setCuadros(float cuadros) {
-		this.cuadros = cuadros;
+	public boolean isRemover()
+	{
 
-		animar = true;
-	}
-
-	public void setImagenes(Bitmap[] imagenes) {
-
-		this.imagenes = imagenes;
-
-	}
-
-	public boolean isRemover() {
 		return remover;
 	}
 
-	public void actualizar(float delta) {
+	public void actualizar(float delta)
+	{
 
-		if (animar) {
+		if (animar)
+		{
 
-			if (delta == 0) {
+			if (delta == 0)
+			{
 
 				return;
 
 			}
 
-			if (delta > 0.1f) {
+			if (delta > 0.1f)
+			{
 
 				delta = 0.1f;
 			}
 
-			timpo += delta;
+			tiempo += delta;
 
-			int frameNumber = (int) (timpo / (cuadros / Juego.FPS));
-
-			frames = frameNumber % imagenes.length;
-
-			/*
-			 * timpo++;
-			 * 
-			 * if (timpo % cuadros == 0) { timpo = 0; frames = (frames + 1) %
-			 * imagenes.length;
-			 * 
-			 * }
-			 */
 
 		}
 
 	}
 
-	public void dibujar(Canvas pincel, float delta) {
+	public void dibujar(Graficos pincel, float delta)
+	{
 
-		pincel.drawBitmap(imagenes[frames], x, y, null);
+		if (animacion != null)
+		{
+
+			pincel.dibujarTextura(animacion.getKeyFrame(tiempo), x, y);
+
+		}
 
 	}
 
-	public float getX() {
+	public float getX()
+	{
 		return x;
 	}
 
-	public void setX(float x) {
+	public void setX(float x)
+	{
 		this.x = x;
 	}
 
-	public float getY() {
+	public float getY()
+	{
 		return y;
 	}
 
-	public void setY(float y) {
+	public void setY(float y)
+	{
 		this.y = y;
 	}
 
-	public Rectangulo getRectangulo() {
+	public void setAncho(float ancho)
+	{
+
+		this.ancho = ancho;
+
+		for (int i = 0; i < texturas.length; i++)
+		{
+
+			texturas[i] = new Textura2D(texturas[i].getBipmap(), ancho, alto);
+		}
+
+
+	}
+
+	public void setAlto(float alto)
+	{
+
+		this.alto = alto;
+
+		for (int i = 0; i < texturas.length; i++)
+		{
+
+			texturas[i] = new Textura2D(texturas[i].getBipmap(), ancho, alto);
+		}
+
+
+	}
+
+	public float getAncho()
+	{
+		return ancho;
+	}
+
+	public float getAlto()
+	{
+		return alto;
+	}
+
+	public Rectangulo getRectangulo()
+	{
 		return new Rectangulo(x, y, ancho, alto);
 
 	}
 
-	public float getAncho() {
-		return ancho;
-	}
-
-	public void setAncho(float ancho) {
-		this.ancho = ancho;
-	}
-
-	public float getAlto() {
-		return alto;
-	}
-
-	public void setAlto(float alto) {
-		this.alto = alto;
-	}
-
-	public void setTamano(float ancho, float alto) {
+	public void setTamano(float ancho, float alto)
+	{
 
 		this.ancho = ancho;
 
 		this.alto = alto;
 
+		for (int i = 0; i < texturas.length; i++)
+		{
+
+			texturas[i] = new Textura2D(texturas[i].getBipmap(), ancho, alto);
+		}
+
 	}
+
+	public abstract void obtenerActores();
 
 	public abstract void colision(Actor actor);
 
-	public void remover() {
+	public void remover()
+	{
 
 		remover = true;
 	}

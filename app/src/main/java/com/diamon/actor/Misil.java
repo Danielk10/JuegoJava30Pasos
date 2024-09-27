@@ -3,101 +3,132 @@ package com.diamon.actor;
 import com.diamon.nucleo.Actor;
 import com.diamon.nucleo.Juego;
 import com.diamon.nucleo.Pantalla;
-import com.diamon.utilidad.Texturas;
+import com.diamon.nucleo.Textura;
+import com.diamon.graficos.Animacion2D;
 
-import android.graphics.Bitmap;
+public class Misil extends Actor
+{
 
-public class Misil extends Actor {
+	private float tiempoSalidaHumo;
 
-	private float tiemoDisparoHumo;
+	public final static float VELOCIDAD_MAQUINA = 0.5f;
 
-	private float tiempoExplosion;
+	private Jugador jugador;
 
-	private float tiempoHumo;
+	private float velocidad = 3;
 
-	public final static float VELOCIDAD_MAQUINA = 2;
+	public Misil(Pantalla pantalla, Textura textura, float x, float y, float ancho, float alto)
+	{
+		super(pantalla, textura, x, y, ancho, alto);
 
-	public Misil(Pantalla pantalla) {
 
-		super(pantalla);
+	}
+
+	public Misil(Pantalla pantalla, Textura textura, float x, float y)
+	{
+		super(pantalla, textura, x, y);
+
+	}
+
+	public Misil(Pantalla pantalla, Textura[] texturas, float x, float y, float ancho, float alto,
+				 float tiempoAnimacion)
+	{
+		super(pantalla, texturas, x, y, ancho, alto, tiempoAnimacion);
+
+	}
+
+	public void setVelocidad(float velocidad)
+	{
+		this.velocidad = velocidad;
+	}
+
+	public float getVelocidad()
+	{
+		return velocidad;
+	}
+
+	@Override
+	public void obtenerActores()
+	{
+
+		for (int i = 0; i < actores.size(); i++)
+		{
+
+			if (actores.get(i) instanceof Jugador)
+			{
+
+				jugador = (Jugador) actores.get(i);
+
+			}
+
+		}
 
 	}
 
 	@Override
-	public void actualizar(float delta) {
+	public void actualizar(float delta)
+	{
 
 		super.actualizar(delta);
 
-		tiempoExplosion += delta;
 
-		tiemoDisparoHumo += delta;
+		tiempoSalidaHumo += delta;
 
-		tiempoHumo += delta;
 
-		if (tiempoExplosion / 0.5f >= 1) {
+		if (jugador != null)
+		{
 
-			for (int i = 0; i < actores.size(); i++) {
 
-				if (actores.get(i) instanceof Explosion) {
-					Explosion e = (Explosion) actores.get(i);
+			// Lógica para ajustar la dirección del misil hacia el jugador
+			float direccionX = jugador.getX() - this.x;
+			float direccionY = jugador.getY() - this.y;
 
-					e.remover();
+			// Normalizamos la dirección para que siempre tenga magnitud 1
+			float magnitud = (float) Math.sqrt(direccionX * direccionX + direccionY * direccionY);
+			direccionX /= magnitud;
+			direccionY /= magnitud;
 
-				}
+
+            // Actualiza la posición del misil usando velocidad y el tiempo delta
+			this.x +=  velocidad / Juego.DELTA_A_PIXEL * direccionX * delta;
+			this.y +=  velocidad / Juego.DELTA_A_PIXEL * direccionY * delta;
+
+
+
+
+			if (x >= Juego.ANCHO_PANTALLA)
+			{
+
+				remover = true;
+
 			}
 
-			tiempoExplosion = 0;
+			if (tiempoSalidaHumo / 0.25f >= 1)
+			{
 
-		}
+				humo();
 
-		x += Misil.VELOCIDAD_MAQUINA / Juego.DELTA_A_PIXEL * delta;
+				tiempoSalidaHumo = 0;
 
-		if (x >= Juego.ANCHO_PANTALLA) {
-
-			remover = true;
-
-		}
-
-		if (tiemoDisparoHumo / 0.25f >= 1) {
-
-			humo();
-
-			tiemoDisparoHumo = 0;
-
-		}
-
-		if (tiempoHumo / 0.5f >= 1) {
-
-			for (int i = 0; i < actores.size(); i++) {
-
-				if (actores.get(i) instanceof Humo) {
-					Humo e = (Humo) actores.get(i);
-
-					e.remover();
-
-				}
 			}
-
-			tiempoHumo = 0;
 
 		}
 
 	}
 
-	public void explosion() {
+	public void explosion()
+	{
 
-		Explosion explosion = new Explosion(pantalla);
+		Textura[] texturas = new Textura[] { recurso.getTextura("explosion1.png"), recurso.getTextura("explosion2.png"),
+			recurso.getTextura("explosion3.png"), recurso.getTextura("explosion4.png") };
 
-		explosion.setTamano(32, 32);
+		Explosion explosion = new Explosion(pantalla, texturas, x, y, 32, 32, 4);
 
-		explosion.setPosicion(x, y);
+		explosion.getAnimacion().setModo(Animacion2D.NORMAL);
 
-		explosion.setImagenes(new Bitmap[] { Texturas.explosionMisil1, Texturas.explosionMisil2,
-				Texturas.explosionMisil3, Texturas.explosionMisil4 });
 
-		explosion.setCuadros(4);
-
-		if (explosion.getX() <= 640) {
+		if (explosion.getX() <= Juego.ANCHO_PANTALLA)
+		{
 
 			actores.add(explosion);
 
@@ -105,19 +136,16 @@ public class Misil extends Actor {
 
 	}
 
-	public void humo() {
+	public void humo()
+	{
 
-		Humo humo = new Humo(pantalla);
+		Textura[] texturas = new Textura[] { recurso.getTextura("humoMisil1.png"), recurso.getTextura("humoMisil2.png"),
+			recurso.getTextura("humoMisil3.png") };
 
-		humo.setTamano(16, 16);
+		Humo humo = new Humo(pantalla, texturas, x, y - 4, 16, 16, 5);
 
-		humo.setPosicion(x, y - 4);
-
-		humo.setCuadros(5);
-
-		humo.setImagenes(new Bitmap[] { Texturas.humoMisil1, Texturas.humoMisil2, Texturas.humoMisil3 });
-
-		if (humo.getX() <= 640) {
+		if (humo.getX() <= Juego.ANCHO_PANTALLA)
+		{
 
 			actores.add(humo);
 		}
@@ -125,14 +153,17 @@ public class Misil extends Actor {
 	}
 
 	@Override
-	public void colision(Actor actor) {
+	public void colision(Actor actor)
+	{
 
 		if (actor instanceof Bala || actor instanceof Jugador || actor instanceof BalaEspecial
-				|| actor instanceof ExplosionB) {
+			|| actor instanceof ExplosionB || actor instanceof BalaInteligente)
+		{
 
-			recurso.playMusica("explosion.wav", 1);
+			recurso.getSonido("explosion.wav").reproducir(1);
 
 			explosion();
+
 			remover = true;
 		}
 

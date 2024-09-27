@@ -3,6 +3,7 @@ package com.diamon.actor;
 import com.diamon.nucleo.Actor;
 import com.diamon.nucleo.Juego;
 import com.diamon.nucleo.Pantalla;
+import com.diamon.nucleo.Textura;
 
 public class Poder extends Actor {
 
@@ -16,16 +17,42 @@ public class Poder extends Actor {
 
 	private byte agilidad;
 
-	public Poder(Pantalla pantalla) {
-		super(pantalla);
+	public Poder(Pantalla pantalla, Textura textura, float x, float y, float ancho, float alto) {
+		super(pantalla, textura, x, y, ancho, alto);
 
 		mover = false;
 
 		poder = 0;
 
 		agilidad = 0;
-
 	}
+
+	public Poder(Pantalla pantalla, Textura textura, float x, float y) {
+		super(pantalla, textura, x, y);
+
+		mover = false;
+
+		poder = 0;
+
+		agilidad = 0;
+	}
+
+	public Poder(Pantalla pantalla, Textura[] texturas, float x, float y, float ancho, float alto,
+			float tiempoAnimacion) {
+		super(pantalla, texturas, x, y, ancho, alto, tiempoAnimacion);
+
+		mover = false;
+
+		poder = 0;
+
+		agilidad = 0;
+	}
+@Override
+	public void obtenerActores()
+	{
+		// TODO: Implement this method
+	}
+
 
 	public byte getAgilidad() {
 		return agilidad;

@@ -3,10 +3,7 @@ package com.diamon.actor;
 import com.diamon.nucleo.Actor;
 import com.diamon.nucleo.Juego;
 import com.diamon.nucleo.Pantalla;
-import com.diamon.utilidad.Texturas;
-
-import android.graphics.Bitmap;
-
+import com.diamon.nucleo.Textura;
 
 public class Caja extends Actor {
 
@@ -24,14 +21,39 @@ public class Caja extends Actor {
 
 	private byte agilidad;
 
-	public Caja(Pantalla pantalla) {
-		super(pantalla);
+	public Caja(Pantalla pantalla, Textura textura, float x, float y, float ancho, float alto) {
+		super(pantalla, textura, x, y, ancho, alto);
 
 		poderBala = Caja.PODER_0;
 
 		agilidad = 0;
 
 	}
+
+	public Caja(Pantalla pantalla, Textura textura, float x, float y) {
+		super(pantalla, textura, x, y);
+
+		poderBala = Caja.PODER_0;
+
+		agilidad = 0;
+	}
+
+	public Caja(Pantalla pantalla, Textura[] texturas, float x, float y, float ancho, float alto,
+			float tiempoAnimacion) {
+		super(pantalla, texturas, x, y, ancho, alto, tiempoAnimacion);
+
+		poderBala = Caja.PODER_0;
+
+		agilidad = 0;
+	}
+
+
+@Override
+	public void obtenerActores()
+	{
+		// TODO: Implement this method
+	}
+	
 
 	public void setAgilidad(byte agilidad) {
 		this.agilidad = agilidad;
@@ -60,46 +82,45 @@ public class Caja extends Actor {
 
 	private void poder() {
 
-		Poder poder = new Poder(pantalla);
-
-		poder.setTamano(32, 32);
-
-		poder.setPosicion(x, y);
+		Poder poder = null;
 
 		if (agilidad == Caja.AGILIDAD_S) {
 
-			poder.setPoder(AGILIDAD_S);
+			poder = new Poder(pantalla, recurso.getTextura("poderS.png"), x, y, 32, 32);
 
-			poder.setImagenes(new Bitmap[] { Texturas.poderS });
+			poder.setPoder(AGILIDAD_S);
 
 			actores.add(poder);
 		}
 
 		if (poderBala == Caja.PODER_W) {
 
+			poder = new Poder(pantalla, recurso.getTextura("poderW.png"), x, y, 32, 32);
+
 			poder.setPoder(PODER_W);
 
-			poder.setImagenes(new Bitmap[] { Texturas.poderW });
-
 			actores.add(poder);
+
 		}
 
 		if (poderBala == Caja.PODER_L) {
 
+			poder = new Poder(pantalla, recurso.getTextura("poderL.png"), x, y, 32, 32);
+
 			poder.setPoder(PODER_L);
 
-			poder.setImagenes(new Bitmap[] { Texturas.poderL });
-
 			actores.add(poder);
+
 		}
 
 		if (poderBala == Caja.PODER_B) {
 
+			poder = new Poder(pantalla, recurso.getTextura("poderB.png"), x, y, 32, 32);
+
 			poder.setPoder(PODER_B);
 
-			poder.setImagenes(new Bitmap[] { Texturas.poderB });
-
 			actores.add(poder);
+
 		}
 
 	}
@@ -107,7 +128,7 @@ public class Caja extends Actor {
 	@Override
 	public void colision(Actor actor) {
 
-		if (actor instanceof Bala || actor instanceof Jugador || actor instanceof BalaEspecial) {
+		if (actor instanceof Bala || actor instanceof Jugador || actor instanceof BalaEspecial || actor instanceof BalaInteligente) {
 
 			poder();
 

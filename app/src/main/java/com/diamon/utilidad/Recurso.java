@@ -4,110 +4,161 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 
+import com.diamon.audio.EfectoDeSonido;
+import com.diamon.audio.MusicaDeJuego;
+import com.diamon.graficos.Textura2D;
+import com.diamon.nucleo.Musica;
+import com.diamon.nucleo.Sonido;
+import com.diamon.nucleo.Textura;
+
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
 import android.media.AudioManager;
-import android.media.MediaPlayer;
-import android.media.MediaPlayer.OnCompletionListener;
 import android.media.SoundPool;
 
-public class Recurso implements OnCompletionListener {
+public class Recurso
+{
 
-	private HashMap<String, Bitmap> imagenes;
+	private HashMap<String, Textura> texturas;
 
-	private HashMap<String, SoundPool> sonidos;
+	private HashMap<String, Sonido> sonidos;
 
-	private HashMap<String, MediaPlayer> musicas;
-
-	private HashMap<String, Integer> idSonidos;
+	private HashMap<String, Musica> musicas;
 
 	private Context contexto;
 
-	private boolean preparado = false;
+	public Recurso(Context contexto)
+	{
 
-	private SoundPool sonido;
+		sonidos = new HashMap<String, Sonido>();
 
-	@SuppressWarnings("deprecation")
-	public Recurso(Context contexto) {
+		musicas = new HashMap<String, Musica>();
 
-		sonidos = new HashMap<String, SoundPool>();
-
-		musicas = new HashMap<String, MediaPlayer>();
-
-		imagenes = new HashMap<String, Bitmap>();
-
-		idSonidos = new HashMap<String, Integer>();
+		texturas = new HashMap<String, Textura>();
 
 		this.contexto = contexto;
 
-		sonido = new SoundPool(20, AudioManager.STREAM_MUSIC, 0);
-
 	}
 
-	public Bitmap cargarImagen(String nombre) {
+	public Textura cargarTextura(String nombre)
+	{
 
 		InputStream entrada = null;
 
-		Bitmap imagen = null;
+		Textura imagen = null;
 
-		try {
+		final BitmapFactory.Options options = new BitmapFactory.Options();
+
+
+
+		try
+		{
 			entrada = contexto.getAssets().open(nombre);
 
-			imagen = BitmapFactory.decodeStream(entrada);
+			options.inJustDecodeBounds = true;
 
-			imagenes.put(nombre, imagen);
+			// Decodificar solo las dimensiones
+			BitmapFactory.decodeStream(entrada, null, options);
 
-			return imagenes.get(nombre);
+			// Cerrar el stream
+			entrada.close();
 
-		} catch (IOException e) {
+			options.inSampleSize = calculateInSampleSize(options, 640);
 
-		} finally {
-			if (entrada != null) {
-				try {
+			options.inJustDecodeBounds = false;
+
+			entrada = contexto.getAssets().open(nombre);
+
+			imagen = new Textura2D(BitmapFactory.decodeStream(entrada, null, options));
+
+			texturas.put(nombre, imagen);
+
+		}
+		catch (IOException e)
+		{
+
+		}
+		finally
+		{
+			if (entrada != null)
+			{
+				try
+				{
 					entrada.close();
 
-				} catch (IOException e) {
+				}
+				catch (IOException e)
+				{
 
 				}
 
 			}
 		}
 
-		return null;
+		return texturas.get(nombre);
 
 	}
 
-	public MediaPlayer cargarMusica(String nombre) {
 
-		MediaPlayer musica = new MediaPlayer();
+	private int calculateInSampleSize(BitmapFactory.Options options, int maxTextureSize)
+	{
+		// Obtener el ancho y alto originales
+		final int height = options.outHeight;
+		final int width = options.outWidth;
+		int inSampleSize = 1;
+
+		// Si las dimensiones originales superan el tamaño máximo permitido
+		if (height > maxTextureSize || width > maxTextureSize)
+		{
+			final int halfHeight = height / 2;
+			final int halfWidth = width / 2;
+
+			// Calcular el valor adecuado de inSampleSize para reducir el bitmap
+			while ((halfHeight / inSampleSize) >= maxTextureSize && (halfWidth / inSampleSize) >= maxTextureSize)
+			{
+				inSampleSize *= 2;
+			}
+		}
+
+		return inSampleSize;
+	}
+
+
+	public Textura getTextura(String nombre)
+	{
+
+		Textura imagen = texturas.get(nombre);
+
+		if (imagen == null)
+		{
+
+			imagen = cargarTextura(nombre);
+
+			texturas.put(nombre, imagen);
+		}
+
+		return imagen;
+
+	}
+
+	public Musica cargarMusica(String nombre)
+	{
 
 		AssetFileDescriptor descriptor = null;
 
-		try {
+		try
+		{
+
 			descriptor = contexto.getAssets().openFd(nombre);
-		} catch (IOException e) {
+
+		}
+		catch (IOException e)
+		{
 
 		}
 
-		try {
-			musica.setDataSource(descriptor.getFileDescriptor(), descriptor.getStartOffset(), descriptor.getLength());
-
-			musica.prepare();
-
-			preparado = true;
-
-			musica.setOnCompletionListener(this);
-
-		} catch (IllegalArgumentException e) {
-
-		} catch (IllegalStateException e) {
-
-		} catch (IOException e) {
-
-		}
+		Musica musica = new MusicaDeJuego(descriptor);
 
 		musicas.put(nombre, musica);
 
@@ -115,13 +166,15 @@ public class Recurso implements OnCompletionListener {
 
 	}
 
-	public MediaPlayer getMusica(String nombre) {
-		MediaPlayer musica;
-		musica = (MediaPlayer) musicas.get(nombre);
+	public Musica getMusica(String nombre)
+	{
 
-		if (musica == null) {
+		Musica musica = musicas.get(nombre);
 
-			musica = cargarMusica(nombre);
+		if (musica == null)
+		{
+
+			musica = (Musica) cargarMusica(nombre);
 
 			musicas.put(nombre, musica);
 		}
@@ -130,172 +183,49 @@ public class Recurso implements OnCompletionListener {
 
 	}
 
-	public void playMusica(final String nombre, final int volumen) {
-		new Thread(new Runnable() {
-			public void run() {
-
-				if (getMusica(nombre).isPlaying()) {
-					return;
-				}
-
-				if (!preparado) {
-					try {
-						getMusica(nombre).prepare();
-					} catch (IllegalStateException e) {
-
-					} catch (IOException e) {
-
-					}
-				}
-
-				getMusica(nombre).setVolume(volumen, volumen);
-
-				getMusica(nombre).start();
-
-			}
-		}).start();
-	}
-
-	public void repetirMusica(final String nombre, final int volumen) {
-		new Thread(new Runnable() {
-			public void run() {
-				if (getMusica(nombre).isPlaying()) {
-					return;
-				}
-
-				if (!preparado) {
-					try {
-						getMusica(nombre).prepare();
-					} catch (IllegalStateException e) {
-
-					} catch (IOException e) {
-
-					}
-				}
-
-				getMusica(nombre).setVolume(volumen, volumen);
-
-				getMusica(nombre).start();
-
-				getMusica(nombre).setLooping(true);
-			}
-		}).start();
-	}
-
-	public void pusaMusica(final String nombre) {
-		new Thread(new Runnable() {
-			public void run() {
-
-				if (getMusica(nombre).isPlaying()) {
-
-					getMusica(nombre).pause();
-
-				}
-
-			}
-		}).start();
-	}
-
-	public SoundPool cargarSonido(String nombre) {
+	@SuppressWarnings("deprecation")
+	public Sonido cargarSonido(String nombre)
+	{
 
 		AssetFileDescriptor descriptor = null;
 
-		try {
+		try
+		{
 
 			descriptor = contexto.getAssets().openFd(nombre);
 
-			int idSonido = sonido.load(descriptor, 0);
-
-			idSonidos.put(nombre, idSonido);
-
-		} catch (IOException e1) {
+		}
+		catch (IOException e)
+		{
 
 		}
 
-		try {
+		SoundPool sonidoPool = new SoundPool(200, AudioManager.STREAM_MUSIC, 0);
 
-			sonidos.put(nombre, sonido);
+		int id = sonidoPool.load(descriptor, 0);
 
-			return sonidos.get(nombre);
+		Sonido sonido = new EfectoDeSonido(id, sonidoPool);
 
-		} catch (Exception e) {
-			return null;
-		}
+		sonidos.put(nombre, sonido);
+
+		return sonidos.get(nombre);
 
 	}
 
-	public SoundPool getSonido(String nombre) {
+	public Sonido getSonido(String nombre)
+	{
 
-		SoundPool sonido = (SoundPool) sonidos.get(nombre);
+		Sonido sonido = sonidos.get(nombre);
 
-		if (sonido == null) {
+		if (sonido == null)
+		{
 
-			sonido = cargarSonido(nombre);
+			sonido = (Sonido) cargarSonido(nombre);
 
 			sonidos.put(nombre, sonido);
 		}
 
 		return sonido;
-
-	}
-
-	public void playSonido(final String nombre, final int volumen) {
-		new Thread(new Runnable() {
-			public void run() {
-
-				int idSonido = (int) idSonidos.get(nombre);
-
-				getSonido(nombre).play(idSonido, volumen, volumen, 0, 0, 1);
-			}
-		}).start();
-	}
-
-	public void pararSonido(SoundPool sonido) {
-
-		sonido.release();
-
-	}
-
-	public void pararMusica(MediaPlayer musica) {
-
-		if (musica.isPlaying()) {
-			musica.stop();
-
-			preparado = false;
-		}
-
-	}
-
-	public Bitmap getImagen(String nombre) {
-		Bitmap imagen;
-		imagen = (Bitmap) imagenes.get(nombre);
-
-		if (imagen == null) {
-
-			imagen = cargarImagen(nombre);
-
-			imagenes.put(nombre, imagen);
-		}
-
-		return imagen;
-
-	}
-
-	@Override
-	public void onCompletion(MediaPlayer media) {
-
-		preparado = false;
-	}
-
-	public static Bitmap crearBitmap(Bitmap imagen, float ancho, float alto) {
-
-		int w = imagen.getWidth();
-		int h = imagen.getHeight();
-		float sw = ancho / w;
-		float sh = alto / h;
-		Matrix max = new Matrix();
-		max.postScale(sw, sh);
-		return Bitmap.createBitmap(imagen, 0, 0, w, h, max, false);
 
 	}
 

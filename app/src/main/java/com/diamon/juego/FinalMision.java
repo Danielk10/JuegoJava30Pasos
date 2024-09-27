@@ -1,17 +1,15 @@
 package com.diamon.juego;
 
 import com.diamon.nucleo.Juego;
-import com.diamon.pantalla.PantallaPrecentacion;
+import com.diamon.pantalla.PantallaPresentacion;
 
-import android.content.Context;
-import android.graphics.Bitmap;
+import android.app.Activity;
 
 public class FinalMision extends Juego {
+	public FinalMision(Activity actividad) {
+		super(actividad);
 
-	public FinalMision(Context contexto, Bitmap bufer) {
-		super(contexto, bufer);
-
-		setPantalla(new PantallaPrecentacion(this));
+		setPantalla(new PantallaPresentacion(this));
 	}
 
 }

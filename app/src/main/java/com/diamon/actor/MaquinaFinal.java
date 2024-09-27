@@ -1,18 +1,15 @@
 package com.diamon.actor;
 
 import com.diamon.nucleo.Actor;
+import com.diamon.nucleo.Juego;
 import com.diamon.nucleo.Pantalla;
-import com.diamon.utilidad.Texturas;
-
-import android.graphics.Bitmap;
-
+import com.diamon.nucleo.Textura;
+import com.diamon.graficos.Animacion2D;
 
 public class MaquinaFinal extends Actor {
 
 	private float tiempoDisparo;
-
-	private float tiempoExplosion;
-
+	
 	private float tiempoChoque;
 
 	private float tiempoDisparoDestruible;
@@ -23,8 +20,8 @@ public class MaquinaFinal extends Actor {
 
 	private boolean choque;
 
-	public MaquinaFinal(Pantalla pantalla) {
-		super(pantalla);
+	public MaquinaFinal(Pantalla pantalla, Textura textura, float x, float y, float ancho, float alto) {
+		super(pantalla, textura, x, y, ancho, alto);
 
 		vida = 50;
 
@@ -32,6 +29,35 @@ public class MaquinaFinal extends Actor {
 
 		choque = false;
 	}
+
+	public MaquinaFinal(Pantalla pantalla, Textura textura, float x, float y) {
+		super(pantalla, textura, x, y);
+
+		vida = 50;
+
+		disparar = false;
+
+		choque = false;
+	}
+
+	public MaquinaFinal(Pantalla pantalla, Textura[] texturas, float x, float y, float ancho, float alto,
+			float tiempoAnimacion) {
+		super(pantalla, texturas, x, y, ancho, alto, tiempoAnimacion);
+
+		vida = 50;
+
+		disparar = false;
+
+		choque = false;
+	}
+
+@Override
+	public void obtenerActores()
+	{
+		// TODO: Implement this method
+	}
+	
+
 
 	public int getVida() {
 		return vida;
@@ -61,26 +87,8 @@ public class MaquinaFinal extends Actor {
 		tiempoDisparoDestruible += delta;
 
 		if (vida == 0) {
-
+			
 			vida = 0;
-
-			tiempoExplosion += delta;
-
-			if (tiempoExplosion / 0.5f >= 1) {
-
-				for (int i = 0; i < actores.size(); i++) {
-
-					if (actores.get(i) instanceof Explosion) {
-						Explosion e = (Explosion) actores.get(i);
-
-						e.remover();
-
-					}
-				}
-
-				tiempoExplosion = 0;
-
-			}
 
 		}
 
@@ -122,18 +130,14 @@ public class MaquinaFinal extends Actor {
 
 	public void explosion() {
 
-		Explosion explosion = new Explosion(pantalla);
+		Textura[] texturas = new Textura[] { recurso.getTextura("explosion1.png"), recurso.getTextura("explosion2.png"),
+				recurso.getTextura("explosion3.png"), recurso.getTextura("explosion4.png") };
 
-		explosion.setTamano(64, 64);
+		Explosion explosion = new Explosion(pantalla, texturas, x - 32, y - 32, 64, 64, 4);
+		
+		explosion.getAnimacion().setModo(Animacion2D.NORMAL);
 
-		explosion.setPosicion(x - 32, y - 32);
-
-		explosion.setImagenes(
-				new Bitmap[] { Texturas.explosion1, Texturas.explosion2, Texturas.explosion3, Texturas.explosion4 });
-
-		explosion.setCuadros(4);
-
-		if (explosion.getX() <= 640) {
+		if (explosion.getX() <= Juego.ANCHO_PANTALLA) {
 
 			actores.add(explosion);
 
@@ -143,15 +147,13 @@ public class MaquinaFinal extends Actor {
 
 	public void disparar() {
 
-		BalaEnemigo bala = new BalaEnemigo(pantalla);
+		BalaEnemigo bala = new BalaEnemigo(pantalla, recurso.getTextura("balaParedI.png"), x, y + 26, 32, 12);
 
-		bala.setTamano(32, 12);
+bala.setModoClasico(true);
 
-		bala.setPosicion(x, y + 26);
+		bala.setLado(BalaEnemigo.IZQUIERDO);
 
-		bala.setLado(BalaEnemigo.LADO_IZQUIERDO);
-
-		bala.setImagenes(new Bitmap[] { Texturas.balaParedI });
+		bala.setVelocidadY(1);
 
 		if (bala.getX() <= 640) {
 
@@ -162,32 +164,22 @@ public class MaquinaFinal extends Actor {
 
 	public void dispararBalaDestruible() {
 
-		BalaEnemigoDestruible bala1 = new BalaEnemigoDestruible(pantalla);
+		Textura[] texturas1 = new Textura[] { recurso.getTextura("balaSaltador1.png"),
+				recurso.getTextura("balaSaltador2.png") };
 
-		bala1.setTamano(32, 32);
+		BalaEnemigoDestruible bala1 = new BalaEnemigoDestruible(pantalla, texturas1, x, y - 128, 32, 32, 20);
 
-		bala1.setPosicion(x, y - 128);
-
-		bala1.setCuadros(20);
-
-		bala1.setImagenes(new Bitmap[] { Texturas.balaSaltador1, Texturas.balaSaltador2 });
-
-		if (bala1.getX() <= 640) {
+		if (bala1.getX() <= Juego.ANCHO_PANTALLA) {
 
 			actores.add(bala1);
 		}
 
-		BalaEnemigoDestruible bala2 = new BalaEnemigoDestruible(pantalla);
+		Textura[] texturas2 = new Textura[] { recurso.getTextura("balaSaltador1.png"),
+				recurso.getTextura("balaSaltador2.png") };
 
-		bala2.setTamano(32, 32);
+		BalaEnemigoDestruible bala2 = new BalaEnemigoDestruible(pantalla, texturas2, x, y + 128, 32, 32, 20);
 
-		bala2.setPosicion(x, y + 128);
-
-		bala2.setCuadros(20);
-
-		bala2.setImagenes(new Bitmap[] { Texturas.balaSaltador1, Texturas.balaSaltador2 });
-
-		if (bala2.getX() <= 640) {
+		if (bala2.getX() <= Juego.ANCHO_PANTALLA) {
 
 			actores.add(bala2);
 		}
@@ -198,9 +190,10 @@ public class MaquinaFinal extends Actor {
 	public void colision(Actor actor) {
 
 		if (actor instanceof Bala || actor instanceof Jugador || actor instanceof BalaEspecial
-				|| actor instanceof ExplosionB) {
+				|| actor instanceof ExplosionB || actor instanceof BalaInteligente) {
 
-			recurso.playMusica("explosion.wav", 1);
+			recurso.getSonido("explosion.wav").reproducir(1);
+
 			if (vida == 0) {
 
 				explosion();

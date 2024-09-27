@@ -1,114 +1,118 @@
 package com.diamon.pantalla;
 
+import com.diamon.graficos.Pantalla2D;
+import com.diamon.graficos.Textura2D;
+import com.diamon.nucleo.Graficos;
 import com.diamon.nucleo.Juego;
-import com.diamon.nucleo.Pantalla;
+import com.diamon.nucleo.Musica;
 
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.hardware.SensorEvent;
-import android.view.KeyEvent;
-import android.view.MotionEvent;
+public class PantallaFinDeJuego extends Pantalla2D {
 
-public class PantallaFinDeJuego extends Pantalla {
+	private float tiempo;
 
-	private float tiemoMovimiento;
+	private Musica musica;
 
-	private Bitmap fondo;
+	private Textura2D textura;
 
 	public PantallaFinDeJuego(Juego juego) {
 		super(juego);
 
-		fondo = this.crearBitmap(recurso.getImagen("finJuego.png"), Juego.ANCHO_PANTALLA, Juego.ALTO_PANTALLA);
+		tiempo = 0;
 
-		recurso.playMusica("finDeJuego.wav", 1);
+		textura = new Textura2D(juego.getRecurso().getTextura("finJuego.png").getBipmap(), Juego.ANCHO_PANTALLA,
+				Juego.ALTO_PANTALLA);
+
+		musica = juego.getRecurso().getMusica("finDeJuego.wav");
+
+		musica.reproducir();
 	}
 
 	@Override
-	public void pausa() {
-		// TODO Auto-generated method stub
+	public void mostrar() {
 
 	}
 
 	@Override
 	public void resume() {
-		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void colisiones() {
 
 	}
 
 	@Override
 	public void actualizar(float delta) {
 
-		tiemoMovimiento += delta;
+		tiempo += delta;
 
-		if (tiemoMovimiento / 5.66f >= 1) {
+		if (tiempo / 5.66f >= 1) {
 
-			recurso.pararSonido(recurso.getSonido("musica.wav"));
+			musica.terminar();
 
 			juego.setPantalla(new PantallaContinuar(juego));
 
-			tiemoMovimiento = 0;
+			tiempo = 0;
+
 		}
 
 	}
 
 	@Override
-	public void dibujar(Canvas pincel, float delta) {
+	public void dibujar(Graficos pincel, float delta) {
 
-		dibujarImagen(pincel, fondo, 0, 0);
+		pincel.dibujarTextura(textura, 0, 0);
 
 	}
 
 	@Override
-	public void colisiones() {
-		// TODO Auto-generated method stub
+	public void reajustarPantalla(int ancho, int alto) {
+
+	}
+
+	@Override
+	public void pausa() {
 
 	}
 
 	@Override
 	public void ocultar() {
-		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void mostrar() {
-		// TODO Auto-generated method stub
+	public void liberarRecursos() {
 
 	}
 
 	@Override
-	public void teclaPresionada(KeyEvent ev) {
-		// TODO Auto-generated method stub
+	public void teclaPresionada(int codigoDeTecla) {
 
 	}
 
 	@Override
-	public void teclaLevantada(KeyEvent ev) {
-		// TODO Auto-generated method stub
+	public void teclaLevantada(int codigoDeTecla) {
 
 	}
 
 	@Override
-	public void toque(MotionEvent ev) {
-		// TODO Auto-generated method stub
+	public void toquePresionado(float x, float y, int puntero) {
 
 	}
 
 	@Override
-	public void multiToque(MotionEvent ev) {
-		// TODO Auto-generated method stub
+	public void toqueLevantado(float x, float y, int puntero) {
 
 	}
 
 	@Override
-	public void acelerometro(SensorEvent ev) {
-		// TODO Auto-generated method stub
+	public void toqueDeslizando(float x, float y, int puntero) {
 
 	}
 
 	@Override
-	public void reajustarPantalla(float ancho, float alto) {
-		// TODO Auto-generated method stub
+	public void acelerometro(float x, float y, float z) {
 
 	}
 

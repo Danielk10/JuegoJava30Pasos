@@ -3,18 +3,43 @@ package com.diamon.actor;
 import com.diamon.nucleo.Actor;
 import com.diamon.nucleo.Juego;
 import com.diamon.nucleo.Pantalla;
+import com.diamon.nucleo.Textura;
 
 public class Piso extends Actor {
 
 	private final static float VELOCIDAD_PISO = 1;
 
-	public Piso(Pantalla pantalla) {
+	public Piso(Pantalla pantalla, Textura textura, float x, float y, float ancho, float alto) {
+		super(pantalla, textura, x, y, ancho, alto);
 
-		super(pantalla);
 		x = 640;
 
 		y = Juego.ALTO_PANTALLA - 64;
 	}
+
+	public Piso(Pantalla pantalla, Textura textura, float x, float y) {
+		super(pantalla, textura, x, y);
+
+		x = 640;
+
+		y = Juego.ALTO_PANTALLA - 64;
+	}
+
+	public Piso(Pantalla pantalla, Textura[] texturas, float x, float y, float ancho, float alto,
+			float tiempoAnimacion) {
+		super(pantalla, texturas, x, y, ancho, alto, tiempoAnimacion);
+
+		x = 640;
+
+		y = Juego.ALTO_PANTALLA - 64;
+	}
+
+@Override
+	public void obtenerActores()
+	{
+		// TODO: Implement this method
+	}
+
 
 	@Override
 	public void actualizar(float delta) {
@@ -22,7 +47,7 @@ public class Piso extends Actor {
 		super.actualizar(delta);
 
 		x -= VELOCIDAD_PISO / Juego.DELTA_A_PIXEL * delta;
-		;
+		
 
 		if (x <= -128) {
 
@@ -34,7 +59,6 @@ public class Piso extends Actor {
 
 	@Override
 	public void colision(Actor actor) {
-		// TODO Auto-generated method stub
 
 	}
 

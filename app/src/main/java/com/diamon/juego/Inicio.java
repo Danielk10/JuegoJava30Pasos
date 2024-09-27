@@ -1,20 +1,20 @@
 package com.diamon.juego;
 
-import com.diamon.nucleo.Juego;
-import com.diamon.publicidad.MostrarPublicidad;
+
 import com.diamon.utilidad.PantallaCompleta;
+
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.res.Configuration;
-import android.graphics.Bitmap;
-import android.graphics.Bitmap.Config;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
+import android.view.KeyEvent;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
+
+
 
 public class Inicio extends Activity {
 
@@ -23,9 +23,6 @@ public class Inicio extends Activity {
 	private FinalMision juego;
 
 	private PantallaCompleta pantallaCompleta;
-
-	@SuppressWarnings("unused")
-	private MostrarPublicidad publicidad;
 
 	@SuppressWarnings({ "deprecation", "unused" })
 	@Override
@@ -39,29 +36,18 @@ public class Inicio extends Activity {
 
 		pantallaCompleta.ocultarBotonesVirtuales();
 
-		publicidad = new MostrarPublicidad(this);
-
-		boolean isModoHorizontal = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
-		int imagenBuferAncho = isModoHorizontal ? (int) Juego.ANCHO_PANTALLA : (int) Juego.ALTO_PANTALLA;
-		int imagenBuferAlto = isModoHorizontal ? (int) Juego.ALTO_PANTALLA : (int) Juego.ANCHO_PANTALLA;
-		Bitmap imagenBufer = Bitmap.createBitmap(imagenBuferAncho, imagenBuferAlto, Config.ARGB_8888);
-		float escalaX = (float) imagenBuferAncho / getWindowManager().getDefaultDisplay().getWidth();
-		float escalaY = (float) imagenBuferAlto / getWindowManager().getDefaultDisplay().getHeight();
-
 		setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
-		juego = new FinalMision(this, imagenBufer);
+		juego = new FinalMision(this);
 
 		RelativeLayout mainLayout = new RelativeLayout(this);
 
 		FrameLayout frame = new FrameLayout(this);
 
-
 		RelativeLayout.LayoutParams mrecParameters = new RelativeLayout.LayoutParams(
 				RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
 		mrecParameters.addRule(RelativeLayout.CENTER_HORIZONTAL);
 		mrecParameters.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-
 
 		frame.addView(juego, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT,
 				FrameLayout.LayoutParams.MATCH_PARENT));
@@ -72,7 +58,6 @@ public class Inicio extends Activity {
 
 		PowerManager powerManejador = (PowerManager) getSystemService(Context.POWER_SERVICE);
 		wakeLock = powerManejador.newWakeLock(PowerManager.FULL_WAKE_LOCK, "GLGame");
-
 	}
 
 	@Override
@@ -111,6 +96,14 @@ public class Inicio extends Activity {
 			pantallaCompleta.ocultarBotonesVirtuales();
 		}
 
+	}
+
+	@Override
+	public boolean onKeyUp(int keyCode, KeyEvent event) {
+
+		pantallaCompleta.ocultarBotonesVirtuales();
+
+		return super.onKeyUp(keyCode, event);
 	}
 
 	@Override

@@ -3,19 +3,12 @@ package com.diamon.actor;
 import com.diamon.nucleo.Actor;
 import com.diamon.nucleo.Juego;
 import com.diamon.nucleo.Pantalla;
-import com.diamon.utilidad.Texturas;
-
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-
+import com.diamon.nucleo.Textura;
+import com.diamon.graficos.Animacion2D;
 
 public class Saltador extends Actor {
 
 	private float tiempoDisparo;
-
-	private float tiempoExplosion;
-
-	private boolean preparado;
 
 	private boolean salta;
 
@@ -27,12 +20,10 @@ public class Saltador extends Actor {
 
 	private float xJugador;
 
-	public Saltador(Pantalla pantalla) {
-		super(pantalla);
+	public Saltador(Pantalla pantalla, Textura textura, float x, float y, float ancho, float alto) {
+		super(pantalla, textura, x, y, ancho, alto);
 
 		xJugador = 0;
-
-		preparado = false;
 
 		suelo = false;
 
@@ -41,12 +32,41 @@ public class Saltador extends Actor {
 		velocidadY = VELOCIDAD_MAQUINA;
 	}
 
+	public Saltador(Pantalla pantalla, Textura textura, float x, float y) {
+		super(pantalla, textura, x, y);
+
+		xJugador = 0;
+
+		suelo = false;
+
+		salta = false;
+
+		velocidadY = VELOCIDAD_MAQUINA;
+	}
+
+	public Saltador(Pantalla pantalla, Textura[] texturas, float x, float y, float ancho, float alto,
+			float tiempoAnimacion) {
+		super(pantalla, texturas, x, y, ancho, alto, tiempoAnimacion);
+
+		xJugador = 0;
+
+		suelo = false;
+
+		salta = false;
+
+		velocidadY = VELOCIDAD_MAQUINA;
+	}
+
+@Override
+	public void obtenerActores()
+	{
+		// TODO: Implement this method
+	}
+
 	@Override
 	public void actualizar(float delta) {
-		// TODO Auto-generated method stub
-		super.actualizar(delta);
 
-		tiempoExplosion += delta;
+		super.actualizar(delta);
 
 		tiempoDisparo += delta;
 
@@ -62,22 +82,7 @@ public class Saltador extends Actor {
 			}
 
 		}
-
-		if (tiempoExplosion / 0.5f >= 1) {
-
-			for (int i = 0; i < actores.size(); i++) {
-
-				if (actores.get(i) instanceof Explosion) {
-					Explosion e = (Explosion) actores.get(i);
-
-					e.remover();
-
-				}
-			}
-
-			tiempoExplosion = 0;
-
-		}
+		
 
 		if (tiempoDisparo / 0.66f >= 1) {
 
@@ -126,24 +131,21 @@ public class Saltador extends Actor {
 		if (x <= -ancho) {
 
 			remover = true;
-		}
+		} 
 
 	}
 
 	public void explosion() {
 
-		Explosion explosion = new Explosion(pantalla);
+		Textura[] texturas = new Textura[] { recurso.getTextura("explosion1.png"), recurso.getTextura("explosion2.png"),
+				recurso.getTextura("explosion3.png"), recurso.getTextura("explosion4.png") };
 
-		explosion.setTamano(64, 64);
+		Explosion explosion = new Explosion(pantalla, texturas, x - 32, y - 32, 64, 64, 4);
+		
+		explosion.getAnimacion().setModo(Animacion2D.NORMAL);
+		
 
-		explosion.setPosicion(x - 32, y - 32);
-
-		explosion.setImagenes(
-				new Bitmap[] { Texturas.explosion1, Texturas.explosion2, Texturas.explosion3, Texturas.explosion4 });
-
-		explosion.setCuadros(4);
-
-		if (explosion.getX() <= 640) {
+		if (explosion.getX() <= Juego.ANCHO_PANTALLA) {
 
 			actores.add(explosion);
 
@@ -153,48 +155,14 @@ public class Saltador extends Actor {
 
 	public void disparar() {
 
-		BalaEnemigoDestruible bala = new BalaEnemigoDestruible(pantalla);
+		Textura[] texturas = new Textura[] { recurso.getTextura("balaSaltador1.png"),
+				recurso.getTextura("balaSaltador2.png") };
 
-		bala.setTamano(32, 32);
+		BalaEnemigoDestruible bala = new BalaEnemigoDestruible(pantalla, texturas, x, y + 12, 32, 32, 5);
 
-		bala.setPosicion(x, y + 12);
-
-		bala.setImagenes(new Bitmap[] { Texturas.balaSaltador1, Texturas.balaSaltador2 });
-
-		bala.setCuadros(5);
-
-		if (bala.getX() <= 640) {
+		if (bala.getX() <= Juego.ANCHO_PANTALLA) {
 
 			actores.add(bala);
-		}
-
-	}
-
-	@Override
-	public void dibujar(Canvas pincel, float delta) {
-
-		super.dibujar(pincel, delta);
-
-		if (suelo) {
-
-			setCuadros(20);
-
-			setImagenes(new Bitmap[] { Texturas.saltador2 });
-
-			if (preparado) {
-				setCuadros(20);
-				setImagenes(new Bitmap[] { Texturas.saltador2, Texturas.saltador1, Texturas.saltador3 });
-
-			}
-
-		}
-
-		if (salta) {
-
-			setCuadros(1);
-
-			setImagenes(new Bitmap[] { Texturas.saltador4 });
-
 		}
 
 	}
@@ -203,10 +171,12 @@ public class Saltador extends Actor {
 	public void colision(Actor actor) {
 
 		if (actor instanceof Bala || actor instanceof Jugador || actor instanceof BalaEspecial
-				|| actor instanceof ExplosionB) {
+				|| actor instanceof ExplosionB|| actor instanceof BalaInteligente) {
 
-			recurso.playMusica("explosion.wav", 1);
+			recurso.getSonido("explosion.wav").reproducir(1);
+
 			explosion();
+
 			remover = true;
 		}
 

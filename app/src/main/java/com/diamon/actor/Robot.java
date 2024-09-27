@@ -3,16 +3,13 @@ package com.diamon.actor;
 import com.diamon.nucleo.Actor;
 import com.diamon.nucleo.Juego;
 import com.diamon.nucleo.Pantalla;
-import com.diamon.utilidad.Texturas;
+import com.diamon.nucleo.Textura;
+import com.diamon.graficos.Animacion2D;
 
-import android.graphics.Bitmap;
-
-
-public class Robot extends Actor {
+public class Robot extends Actor
+{
 
 	private float tiempoDisparo;
-
-	private float tiempoExplosion;
 
 	public final static int LADO_IZQUIERDO = 1;
 
@@ -24,8 +21,28 @@ public class Robot extends Actor {
 
 	private boolean disparar;
 
-	public Robot(Pantalla pantalla) {
-		super(pantalla);
+	public Robot(Pantalla pantalla, Textura textura, float x, float y, float ancho, float alto)
+	{
+		super(pantalla, textura, x, y, ancho, alto);
+
+		velocidad = 0;
+
+		disparar = false;
+	}
+
+	public Robot(Pantalla pantalla, Textura textura, float x, float y)
+	{
+		super(pantalla, textura, x, y);
+
+		velocidad = 0;
+
+		disparar = false;
+	}
+
+	public Robot(Pantalla pantalla, Textura[] texturas, float x, float y, float ancho, float alto,
+				 float tiempoAnimacion)
+	{
+		super(pantalla, texturas, x, y, ancho, alto, tiempoAnimacion);
 
 		velocidad = 0;
 
@@ -33,16 +50,27 @@ public class Robot extends Actor {
 	}
 
 	@Override
-	public void actualizar(float delta) {
+	public void obtenerActores()
+	{
+		// TODO: Implement this method
+	}
+
+
+	@Override
+	public void actualizar(float delta)
+	{
 
 		super.actualizar(delta);
 
-		if (lado == Robot.LADO_DERECHO) {
+		if (lado == Robot.LADO_DERECHO)
+		{
 			x += velocidad / Juego.DELTA_A_PIXEL * delta;
 
-			if (!disparar) {
+			if (!disparar)
+			{
 
-				if (x <= 100) {
+				if (x <= 100)
+				{
 
 					x += 2 / Juego.DELTA_A_PIXEL * delta;
 					y += 2 / Juego.DELTA_A_PIXEL * delta;
@@ -58,19 +86,23 @@ public class Robot extends Actor {
 
 			}
 
-			if (x >= Juego.ANCHO_PANTALLA) {
+			if (x >= Juego.ANCHO_PANTALLA)
+			{
 
 				remover = true;
 			}
 
 		}
 
-		if (lado == Robot.LADO_IZQUIERDO) {
+		if (lado == Robot.LADO_IZQUIERDO)
+		{
 
 			x -= velocidad / Juego.DELTA_A_PIXEL * delta;
 
-			if (!disparar) {
-				if (x >= 500) {
+			if (!disparar)
+			{
+				if (x >= 500)
+				{
 
 					x -= 2 / Juego.DELTA_A_PIXEL * delta;
 
@@ -86,35 +118,19 @@ public class Robot extends Actor {
 				y -= 2 / Juego.DELTA_A_PIXEL * delta;
 
 			}
-			if (x <= -ancho) {
+			if (x <= -ancho)
+			{
 
 				remover = true;
 			}
 
 		}
 
-		tiempoExplosion += delta;
+		if (tiempoDisparo / 0.66f >= 1)
+		{
 
-		tiempoDisparo += delta;
-
-		if (tiempoExplosion / 0.5f >= 1) {
-
-			for (int i = 0; i < actores.size(); i++) {
-
-				if (actores.get(i) instanceof Explosion) {
-					Explosion e = (Explosion) actores.get(i);
-
-					e.remover();
-
-				}
-			}
-
-			tiempoExplosion = 0;
-
-		}
-		if (tiempoDisparo / 0.66f >= 1) {
-
-			if (Math.random() < 0.08f) {
+			if (Math.random() < 0.08f)
+			{
 				disparar();
 
 				disparar = true;
@@ -127,66 +143,64 @@ public class Robot extends Actor {
 
 	}
 
-	private void disparar() {
+	private void disparar()
+	{
 
-		if (lado == Robot.LADO_DERECHO) {
+		if (lado == Robot.LADO_DERECHO)
+		{
 
-			BalaEnemigo bala = new BalaEnemigo(pantalla);
+			Textura[] texturas = new Textura[] { recurso.getTextura("balaE1.png"), recurso.getTextura("balaE2.png"),
+				recurso.getTextura("balaE3.png"), recurso.getTextura("balaE4.png") };
 
-			bala.setTamano(12, 12);
+			BalaEnemigo bala = new BalaEnemigo(pantalla, texturas, x + ancho, y + 16, 12, 12, 3);
 
-			bala.setPosicion(x + ancho, y + 16);
+    bala.setModoClasico(true);
 
-			bala.setImagenes(new Bitmap[] { Texturas.balaE1, Texturas.balaE2, Texturas.balaE3, Texturas.balaE4 });
+			bala.setLado(BalaEnemigo.DERECHO);
 
-			bala.setCuadros(3);
-
-			bala.setLado(BalaEnemigo.LADO_DERECHO);
-
-			if (bala.getX() <= 640) {
-
-				actores.add(bala);
-			}
-
-		}
-
-		if (lado == Robot.LADO_IZQUIERDO) {
-
-			BalaEnemigo bala = new BalaEnemigo(pantalla);
-
-			bala.setTamano(12, 12);
-
-			bala.setPosicion(x, y + 16);
-
-			bala.setImagenes(new Bitmap[] { Texturas.balaE1, Texturas.balaE2, Texturas.balaE3, Texturas.balaE4 });
-
-			bala.setCuadros(3);
-
-			bala.setLado(BalaEnemigo.LADO_IZQUIERDO);
-
-			if (bala.getX() <= 640) {
+			if (bala.getX() <= Juego.ANCHO_PANTALLA)
+			{
 
 				actores.add(bala);
 			}
 
 		}
+
+		if (lado == Robot.LADO_IZQUIERDO)
+		{
+
+			Textura[] texturas = new Textura[] { recurso.getTextura("balaE1.png"), recurso.getTextura("balaE2.png"),
+				recurso.getTextura("balaE3.png"), recurso.getTextura("balaE4.png") };
+
+			BalaEnemigo bala = new BalaEnemigo(pantalla, texturas, x, y + 16, 12, 12, 3);
+
+    bala.setModoClasico(true);
+
+			bala.setLado(BalaEnemigo.IZQUIERDO);
+
+			if (bala.getX() <= 640)
+			{
+
+				actores.add(bala);
+			}
+
+		} 
 
 	}
 
-	private void explosion() {
+	private void explosion()
+	{
 
-		Explosion explosion = new Explosion(pantalla);
+		Textura[] texturas = new Textura[] { recurso.getTextura("explosion1.png"), recurso.getTextura("explosion2.png"),
+			recurso.getTextura("explosion3.png"), recurso.getTextura("explosion4.png") };
 
-		explosion.setTamano(64, 64);
+		Explosion explosion = new Explosion(pantalla, texturas, x - 32, y - 32, 64, 64, 4);
 
-		explosion.setPosicion(x - 32, y - 32);
+		explosion.getAnimacion().setModo(Animacion2D.NORMAL);
 
-		explosion.setImagenes(
-				new Bitmap[] { Texturas.explosion1, Texturas.explosion2, Texturas.explosion3, Texturas.explosion4 });
 
-		explosion.setCuadros(4);
-
-		if (explosion.getX() <= 640) {
+		if (explosion.getX() <= Juego.ANCHO_PANTALLA)
+		{
 
 			actores.add(explosion);
 
@@ -194,28 +208,34 @@ public class Robot extends Actor {
 
 	}
 
-	public int getVelocidad() {
+	public int getVelocidad()
+	{
 		return velocidad;
 	}
 
-	public void setVelocidad(int velocidad) {
+	public void setVelocidad(int velocidad)
+	{
 		this.velocidad = velocidad;
 	}
 
-	public int getLado() {
+	public int getLado()
+	{
 		return lado;
 	}
 
-	public void setLado(int lado) {
+	public void setLado(int lado)
+	{
 		this.lado = lado;
 	}
 
 	@Override
-	public void colision(Actor actor) {
+	public void colision(Actor actor)
+	{
 		if (actor instanceof Bala || actor instanceof Jugador || actor instanceof BalaEspecial
-				|| actor instanceof ExplosionB) {
+			|| actor instanceof ExplosionB || actor instanceof BalaInteligente)
+		{
 
-			recurso.playMusica("explosion.wav", 1);
+			recurso.getSonido("explosion.wav").reproducir(1);
 
 			explosion();
 			remover = true;

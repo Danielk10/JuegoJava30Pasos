@@ -1,95 +1,95 @@
 package com.diamon.pantalla;
 
+import com.diamon.graficos.Pantalla2D;
+import com.diamon.nucleo.Graficos;
 import com.diamon.nucleo.Juego;
-import com.diamon.nucleo.Pantalla;
 
-import android.graphics.Canvas;
-import android.hardware.SensorEvent;
-import android.view.KeyEvent;
-import android.view.MotionEvent;
+import com.diamon.actor.Fondo;
 
-public class PantallaExtra extends Pantalla {
+public class PantallaExtra extends Pantalla2D {
 
 	public PantallaExtra(Juego juego) {
 		super(juego);
-		// TODO Auto-generated constructor stub
-	}
 
-	@Override
-	public void pausa() {
-		// TODO Auto-generated method stub
+Fondo f = new Fondo(this, recurso.getTextura("jugador1D1.png"), 0,
+				0, 64, 64);
 
-	}
-
-	@Override
-	public void resume() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void actualizar(float delta) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void dibujar(Canvas pincel, float delta) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void colisiones() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void ocultar() {
-		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public void mostrar() {
+
+	}
+
+	@Override
+	public void resume() {
+
+	}
+
+	@Override
+	public void colisiones() {
+
+	}
+
+	@Override
+	public void actualizar(float delta) {
+
+	}
+
+	@Override
+	public void dibujar(Graficos pincel, float delta) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void teclaPresionada(KeyEvent ev) {
-		// TODO Auto-generated method stub
+	public void reajustarPantalla(int ancho, int alto) {
 
 	}
 
 	@Override
-	public void teclaLevantada(KeyEvent ev) {
-		// TODO Auto-generated method stub
+	public void pausa() {
 
 	}
 
 	@Override
-	public void toque(MotionEvent ev) {
-		// TODO Auto-generated method stub
+	public void ocultar() {
 
 	}
 
 	@Override
-	public void multiToque(MotionEvent ev) {
-		// TODO Auto-generated method stub
+	public void liberarRecursos() {
 
 	}
 
 	@Override
-	public void acelerometro(SensorEvent ev) {
-		// TODO Auto-generated method stub
+	public void teclaPresionada(int codigoDeTecla) {
 
 	}
 
 	@Override
-	public void reajustarPantalla(float ancho, float alto) {
-		// TODO Auto-generated method stub
+	public void teclaLevantada(int codigoDeTecla) {
+
+	}
+
+	@Override
+	public void toquePresionado(float x, float y, int puntero) {
+
+	}
+
+	@Override
+	public void toqueLevantado(float x, float y, int puntero) {
+
+	}
+
+	@Override
+	public void toqueDeslizando(float x, float y, int puntero) {
+
+	}
+
+	@Override
+	public void acelerometro(float x, float y, float z) {
 
 	}
 

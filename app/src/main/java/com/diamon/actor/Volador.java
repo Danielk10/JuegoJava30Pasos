@@ -3,67 +3,116 @@ package com.diamon.actor;
 import com.diamon.nucleo.Actor;
 import com.diamon.nucleo.Juego;
 import com.diamon.nucleo.Pantalla;
-import com.diamon.utilidad.Texturas;
+import com.diamon.nucleo.Textura;
+import com.diamon.graficos.Animacion2D;
 
-import android.graphics.Bitmap;
+public class Volador extends Actor
+{
 
-public class Volador extends Actor {
-
-	public final static float VELOCIDAD_MAQUINA = 2;
+	public final static float VELOCIDAD_MAQUINA = 2f;
 
 	private float tiempoDisparo;
 
-	private float tiempoExplosion;
+	private float velocidad;
 
-	private float velocidadY;
+	private float tiempo;
 
-	public Volador(Pantalla pantalla) {
+	private float distanciaMovimiento;
 
-		super(pantalla);
+	private float pocicionY;
 
-		velocidadY = 0;
+	private Jugador jugador;
+
+	public Volador(Pantalla pantalla, Textura textura, float x, float y, float ancho, float alto)
+	{
+		super(pantalla, textura, x, y, ancho, alto);
+
+		velocidad = Volador.VELOCIDAD_MAQUINA;
+
+
+		pocicionY = y;
+	}
+
+	public Volador(Pantalla pantalla, Textura textura, float x, float y)
+	{
+		super(pantalla, textura, x, y);
+
+		velocidad = Volador.VELOCIDAD_MAQUINA;
+
+		pocicionY = y;
 
 	}
 
-	public void setVelocidadY(int velocidadY) {
-		this.velocidadY = velocidadY;
+	public Volador(Pantalla pantalla, Textura[] texturas, float x, float y, float ancho, float alto,
+				   float tiempoAnimacion)
+	{
+		super(pantalla, texturas, x, y, ancho, alto, tiempoAnimacion);
+
+		velocidad = Volador.VELOCIDAD_MAQUINA;
+
+		pocicionY = y;
+
+	}
+
+	public void setDistanciaMovimiento(float distanciaMovimiento)
+	{
+		this.distanciaMovimiento = distanciaMovimiento;
+	}
+
+	public float getDistanciaMovimiento()
+	{
+		return distanciaMovimiento;
 	}
 
 	@Override
-	public void actualizar(float delta) {
+	public void obtenerActores()
+	{
+		for (int i = 0; i < actores.size(); i++)
+		{
+
+			if (actores.get(i) instanceof Jugador)
+			{
+
+				jugador = (Jugador) actores.get(i);
+
+			}
+
+		}
+	}
+
+
+	public void setVelocidad(float velocidad)
+	{
+		this.velocidad = velocidad;
+	}
+
+	@Override
+	public void actualizar(float delta)
+	{
 
 		super.actualizar(delta);
 
 		x -= Volador.VELOCIDAD_MAQUINA / Juego.DELTA_A_PIXEL * delta;
 
-		if (x <= -ancho) {
+		if (x <= -ancho)
+		{
 
 			remover = true;
 
 		}
 
-		tiempoExplosion += delta;
+		tiempo += delta;
+
+		y = (float)(pocicionY + distanciaMovimiento + (distanciaMovimiento * Math.sin(Math.toDegrees(tiempo * velocidad))));
 
 		tiempoDisparo += delta;
 
-		if (tiempoExplosion / 0.5f >= 1) {
 
-			for (int i = 0; i < actores.size(); i++) {
+		if (tiempoDisparo / 0.3f >= 1)
+		{
 
-				if (actores.get(i) instanceof Explosion) {
-					Explosion e = (Explosion) actores.get(i);
-
-					e.remover();
-
-				}
-			}
-
-			tiempoExplosion = 0;
-
-		}
-		if (tiempoDisparo / 0.66f >= 1) {
-
-			if (Math.random() < 0.08f) {
+			if (Math.random() < 0.08f)
+			{
 				disparar();
 
 			}
@@ -72,51 +121,59 @@ public class Volador extends Actor {
 
 		}
 
-		y += velocidadY;
 
-		if (y <= 0 || y >= Juego.ALTO_PANTALLA - alto) {
-
-			velocidadY = -velocidadY / Juego.DELTA_A_PIXEL * delta;
-
-		}
 
 	}
 
-	public void disparar() {
+	public void disparar()
+	{
 
-		BalaEnemigo bala = new BalaEnemigo(pantalla);
 
-		bala.setTamano(12, 12);
+		// Calcular la dirección del disparo hacia el jugador
+		float deltaX = jugador.getX() - this.x;
+		float deltaY = jugador.getY() - this.y;
 
-		bala.setPosicion(x - 16, y);
+		// Calcular la magnitud o distancia entre el Volador y el Jugador
+		float distancia = (float) Math.sqrt(deltaX * deltaX + deltaY * deltaY);
 
-		bala.setLado(BalaEnemigo.LADO_IZQUIERDO);
+		// Normalizar la dirección (deltaX y deltaY) dividiendo por la distancia
+		float direccionX = deltaX / distancia;
+		float direccionY = deltaY / distancia;
 
-		bala.setImagenes(new Bitmap[] { Texturas.balaE1, Texturas.balaE2, Texturas.balaE3, Texturas.balaE4 });
+		// Crear la bala con la textura
+		Textura[] texturas = new Textura[] { 
+			recurso.getTextura("balaE1.png"), 
+			recurso.getTextura("balaE2.png"),
+			recurso.getTextura("balaE3.png"), 
+			recurso.getTextura("balaE4.png") 
+		};
 
-		bala.setCuadros(3);
+		BalaEnemigo bala = new BalaEnemigo(pantalla, texturas, x - 16, y, 12, 12, 3);
 
-		if (bala.getX() <= 640) {
+		bala.setModoClasico(false);
+		// Asignar la dirección de la bala (velocidadX y velocidadY)
+		bala.setVelocidad(direccionX * BalaEnemigo.VELOCIDAD_BALA, direccionY * BalaEnemigo.VELOCIDAD_BALA);
 
+		// Agregar la bala a los actores si está dentro de los límites de la pantalla
+		if (bala.getX() <= Juego.ANCHO_PANTALLA)
+		{
 			actores.add(bala);
 		}
-
 	}
 
-	public void explosion() {
 
-		Explosion explosion = new Explosion(pantalla);
+	public void explosion()
+	{
 
-		explosion.setTamano(64, 64);
+		Textura[] texturas = new Textura[] { recurso.getTextura("explosion1.png"), recurso.getTextura("explosion2.png"),
+			recurso.getTextura("explosion3.png"), recurso.getTextura("explosion4.png") };
 
-		explosion.setPosicion(x - 32, y - 32);
+		Explosion explosion = new Explosion(pantalla, texturas, x - 32, y - 32, 64, 64, 4);
 
-		explosion.setImagenes(
-				new Bitmap[] { Texturas.explosion1, Texturas.explosion2, Texturas.explosion3, Texturas.explosion4 });
+		explosion.getAnimacion().setModo(Animacion2D.NORMAL);
 
-		explosion.setCuadros(4);
-
-		if (explosion.getX() <= 640) {
+		if (explosion.getX() <= Juego.ANCHO_PANTALLA)
+		{
 
 			actores.add(explosion);
 
@@ -125,14 +182,17 @@ public class Volador extends Actor {
 	}
 
 	@Override
-	public void colision(Actor actor) {
+	public void colision(Actor actor)
+	{
 
 		if (actor instanceof Bala || actor instanceof Jugador || actor instanceof BalaEspecial
-				|| actor instanceof ExplosionB) {
+			|| actor instanceof ExplosionB || actor instanceof BalaInteligente)
+		{
 
-			recurso.playMusica("explosion.wav", 1);
+			recurso.getSonido("explosion.wav").reproducir(1);
 
 			explosion();
+
 			remover = true;
 		}
 

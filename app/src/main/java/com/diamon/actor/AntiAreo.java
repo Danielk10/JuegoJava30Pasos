@@ -3,105 +3,303 @@ package com.diamon.actor;
 import com.diamon.nucleo.Actor;
 import com.diamon.nucleo.Juego;
 import com.diamon.nucleo.Pantalla;
-import com.diamon.utilidad.Texturas;
+import com.diamon.nucleo.Textura;
+import com.diamon.graficos.Animacion2D;
 
-import android.graphics.Bitmap;
-
-public class AntiAreo extends Actor {
+public class AntiAreo extends Actor
+{
 
 	private float tiemoDisparo;
 
-	private float tiemoExplosion;
+	private Jugador jugador;
 
-	public AntiAreo(Pantalla pantalla) {
-		super(pantalla);
+	private Animacion2D animacion1;
+
+	private Animacion2D animacion2;
+
+	private Animacion2D animacion3;
+
+	private Animacion2D animacion4;
+
+	private Animacion2D animacion5;
+
+	public AntiAreo(Pantalla pantalla, Textura textura, float x, float y, float ancho, float alto)
+	{
+		super(pantalla, textura, x, y, ancho, alto);
+
+	}
+
+	public AntiAreo(Pantalla pantalla, Textura textura, float x, float y)
+	{
+		super(pantalla, textura, x, y);
+
+	}
+
+	public AntiAreo(Pantalla pantalla, Textura[] texturas, float x, float y, float ancho, float alto,
+					float tiempoAnimacion)
+	{
+		super(pantalla, texturas, x, y, ancho, alto, tiempoAnimacion);
+
+		animacion1 = new Animacion2D(tiempoAnimacion, new Textura []{texturas[0]});
+
+		animacion1.setModo(Animacion2D.NORMAL);
+
+		this.animacion = animacion1;
+
+		animacion2 = new Animacion2D(tiempoAnimacion, new Textura []{texturas[1]});
+
+		animacion3 = new Animacion2D(tiempoAnimacion, new Textura []{texturas[2]});
+
+		animacion4 = new Animacion2D(tiempoAnimacion, new Textura []{texturas[3]});
+
+		animacion5 = new Animacion2D(tiempoAnimacion, new Textura []{texturas[4]});
 
 	}
 
 	@Override
-	public void actualizar(float delta) {
+	public void obtenerActores()
+	{
+		for (int i = 0; i < actores.size(); i++)
+		{
+
+			if (actores.get(i) instanceof Jugador)
+			{
+
+				jugador = (Jugador) actores.get(i);
+
+			}
+
+		}
+	}
+
+
+	@Override
+	public void actualizar(float delta)
+	{
 
 		super.actualizar(delta);
 
-		if (x <= -ancho) {
-
-			remover = true;
-
-		}
 
 		x -= 1 / Juego.DELTA_A_PIXEL * delta;
 
-		tiemoDisparo += delta;
 
-		if (tiemoDisparo / 0.5f >= 1) {
+		if (jugador.getY() <= y + alto && jugador.getY() + jugador.getAlto() >= y && jugador.getX() <= x)
 
-			for (int i = 0; i < actores.size(); i++) {
+		{
 
-				if (actores.get(i) instanceof Explosion) {
-					Explosion e = (Explosion) actores.get(i);
+			if (animacion1 != null)
+			{
 
-					e.remover();
+				animacion1.setModo(Animacion2D.REPETIR);
 
-				}
+				animacion = animacion1;
 			}
 
-			tiemoDisparo = 0;
+			tiemoDisparo += delta; 
+
+			if (tiemoDisparo / 0.5f >= 1)
+			{
+
+				disparar(BalaEnemigo.IZQUIERDO);
+
+				tiemoDisparo = 0;
+			}
+
 		}
+		else
+		{
 
-		tiemoExplosion += delta;
+			if (animacion1 != null)
+			{
 
-		if (tiemoExplosion / 0.5f >= 1) {
-
-			if (Math.random() < 0.08f) {
-				disparar();
+				animacion1.setModo(Animacion2D.NORMAL);
 
 			}
 
-			tiemoExplosion = 0;
 		}
 
-		if (x <= -ancho) {
+
+		if (jugador.getY() <= y + alto && jugador.getY() + jugador.getAlto() <= y
+			&& jugador.getX() <= x - jugador.getAncho())
+
+		{
+
+			if (animacion2 != null)
+			{
+
+				animacion2.setModo(Animacion2D.REPETIR);
+
+				animacion = animacion2;
+			}
+
+			tiemoDisparo += delta; 
+
+			if (tiemoDisparo / 0.5f >= 1)
+			{
+
+				disparar(BalaEnemigo.IZQUIERDO_ARRIBA);
+
+				tiemoDisparo = 0;
+			}
+
+		}
+		else
+		{
+
+			if (animacion2 != null)
+			{
+
+				animacion2.setModo(Animacion2D.NORMAL);
+			}
+		}
+
+		if (jugador.getY() <= y + alto && jugador.getX() >= x - jugador.getAncho() && jugador.getX() <= x + ancho)
+
+		{
+
+			if (animacion3 != null)
+			{
+
+				animacion3.setModo(Animacion2D.REPETIR);
+
+				animacion = animacion3;
+			}
+
+			tiemoDisparo += delta; 
+
+			if (tiemoDisparo / 0.5f >= 1)
+			{
+
+				disparar(BalaEnemigo.ARRIBA);
+
+				tiemoDisparo = 0;
+			}
+
+		}
+		else
+		{
+
+			if (animacion3 != null)
+			{
+
+				animacion3.setModo(Animacion2D.NORMAL);
+			}
+
+		}
+
+		if (jugador.getY() <= y + alto && jugador.getX() >= x + ancho)
+
+		{
+
+			if (animacion4 != null)
+			{
+
+				animacion4.setModo(Animacion2D.REPETIR);
+
+				animacion = animacion4;
+			}
+
+			tiemoDisparo += delta; 
+
+			if (tiemoDisparo / 0.5f >= 1)
+			{
+
+				disparar(BalaEnemigo.DERECHO_ARRIBA);
+
+				tiemoDisparo = 0;
+			}
+
+		}
+
+		else
+		{
+
+			if (animacion4 != null)
+			{
+
+				animacion4.setModo(Animacion2D.NORMAL);
+			}
+
+		}
+
+
+		if (jugador.getY() + jugador.getAlto() >= y  && jugador.getX() >= x + this.ancho)
+
+		{
+
+			if (animacion5 != null)
+			{
+
+				animacion5.setModo(Animacion2D.REPETIR);
+
+				animacion = animacion5;
+			}
+
+			tiemoDisparo += delta; 
+
+			if (tiemoDisparo / 0.5f >= 1)
+			{
+
+				disparar(BalaEnemigo.DERECHO);
+
+				tiemoDisparo = 0;
+			}
+
+		}
+
+		else
+		{
+
+			if (animacion5 != null)
+			{
+
+				animacion5.setModo(Animacion2D.NORMAL);
+
+			}
+
+		}
+
+
+		if (x <= -ancho)
+		{
 
 			remover = true;
 		}
 
 	}
 
-	public void disparar() {
+	public void disparar(int lado)
+	{
 
-		BalaEnemigo bala = new BalaEnemigo(pantalla);
+		Textura[] texturas = new Textura[] { recurso.getTextura("balaE1.png"), recurso.getTextura("balaE2.png"),
+			recurso.getTextura("balaE3.png"), recurso.getTextura("balaE4.png") };
 
-		bala.setTamano(12, 12);
+		BalaEnemigo bala = new BalaEnemigo(pantalla, texturas, x, y + 12, 12, 12, 3);
 
-		bala.setPosicion(x, y + 12);
+bala.setModoClasico(true);
 
-		bala.setImagenes(new Bitmap[] { Texturas.balaE1, Texturas.balaE2, Texturas.balaE3, Texturas.balaE4 });
+		bala.setLado(lado);
 
-		bala.setCuadros(3);
-
-		bala.setLado(BalaEnemigo.LADO_IZQUIERDO);
-
-		if (bala.getX() <= 640) {
+		if (bala.getX() <= Juego.ANCHO_PANTALLA)
+		{
 
 			actores.add(bala);
 		}
 
 	}
 
-	public void explosion() {
+	public void explosion()
+	{
 
-		Explosion explosion = new Explosion(pantalla);
+		Textura[] texturas = new Textura[] { recurso.getTextura("explosion1.png"), recurso.getTextura("explosion2.png"),
+			recurso.getTextura("explosion3.png"), recurso.getTextura("explosion4.png") };
 
-		explosion.setTamano(64, 64);
+		Explosion explosion = new Explosion(pantalla, texturas, x - 32, y - 32, 64, 64, 4);
 
-		explosion.setPosicion(x - 32, y - 32);
+		explosion.getAnimacion().setModo(Animacion2D.NORMAL);
 
-		explosion.setImagenes(
-				new Bitmap[] { Texturas.explosion1, Texturas.explosion2, Texturas.explosion3, Texturas.explosion4 });
-
-		explosion.setCuadros(4);
-
-		if (explosion.getX() <= 640) {
+		if (explosion.getX() <= Juego.ANCHO_PANTALLA)
+		{
 
 			actores.add(explosion);
 
@@ -110,10 +308,13 @@ public class AntiAreo extends Actor {
 	}
 
 	@Override
-	public void colision(Actor actor) {
+	public void colision(Actor actor)
+	{
 		if (actor instanceof Bala || actor instanceof Jugador || actor instanceof BalaEspecial
-				|| actor instanceof ExplosionB) {
-			recurso.playMusica("explosion.wav", 1);
+			|| actor instanceof ExplosionB || actor instanceof BalaInteligente)
+		{
+
+			recurso.getSonido("explosion.wav").reproducir(1);
 
 			explosion();
 
