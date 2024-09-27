@@ -275,27 +275,6 @@ Volador[] voladores = new Volador[50];
 
 		}
 
-
-
-
-
-		AntiAreo a = new AntiAreo(this, new Textura[]{
-									  recurso.getTextura("antiAreoH1.png"),
-									  recurso.getTextura("antiAreoD1.png"),
-									  recurso.getTextura("antiAreoV1.png"),
-									  recurso.getTextura("antiAreoD2.png"),
-									  recurso.getTextura("antiAreoH2.png")
-								  }, 500, 400, 32, 32, 1);
-
-
-		actores.add(a);
-
-
-
-
-		agregarLanzaMisil();
-
-
 		Textura[] texturasCaja = new Textura[] { recurso.getTextura("cajaPoder1.png"),
 			recurso.getTextura("cajaPoder2.png"), recurso.getTextura("cajaPoder3.png"),
 			recurso.getTextura("cajaPoder4.png") };
@@ -323,7 +302,7 @@ Volador[] voladores = new Volador[50];
 		actores.add(cajas[2]);
 		actores.add(cajas[3]);
 
-		maquina = new MaquinaFinal(this, recurso.getTextura("maquinaFinal.png"), 0, 480, 64, 64);
+		maquina = new MaquinaFinal(this, recurso.getTextura("maquinaFinal.png"), 640, 640, 64, 64);
 
 		actores.add(maquina);
 
