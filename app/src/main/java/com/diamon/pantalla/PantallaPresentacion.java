@@ -78,16 +78,11 @@ public class PantallaPresentacion extends Pantalla2D {
 	public void toquePresionado(float x, float y, int puntero)
 	{
 
-		if (puntero == 1)
-		{
-
-			if (posicionY == 320)
-			{
-				juego.setPantalla(new PantallaNivel(juego));
-
-			}
-
-		}
+		if(puntero==1)
+				{
+					
+					juego.setPantalla(new PantallaCarga(juego));
+				}
 
 
 	}
@@ -96,34 +91,12 @@ public class PantallaPresentacion extends Pantalla2D {
 	public void toqueLevantado(float x, float y, int puntero)
 	{
 
-		if (puntero == 0)
-		{
-			toque = !toque;
-
-			if (toque)
-			{
-				posicionY = 320;
-
-			}
-			else
-			{
-
-				posicionY = 354;
-			}
-
-
-		}
-
-		if (puntero == 1)
-		{
-			if (posicionY == 354)
-			{
-
-				juego.setPantalla(new PantallaMenu(juego));
-			}
-			
-
-		}
+		if(puntero==0)
+				{
+					
+					juego.setPantalla(new PantallaAyuda(juego));
+				}
+				
 
 
 	}

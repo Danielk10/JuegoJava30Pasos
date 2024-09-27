@@ -6,6 +6,7 @@ import com.diamon.nucleo.Juego;
 import com.diamon.nucleo.Pantalla;
 import com.diamon.nucleo.Textura;
 import com.diamon.graficos.Animacion2D;
+import com.diamon.graficos.Textura2D;
 
 public class MaquinaPared extends Actor
 {
