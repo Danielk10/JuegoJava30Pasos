@@ -967,72 +967,29 @@ Volador[] voladores = new Volador[50];
 	public void teclaPresionada(int codigoDeTecla)
 	{
 
-		for (int i = 0; i < actores.size(); i++)
-		{
+				jugador.teclaPresionada(codigoDeTecla);
 
-			if (actores.get(i) instanceof Jugador)
-			{
-				Jugador a = (Jugador) actores.get(i);
-
-				a.teclaPresionada(codigoDeTecla);
-
-			}
-		}
 
 	}
 
 	@Override
 	public void teclaLevantada(int codigoDeTecla)
 	{
-		// TODO Auto-generated method stub
-
-		for (int i = 0; i < actores.size(); i++)
-		{
-
-			if (actores.get(i) instanceof Jugador)
-			{
-				Jugador a = (Jugador) actores.get(i);
-
-				a.teclaLevantada(codigoDeTecla);
-
-			}
-		}
+				jugador.teclaLevantada(codigoDeTecla);
 
 	}
 
 	@Override
 	public void toquePresionado(float x, float y, int puntero)
 	{
-
-		for (int i = 0; i < actores.size(); i++)
-		{
-
-			if (actores.get(i) instanceof Jugador)
-			{
-				Jugador a = (Jugador) actores.get(i);
-
-				a.toquePresionado(x, y, puntero);
-
-			}
-		}
+				jugador.toquePresionado(x, y, puntero);
 
 	}
 
 	@Override
 	public void toqueLevantado(float x, float y, int puntero)
 	{
-
-		for (int i = 0; i < actores.size(); i++)
-		{
-
-			if (actores.get(i) instanceof Jugador)
-			{
-				Jugador a = (Jugador) actores.get(i);
-
-				a.toqueLevantado(x, y, puntero);
-
-			}
-		}
+				jugador.toqueLevantado(x, y, puntero);
 
 	}
 
@@ -1040,35 +997,15 @@ Volador[] voladores = new Volador[50];
 	public void toqueDeslizando(float x, float y, int puntero)
 	{
 
-		for (int i = 0; i < actores.size(); i++)
-		{
-
-			if (actores.get(i) instanceof Jugador)
-			{
-				Jugador a = (Jugador) actores.get(i);
-
-				a.toqueDeslizando(x, y, puntero);
-
-			}
-		}
+		
+				jugador.toqueDeslizando(x, y, puntero);
 
 	}
 
 	@Override
 	public void acelerometro(float x, float y, float z)
 	{
-
-		for (int i = 0; i < actores.size(); i++)
-		{
-
-			if (actores.get(i) instanceof Jugador)
-			{
-				Jugador a = (Jugador) actores.get(i);
-
-				a.acelerometro(x, y, z);
-
-			}
-		}
+				jugador.acelerometro(x, y, z);
 
 	}
 
