@@ -434,9 +434,6 @@ public class PantallaCarga extends Pantalla2D {
 			juego.setPantalla(new PantallaMenu(juego));
 
 			tiempo = 0;
-
-			juego.setPantalla(new PantallaMenu(juego));
-
 		}
 
 	}

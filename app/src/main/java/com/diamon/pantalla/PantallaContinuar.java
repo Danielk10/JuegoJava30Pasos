@@ -24,7 +24,7 @@ public class PantallaContinuar extends Pantalla2D {
 		fondo = new Textura2D(juego.getRecurso().getTextura("continuar.png").getBipmap(), Juego.ANCHO_PANTALLA,
 				Juego.ALTO_PANTALLA);
 
-		selector = new Textura2D(juego.getRecurso().getTextura("selector2.png").getBipmap(), 16, 64);
+		selector = new Textura2D(juego.getRecurso().getTextura("selector2.png").getBipmap(), 16, 16);
 
 		posicionY = 288;
 
