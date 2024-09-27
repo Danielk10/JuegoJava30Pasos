@@ -175,34 +175,55 @@ public class PantallaFinal extends Pantalla2D {
 	}
 
 	@Override
-	public void toquePresionado(float x, float y, int puntero) {
-
-		if (cambio2) {
-			if (posicionY == 288) {
-				juego.setPantalla(new PantallaExtra(juego));
+		public void toquePresionado(float x, float y, int puntero)
+		{
+	
+	
+			if (puntero == 1)
+			{
+	
+				if (cambio2)
+				{
+					if (posicionY == 288)
+					{
+						juego.setPantalla(new PantallaExtra(juego));
+					}
+				}
+			}
+	
+		}
+	
+		@Override
+		public void toqueLevantado(float x, float y, int puntero)
+		{
+	
+			if (puntero == 0)
+			{
+				toque = !toque;
+				if (toque)
+				{
+					posicionY = 288;
+	
+				}
+				else
+				{
+	
+					posicionY = 322;
+				}
+			}
+			if (puntero == 1)
+			{
+				if (cambio2)
+				{
+					if (posicionY == 322)
+					{
+						juego.setPantalla(new PantallaMenu(juego));
+					}
+				}
+	
 			}
 		}
-
-	}
-
-	@Override
-	public void toqueLevantado(float x, float y, int puntero) {
-
-		toque = !toque;
-		if (toque) {
-			posicionY = 288;
-
-		} else {
-
-			posicionY = 322;
-		}
-
-		if (cambio2) {
-			if (posicionY == 322) {
-				juego.setPantalla(new PantallaMenu(juego));
-			}
-		}
-	}
+	
 
 	@Override
 	public void toqueDeslizando(float x, float y, int puntero) {
