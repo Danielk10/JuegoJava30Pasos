@@ -238,62 +238,71 @@ public class MaquinaPared extends Actor
 	{
 		this.lado = lado;
 	}
-
+	
 	@Override
-	public void dibujar(Graficos pincel, float delta)
-	{
-
-		if (lado == MaquinaPared.LADO_IZQUIERDO)
+		public void dibujar(Graficos pincel, float delta)
 		{
-
-			if (disparar)
-
+	
+			if (lado == MaquinaPared.LADO_IZQUIERDO)
 			{
-
-				texturas = new Textura[] { recurso.getTextura("maquinaParedI2.png") };
-
-				animacion.setTexturas(texturas);
-
+	
+				if (disparar)
+	
+				{
+	
+					texturas = new Textura []{new Textura2D(recurso.getTextura("maquinaParedI2.png")
+					.getBipmap(),32,32)};
+					
+					animacion.setTexturas(texturas);
+	
+				}
+				else
+				{
+	
+					texturas = new Textura []{new Textura2D(recurso.getTextura("maquinaParedI1.png")
+															.getBipmap(),32,32)};
+					
+					animacion.setTexturas(texturas);
+	
+				}
+	
 			}
-			else
+	
+			if (lado == MaquinaPared.LADO_DERECHO)
 			{
-
-				texturas = new Textura[] { recurso.getTextura("maquinaParedI1.png") };
-
-				animacion.setTexturas(texturas);
-
+	
+				if (disparar)
+	
+				{
+	
+	
+					texturas = new Textura []{new Textura2D(recurso.getTextura("maquinaParedD2.png")
+															.getBipmap(),32,32)};
+					
+	
+					animacion.setTexturas(texturas);
+	
+	
+	
+				}
+				else
+				{
+	
+					texturas = new Textura []{new Textura2D(recurso.getTextura("maquinaParedD1.png")
+															.getBipmap(),32,32)};
+					
+					animacion.setTexturas(texturas);
+	
+				}
+	
 			}
-
+	
+			super.dibujar(pincel, delta);
 		}
-
-		if (lado == MaquinaPared.LADO_DERECHO)
-		{
-
-			if (disparar)
-
-			{
-
-
-				texturas = new Textura[] { recurso.getTextura("maquinaParedD2.png") };
-
-
-				animacion.setTexturas(texturas);
-
-
-
-			}
-			else
-			{
-
-				texturas = new Textura[] { recurso.getTextura("maquinaParedD1.png") };
-				animacion.setTexturas(texturas);
-
-			}
-
-		}
-
-		super.dibujar(pincel, delta);
-	}
+	
+	
+	
+	
 
 	public void explosion()
 	{
