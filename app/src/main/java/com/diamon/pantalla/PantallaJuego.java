@@ -712,10 +712,16 @@ Volador[] voladores = new Volador[70];
 
 	}
 
-	private void agregarMaquinaAntiAreo()
+private void agregarMaquinaAntiAreo()
 	{
 
-		AntiAreo antiAreo = new AntiAreo(this, recurso.getTextura("antiAreoH1.png"), 640, 352, 32, 32);
+		AntiAreo antiAreo = new AntiAreo(this,new Textura[]{
+		recurso.getTextura("antiAreoH1.png"),
+		recurso.getTextura("antiAreoD1.png"),
+		recurso.getTextura("antiAreoV1.png"),
+		recurso.getTextura("antiAreoD2.png"),
+		recurso.getTextura("antiAreoH2.png")
+	}, 640, 353, 32, 32, 1);
 
 		actores.add(antiAreo);
 

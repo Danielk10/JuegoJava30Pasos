@@ -97,7 +97,7 @@ public class AntiAreo extends Actor
 
 			tiemoDisparo += delta; 
 
-			if (tiemoDisparo / 0.5f >= 1)
+			if (tiemoDisparo / 1.5f >= 1)
 			{
 
 				disparar(BalaEnemigo.IZQUIERDO);
@@ -134,7 +134,7 @@ public class AntiAreo extends Actor
 
 			tiemoDisparo += delta; 
 
-			if (tiemoDisparo / 0.5f >= 1)
+			if (tiemoDisparo / 1.5f >= 1)
 			{
 
 				disparar(BalaEnemigo.IZQUIERDO_ARRIBA);
@@ -167,7 +167,7 @@ public class AntiAreo extends Actor
 
 			tiemoDisparo += delta; 
 
-			if (tiemoDisparo / 0.5f >= 1)
+			if (tiemoDisparo / 1.5f >= 1)
 			{
 
 				disparar(BalaEnemigo.ARRIBA);
@@ -201,7 +201,7 @@ public class AntiAreo extends Actor
 
 			tiemoDisparo += delta; 
 
-			if (tiemoDisparo / 0.5f >= 1)
+			if (tiemoDisparo / 1.5f >= 1)
 			{
 
 				disparar(BalaEnemigo.DERECHO_ARRIBA);
