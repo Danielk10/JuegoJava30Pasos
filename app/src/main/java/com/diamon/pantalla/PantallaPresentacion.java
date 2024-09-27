@@ -74,33 +74,60 @@ public class PantallaPresentacion extends Pantalla2D {
 	}
 	
 	
+@Override
+	public void toquePresionado(float x, float y, int puntero)
+	{
+
+		if (puntero == 1)
+		{
+
+			if (posicionY == 320)
+			{
+				juego.setPantalla(new PantallaNivel(juego));
+
+			}
+
+		}
+
+
+	}
+
 	@Override
-		public void toquePresionado(float x, float y, int puntero)
+	public void toqueLevantado(float x, float y, int puntero)
+	{
+
+		if (puntero == 0)
 		{
-			if (puntero == 1)
+			toque = !toque;
+
+			if (toque)
 			{
-	
-				juego.setPantalla(new PantallaCarga(juego));
-	
+				posicionY = 320;
+
 			}
-	
-	
-	
+			else
+			{
+
+				posicionY = 354;
+			}
+
+
 		}
-	
-		@Override
-		public void toqueLevantado(float x, float y, int puntero)
+
+		if (puntero == 1)
 		{
-	
-	
-			if (puntero == 0)
+			if (posicionY == 354)
 			{
-				juego.setPantalla(new PantallaAyuda(juego));
+
+				juego.setPantalla(new PantallaMenu(juego));
 			}
-	
-	
-	
+			
+
 		}
+
+
+	}
+
 
 	@Override
 	public void toqueDeslizando(float x, float y, int puntero) {
