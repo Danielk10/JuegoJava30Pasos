@@ -190,6 +190,8 @@ public class MaquinaPared extends Actor
 			}
 
 		}
+		
+		tiempoChoque += delta;
 
 		if (choque)
 		{
