@@ -50,6 +50,8 @@ public class PantallaJuego extends Pantalla2D
 	private boolean musicaIntro2;
 
 	private Musica musicaIntro;
+	
+	private boolean agrega[];
 
 	public PantallaJuego(Juego juego)
 	{
@@ -58,6 +60,8 @@ public class PantallaJuego extends Pantalla2D
 		fondo = new Fondo[21];
 
 		vidas = new Vida[3];
+		
+		agrega = new boolean[7];
 
 		musicaMuriendo1 = false;
 
@@ -73,6 +77,13 @@ public class PantallaJuego extends Pantalla2D
 	private void iniciar()
 	{
 
+
+  for (int i = 0; i < agrega.length - 1; i++) {
+
+			agrega[i] = true;
+
+		}
+		
 		int posicion = 0;
 
 		int velocidad = 2560;
@@ -255,7 +266,7 @@ public class PantallaJuego extends Pantalla2D
 
 		jugador.agregarSatelites();
 
-Volador[] voladores = new Volador[50];
+Volador[] voladores = new Volador[70];
 
 		Random r = new Random();
 
@@ -265,7 +276,7 @@ Volador[] voladores = new Volador[50];
 		for (int i = 0; i < voladores.length; i++)
 		{
 
-			voladores[i] = new Volador(this, texturas, r.nextInt(10000), r.nextInt(420), 32, 32, 7);
+			voladores[i] = new Volador(this, texturas,Juego.ANCHO_PANTALLA + r.nextInt(30000), r.nextInt(480)-100, 32, 32, 7);
 
 			voladores[i].setVelocidad(0.05f);
 
@@ -521,92 +532,123 @@ Volador[] voladores = new Volador[50];
 		actores.add(j);
 
 	}
+	
+	private void colocarEnemigos() {
 
-	private void colocarEnemigos()
-	{
+		if (tiemoParaEnemigos / 10 >= 1) {
 
-		if (tiemoParaEnemigos / 10 >= 1)
-		{
+			if (tiemoParaEnemigos >= 10) {
 
-			if (40 == tiemoParaEnemigos)
-			{
+				if (agrega[0]) {
 
-				agregarMaquinaAntiAreo();
-			}
+					agregarMaquinaAntiAreo();
 
-		}
+					agrega[0] = false;
 
-		if (tiemoParaEnemigos / 13.33f >= 1)
-		{
-
-			if (13.33f == tiemoParaEnemigos)
-			{
-
-				agregarSaltador();
-			}
-
-		}
-
-		if (tiemoParaEnemigos / 41.66 >= 1)
-		{
-
-			if (41.66f == tiemoParaEnemigos)
-			{
-				agregarRobot();
-
-				agregarLanzaMisil();
-
-				;
-			}
-
-		}
-
-		if (tiemoParaEnemigos / 45.83f >= 1)
-		{
-
-			if (45.83f == tiemoParaEnemigos)
-			{
-				agregarMaquinaPared();
+				}
 
 			}
 
 		}
 
-		if (tiemoParaEnemigos / 50 >= 1)
-		{
+		if (tiemoParaEnemigos / 13.33f >= 1) {
 
-			if (50 == tiemoParaEnemigos)
-			{
+			if (tiemoParaEnemigos >= 13.33f) {
 
-				agregarMaquinaPared();
+				if (agrega[1]) {
+
+					agregarSaltador();
+
+					agrega[1] = false;
+
+				}
+
 			}
 
 		}
 
-		if (tiemoParaEnemigos / 53.33f >= 1)
-		{
+		if (tiemoParaEnemigos / 41.66 >= 1) {
 
-			if (53.33f == tiemoParaEnemigos)
-			{
+			if (tiemoParaEnemigos >= 41.66f) {
 
-				agregarMaquinaPared();
+				if (agrega[2]) {
+
+					agregarRobot();
+
+					agregarLanzaMisil();
+
+					agrega[2] = false;
+
+				}
+
 			}
 
 		}
 
-		if (tiemoParaEnemigos / 116.66f >= 1)
-		{
+		if (tiemoParaEnemigos / 45.83f >= 1) {
 
-			if (116.66f == tiemoParaEnemigos)
-			{
+			if (tiemoParaEnemigos >= 45.83f) {
 
-				agregarPoder();
+				if (agrega[3]) {
+
+					agregarMaquinaPared();
+
+					agrega[3] = false;
+
+				}
+
 			}
 
 		}
 
-		if (tiemoParaEnemigos / 166.66f >= 1)
-		{
+		if (tiemoParaEnemigos / 50 >= 1) {
+
+			if (tiemoParaEnemigos >= 50) {
+
+				if (agrega[4]) {
+
+					agregarMaquinaPared();
+
+					agrega[4] = false;
+				}
+
+			}
+
+		}
+
+		if (tiemoParaEnemigos / 53.33f >= 1) {
+
+			if (tiemoParaEnemigos >= 53.33f) {
+
+				if (agrega[5]) {
+
+					agregarMaquinaPared();
+
+					agrega[5] = false;
+
+				}
+
+			}
+
+		}
+
+		if (tiemoParaEnemigos / 116.66f >= 1) {
+
+			if (tiemoParaEnemigos >= 116.66f) {
+
+				if (agrega[6]) {
+
+					agregarPoder();
+
+					agrega[6] = false;
+
+				}
+
+			}
+
+		}
+
+		if (tiemoParaEnemigos / 166.66f >= 1) {
 
 			tiemoParaEnemigos = 166.66f;
 		}
@@ -624,8 +666,6 @@ Volador[] voladores = new Volador[50];
 
 		actores.add(lanzaMisil);
 	}
-
-
 
 
 	private void agregarSaltador()
