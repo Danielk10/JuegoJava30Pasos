@@ -34,6 +34,14 @@
       <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-5141499161332805~8263601193"/>
+            
+      <meta-data
+          android:name="com.google.android.gms.ads.flag.OPTIMIZE_INITIALIZATION"
+          android:value="true"/>
+          
+      <meta-data
+          android:name="com.google.android.gms.ads.flag.OPTIMIZE_AD_LOADING"
+          android:value="true"/>
       
         <activity
             android:name=".MainActivity"
