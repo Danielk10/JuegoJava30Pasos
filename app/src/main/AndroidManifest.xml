@@ -72,7 +72,7 @@
 
 
 		<activity
-            android:name="com.diamon.tutorial.Terminos"
+            android:name="com.diamon.terminos.Terminos"
             android:label="@string/terminos"
 			android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale"
 			
