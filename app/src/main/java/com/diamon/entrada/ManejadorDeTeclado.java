@@ -1,139 +1,123 @@
 package com.diamon.entrada;
 
-import java.util.ArrayList;
-import java.util.List;
+import android.view.KeyEvent;
+import android.view.View;
+import android.view.View.OnKeyListener;
 
 import com.diamon.nucleo.Entrada.EventoDeTecla;
 import com.diamon.utilidad.Pool;
 import com.diamon.utilidad.Pool.PoolObjectFactory;
 
-import android.view.KeyEvent;
-import android.view.View;
-import android.view.View.OnKeyListener;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ManejadorDeTeclado implements OnKeyListener {
 
-	private boolean[] TeclasPrecionadas;
+    private boolean[] TeclasPrecionadas;
 
-	private Pool<EventoDeTecla> eventoDeTeclaPool;
+    private Pool<EventoDeTecla> eventoDeTeclaPool;
 
-	private List<EventoDeTecla> eventosDeTeclaBufer;
+    private List<EventoDeTecla> eventosDeTeclaBufer;
 
-	private List<EventoDeTecla> eventosDeTecla;
+    private List<EventoDeTecla> eventosDeTecla;
 
-	public ManejadorDeTeclado(View vista) {
+    public ManejadorDeTeclado(View vista) {
 
-		TeclasPrecionadas = new boolean[128];
+        TeclasPrecionadas = new boolean[128];
 
-		eventosDeTeclaBufer = new ArrayList<EventoDeTecla>();
+        eventosDeTeclaBufer = new ArrayList<EventoDeTecla>();
 
-		eventosDeTecla = new ArrayList<EventoDeTecla>();
+        eventosDeTecla = new ArrayList<EventoDeTecla>();
 
-		PoolObjectFactory<EventoDeTecla> factory = new PoolObjectFactory<EventoDeTecla>() {
+        PoolObjectFactory<EventoDeTecla> factory =
+                new PoolObjectFactory<EventoDeTecla>() {
 
-			@Override
-			public EventoDeTecla crearObjeto() {
+                    @Override
+                    public EventoDeTecla crearObjeto() {
 
-				return new EventoDeTecla();
-			}
+                        return new EventoDeTecla();
+                    }
+                };
 
-		};
+        eventoDeTeclaPool = new Pool<EventoDeTecla>(factory, 100);
 
-		eventoDeTeclaPool = new Pool<EventoDeTecla>(factory, 100);
+        vista.setOnKeyListener(this);
 
-		vista.setOnKeyListener(this);
+        vista.setFocusableInTouchMode(true);
 
-		vista.setFocusableInTouchMode(true);
+        vista.requestFocus();
+    }
 
-		vista.requestFocus();
+    @SuppressWarnings("deprecation")
+    @Override
+    public boolean onKey(View vista, int codigoDeTecla, KeyEvent eventoDeTecla) {
 
-	}
+        if (eventoDeTecla.getAction() == KeyEvent.ACTION_MULTIPLE) {
 
-	@SuppressWarnings("deprecation")
-	@Override
-	public boolean onKey(View vista, int codigoDeTecla, KeyEvent eventoDeTecla) {
+            return false;
+        }
+        synchronized (this) {
+            EventoDeTecla eventoTecla = eventoDeTeclaPool.nuevoObjeto();
 
-		if (eventoDeTecla.getAction() == KeyEvent.ACTION_MULTIPLE) {
+            eventoTecla.codigoDeTecla = codigoDeTecla;
 
-			return false;
-		}
-		synchronized (this) {
+            eventoTecla.caracterDeTecla = (char) eventoDeTecla.getUnicodeChar();
 
-			EventoDeTecla eventoTecla = eventoDeTeclaPool.nuevoObjeto();
+            if (eventoDeTecla.getAction() == KeyEvent.ACTION_DOWN) {
 
-			eventoTecla.codigoDeTecla = codigoDeTecla;
+                eventoTecla.tipoEventoDeTecla = EventoDeTecla.TECLA_ABAJO;
 
-			eventoTecla.caracterDeTecla = (char) eventoDeTecla.getUnicodeChar();
+                if (codigoDeTecla > 0 && codigoDeTecla < 127) {
 
-			if (eventoDeTecla.getAction() == KeyEvent.ACTION_DOWN) {
+                    TeclasPrecionadas[codigoDeTecla] = true;
+                }
+            }
 
-				eventoTecla.tipoEventoDeTecla = EventoDeTecla.TECLA_ABAJO;
+            if (eventoDeTecla.getAction() == KeyEvent.ACTION_UP) {
 
-				if (codigoDeTecla > 0 && codigoDeTecla < 127) {
+                eventoTecla.tipoEventoDeTecla = EventoDeTecla.TECLA_ARRIBA;
 
-					TeclasPrecionadas[codigoDeTecla] = true;
+                if (codigoDeTecla > 0 && codigoDeTecla < 127) {
 
-				}
-			}
+                    TeclasPrecionadas[codigoDeTecla] = false;
+                }
+            }
 
-			if (eventoDeTecla.getAction() == KeyEvent.ACTION_UP) {
+            eventosDeTeclaBufer.add(eventoTecla);
 
-				eventoTecla.tipoEventoDeTecla = EventoDeTecla.TECLA_ARRIBA;
+            return false;
+        }
+    }
 
-				if (codigoDeTecla > 0 && codigoDeTecla < 127) {
+    public boolean isTeclaPrecionada(int codigoDeTecla) {
 
-					TeclasPrecionadas[codigoDeTecla] = false;
+        synchronized (this) {
+            if (codigoDeTecla < 0 || codigoDeTecla > 127) {
 
-				}
+                TeclasPrecionadas[codigoDeTecla] = false;
+            }
 
-			}
+            return TeclasPrecionadas[codigoDeTecla];
+        }
+    }
 
-			eventosDeTeclaBufer.add(eventoTecla);
+    public List<EventoDeTecla> getEventosDeTecla() {
 
-			return false;
+        synchronized (this) {
+            int tamano = eventosDeTecla.size();
 
-		}
+            for (int i = 0; i < tamano; i++) {
 
-	}
+                eventoDeTeclaPool.objetoLibre(eventosDeTecla.get(i));
+            }
 
-	public boolean isTeclaPrecionada(int codigoDeTecla) {
+            eventosDeTecla.clear();
 
-		synchronized (this) {
+            eventosDeTecla.addAll(eventosDeTeclaBufer);
 
-			if (codigoDeTecla < 0 || codigoDeTecla > 127) {
+            eventosDeTeclaBufer.clear();
 
-				TeclasPrecionadas[codigoDeTecla] = false;
-
-			}
-
-			return TeclasPrecionadas[codigoDeTecla];
-
-		}
-
-	}
-
-	public List<EventoDeTecla> getEventosDeTecla() {
-
-		synchronized (this) {
-
-			int tamano = eventosDeTecla.size();
-
-			for (int i = 0; i < tamano; i++) {
-
-				eventoDeTeclaPool.objetoLibre(eventosDeTecla.get(i));
-
-			}
-
-			eventosDeTecla.clear();
-
-			eventosDeTecla.addAll(eventosDeTeclaBufer);
-
-			eventosDeTeclaBufer.clear();
-
-			return eventosDeTecla;
-
-		}
-
-	}
-
+            return eventosDeTecla;
+        }
+    }
 }

@@ -4,14 +4,13 @@ import android.graphics.Bitmap;
 
 public interface Textura {
 
-	public abstract Graficos.FormatoTextura getFormatoTextura();
+    public abstract Graficos.FormatoTextura getFormatoTextura();
 
-	public abstract Bitmap getBipmap();
+    public abstract Bitmap getBipmap();
 
-	public abstract float getAncho();
+    public abstract float getAncho();
 
-	public abstract float getAlto();
+    public abstract float getAlto();
 
-	public abstract void dispose();
-
+    public abstract void dispose();
 }

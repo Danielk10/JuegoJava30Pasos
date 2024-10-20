@@ -1,130 +1,129 @@
 package com.diamon.graficos;
 
-import com.diamon.nucleo.Graficos;
-import com.diamon.nucleo.Textura;
-
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 
+import com.diamon.nucleo.Graficos;
+import com.diamon.nucleo.Textura;
+
 public class Graficos2D implements Graficos {
 
-	private Canvas canvas;
+    private Canvas canvas;
 
-	private Paint paint;
+    private Paint paint;
 
-	private Textura textura;
+    private Textura textura;
 
-	private Rect dstRect;
+    private Rect dstRect;
 
-	private Rect srcRect;
+    private Rect srcRect;
 
-	public Graficos2D(Textura textura) {
+    public Graficos2D(Textura textura) {
 
-		this.textura = textura;
+        this.textura = textura;
 
-		this.canvas = new Canvas(textura.getBipmap());
+        this.canvas = new Canvas(textura.getBipmap());
 
-		this.paint = new Paint();
+        this.paint = new Paint();
 
-		this.dstRect = new Rect();
+        this.dstRect = new Rect();
 
-		this.srcRect = new Rect();
+        this.srcRect = new Rect();
+    }
 
-	}
+    @Override
+    public void limpiar(int color) {
 
-	@Override
-	public void limpiar(int color) {
+        this.canvas.drawRGB((color & 0xff0000) >> 16, (color & 0xff00) >> 8, (color & 0xff));
+    }
 
-		this.canvas.drawRGB((color & 0xff0000) >> 16, (color & 0xff00) >> 8, (color & 0xff));
+    @Override
+    public void dibujarPixel(float x, float y, int color) {
 
-	}
+        this.paint.setColor(color);
 
-	@Override
-	public void dibujarPixel(float x, float y, int color) {
+        this.canvas.drawPoint(x, y, this.paint);
+    }
 
-		this.paint.setColor(color);
+    @Override
+    public void dibujarLinea(float x, float y, float x1, float y1, int color) {
 
-		this.canvas.drawPoint(x, y, this.paint);
+        this.paint.setColor(color);
 
-	}
+        this.canvas.drawLine(x, y, x1, y1, this.paint);
+    }
 
-	@Override
-	public void dibujarLinea(float x, float y, float x1, float y1, int color) {
+    @Override
+    public void dibujarRectangulo(float x, float y, float ancho, float alto, int color) {
 
-		this.paint.setColor(color);
+        this.paint.setColor(color);
 
-		this.canvas.drawLine(x, y, x1, y1, this.paint);
+        this.paint.setStyle(Paint.Style.FILL);
 
-	}
+        this.canvas.drawRect(x, y, ((x + ancho) - 1), ((y + alto) - 1), this.paint);
+    }
 
-	@Override
-	public void dibujarRectangulo(float x, float y, float ancho, float alto, int color) {
+    @Override
+    public void dibujarTexto(String texto, float x, float y, int color) {
 
-		this.paint.setColor(color);
+        this.paint.setColor(color);
 
-		this.paint.setStyle(Paint.Style.FILL);
+        this.canvas.drawText(texto, x, y, paint);
+    }
 
-		this.canvas.drawRect(x, y, ((x + ancho) - 1), ((y + ancho) - 1), this.paint);
+    @Override
+    public void dibujarTextura(Textura textura, float x, float y) {
 
-	}
+        this.canvas.drawBitmap(textura.getBipmap(), x, y, null);
+    }
 
-	@Override
-	public void dibujarTexto(String texto, float x, float y, int color) {
+    @Override
+    public void dibujarTextura(
+            Textura textura, float x, float y, float x1, float y1, float ancho, float alto) {
 
-		this.paint.setColor(color);
+        this.srcRect.left = (int) x1;
 
-		this.canvas.drawText(texto, x, y, paint);
-	}
+        this.srcRect.top = (int) y1;
 
-	@Override
-	public void dibujarTextura(Textura textura, float x, float y) {
+        this.srcRect.right = (int) ((x1 + ancho) - 1);
 
-		this.canvas.drawBitmap(textura.getBipmap(), x, y, null);
+        this.srcRect.bottom = (int) ((y1 + alto) - 1);
 
-	}
+        this.dstRect.left = (int) x;
 
-	@Override
-	public void dibujarTextura(Textura textura, float x, float y, float x1, float y1, float ancho, float alto) {
+        this.dstRect.top = (int) y;
 
-		this.srcRect.left = (int) x1;
+        this.dstRect.right = (int) ((x + ancho) - 1);
 
-		this.srcRect.top = (int) y1;
+        this.dstRect.bottom = (int) ((y + alto) - 1);
 
-		this.srcRect.right = (int) ((x1 + ancho) - 1);
+        this.canvas.drawBitmap(textura.getBipmap(), this.srcRect, this.dstRect, null);
+    }
 
-		this.srcRect.bottom = (int) ((y1 + alto) - 1);
+    @Override
+    public Paint getLapiz() {
 
-		this.dstRect.left = (int) x;
+        return this.paint;
+    }
 
-		this.dstRect.top = (int) y;
+    @Override
+    public float getAncho() {
 
-		this.dstRect.right = (int) ((x + ancho) - 1);
+        return textura.getAncho();
+    }
 
-		this.dstRect.bottom = (int) ((y + alto) - 1);
+    @Override
+    public float getAlto() {
 
-		this.canvas.drawBitmap(textura.getBipmap(), this.srcRect, this.dstRect, null);
+        return textura.getAlto();
+    }
 
-	}
+    @Override
+    public Textura crearTextura(float ancho, float alto, FormatoTextura formatoTextura) {
 
-	@Override
-	public float getAncho() {
+        textura = new Textura2D(alto, alto, formatoTextura);
 
-		return textura.getAncho();
-	}
-
-	@Override
-	public float getAlto() {
-
-		return textura.getAlto();
-	}
-
-	@Override
-	public Textura crearTextura(float ancho, float alto, FormatoTextura formatoTextura) {
-
-		textura = new Textura2D(alto, alto, formatoTextura);
-
-		return textura;
-	}
-
+        return textura;
+    }
 }

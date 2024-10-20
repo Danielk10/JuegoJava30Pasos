@@ -1,8 +1,10 @@
 package com.diamon.utilidad;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
+import android.content.Context;
+import android.content.res.AssetFileDescriptor;
+import android.graphics.BitmapFactory;
+import android.media.AudioManager;
+import android.media.SoundPool;
 
 import com.diamon.audio.EfectoDeSonido;
 import com.diamon.audio.MusicaDeJuego;
@@ -11,222 +13,179 @@ import com.diamon.nucleo.Musica;
 import com.diamon.nucleo.Sonido;
 import com.diamon.nucleo.Textura;
 
-import android.content.Context;
-import android.content.res.AssetFileDescriptor;
-import android.graphics.BitmapFactory;
-import android.media.AudioManager;
-import android.media.SoundPool;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
 
-public class Recurso
-{
+public class Recurso {
 
-	private HashMap<String, Textura> texturas;
+    private HashMap<String, Textura> texturas;
 
-	private HashMap<String, Sonido> sonidos;
+    private HashMap<String, Sonido> sonidos;
 
-	private HashMap<String, Musica> musicas;
+    private HashMap<String, Musica> musicas;
 
-	private Context contexto;
+    private Context contexto;
 
-	public Recurso(Context contexto)
-	{
+    public Recurso(Context contexto) {
 
-		sonidos = new HashMap<String, Sonido>();
+        sonidos = new HashMap<String, Sonido>();
 
-		musicas = new HashMap<String, Musica>();
+        musicas = new HashMap<String, Musica>();
 
-		texturas = new HashMap<String, Textura>();
+        texturas = new HashMap<String, Textura>();
 
-		this.contexto = contexto;
+        this.contexto = contexto;
+    }
 
-	}
+    public Textura cargarTextura(String nombre) {
 
-	public Textura cargarTextura(String nombre)
-	{
+        InputStream entrada = null;
 
-		InputStream entrada = null;
+        Textura imagen = null;
 
-		Textura imagen = null;
+        final BitmapFactory.Options options = new BitmapFactory.Options();
 
-		final BitmapFactory.Options options = new BitmapFactory.Options();
+        try {
+            entrada = contexto.getAssets().open(nombre);
 
+            options.inJustDecodeBounds = true;
 
+            // Decodificar solo las dimensiones
+            BitmapFactory.decodeStream(entrada, null, options);
 
-		try
-		{
-			entrada = contexto.getAssets().open(nombre);
+            // Cerrar el stream
+            entrada.close();
 
-			options.inJustDecodeBounds = true;
+            options.inSampleSize = calculateInSampleSize(options, 640);
 
-			// Decodificar solo las dimensiones
-			BitmapFactory.decodeStream(entrada, null, options);
+            options.inJustDecodeBounds = false;
 
-			// Cerrar el stream
-			entrada.close();
+            entrada = contexto.getAssets().open(nombre);
 
-			options.inSampleSize = calculateInSampleSize(options, 640);
+            imagen = new Textura2D(BitmapFactory.decodeStream(entrada, null, options));
 
-			options.inJustDecodeBounds = false;
+            texturas.put(nombre, imagen);
 
-			entrada = contexto.getAssets().open(nombre);
+        } catch (IOException e) {
 
-			imagen = new Textura2D(BitmapFactory.decodeStream(entrada, null, options));
+        } finally {
+            if (entrada != null) {
+                try {
+                    entrada.close();
 
-			texturas.put(nombre, imagen);
+                } catch (IOException e) {
 
-		}
-		catch (IOException e)
-		{
+                }
+            }
+        }
 
-		}
-		finally
-		{
-			if (entrada != null)
-			{
-				try
-				{
-					entrada.close();
+        return texturas.get(nombre);
+    }
 
-				}
-				catch (IOException e)
-				{
+    private int calculateInSampleSize(BitmapFactory.Options options, int maxTextureSize) {
+        // Obtener el ancho y alto originales
+        final int height = options.outHeight;
+        final int width = options.outWidth;
+        int inSampleSize = 1;
 
-				}
+        // Si las dimensiones originales superan el tamaño máximo permitido
+        if (height > maxTextureSize || width > maxTextureSize) {
+            final int halfHeight = height / 2;
+            final int halfWidth = width / 2;
 
-			}
-		}
+            // Calcular el valor adecuado de inSampleSize para reducir el bitmap
+            while ((halfHeight / inSampleSize) >= maxTextureSize
+                    && (halfWidth / inSampleSize) >= maxTextureSize) {
+                inSampleSize *= 2;
+            }
+        }
 
-		return texturas.get(nombre);
+        return inSampleSize;
+    }
 
-	}
+    public Textura getTextura(String nombre) {
 
+        Textura imagen = texturas.get(nombre);
 
-	private int calculateInSampleSize(BitmapFactory.Options options, int maxTextureSize)
-	{
-		// Obtener el ancho y alto originales
-		final int height = options.outHeight;
-		final int width = options.outWidth;
-		int inSampleSize = 1;
+        if (imagen == null) {
 
-		// Si las dimensiones originales superan el tamaño máximo permitido
-		if (height > maxTextureSize || width > maxTextureSize)
-		{
-			final int halfHeight = height / 2;
-			final int halfWidth = width / 2;
+            imagen = cargarTextura(nombre);
 
-			// Calcular el valor adecuado de inSampleSize para reducir el bitmap
-			while ((halfHeight / inSampleSize) >= maxTextureSize && (halfWidth / inSampleSize) >= maxTextureSize)
-			{
-				inSampleSize *= 2;
-			}
-		}
+            texturas.put(nombre, imagen);
+        }
 
-		return inSampleSize;
-	}
+        return imagen;
+    }
 
+    public Musica cargarMusica(String nombre) {
 
-	public Textura getTextura(String nombre)
-	{
+        AssetFileDescriptor descriptor = null;
 
-		Textura imagen = texturas.get(nombre);
+        try {
 
-		if (imagen == null)
-		{
+            descriptor = contexto.getAssets().openFd(nombre);
 
-			imagen = cargarTextura(nombre);
+        } catch (IOException e) {
 
-			texturas.put(nombre, imagen);
-		}
+        }
 
-		return imagen;
+        Musica musica = new MusicaDeJuego(descriptor);
 
-	}
+        musicas.put(nombre, musica);
 
-	public Musica cargarMusica(String nombre)
-	{
+        return musicas.get(nombre);
+    }
 
-		AssetFileDescriptor descriptor = null;
+    public Musica getMusica(String nombre) {
 
-		try
-		{
+        Musica musica = musicas.get(nombre);
 
-			descriptor = contexto.getAssets().openFd(nombre);
+        if (musica == null) {
 
-		}
-		catch (IOException e)
-		{
+            musica = (Musica) cargarMusica(nombre);
 
-		}
+            musicas.put(nombre, musica);
+        }
 
-		Musica musica = new MusicaDeJuego(descriptor);
+        return musica;
+    }
 
-		musicas.put(nombre, musica);
+    @SuppressWarnings("deprecation")
+    public Sonido cargarSonido(String nombre) {
 
-		return musicas.get(nombre);
+        AssetFileDescriptor descriptor = null;
 
-	}
+        try {
 
-	public Musica getMusica(String nombre)
-	{
+            descriptor = contexto.getAssets().openFd(nombre);
 
-		Musica musica = musicas.get(nombre);
+        } catch (IOException e) {
 
-		if (musica == null)
-		{
+        }
 
-			musica = (Musica) cargarMusica(nombre);
+        SoundPool sonidoPool = new SoundPool(200, AudioManager.STREAM_MUSIC, 0);
 
-			musicas.put(nombre, musica);
-		}
+        int id = sonidoPool.load(descriptor, 0);
 
-		return musica;
+        Sonido sonido = new EfectoDeSonido(id, sonidoPool);
 
-	}
+        sonidos.put(nombre, sonido);
 
-	@SuppressWarnings("deprecation")
-	public Sonido cargarSonido(String nombre)
-	{
+        return sonidos.get(nombre);
+    }
 
-		AssetFileDescriptor descriptor = null;
+    public Sonido getSonido(String nombre) {
 
-		try
-		{
+        Sonido sonido = sonidos.get(nombre);
 
-			descriptor = contexto.getAssets().openFd(nombre);
+        if (sonido == null) {
 
-		}
-		catch (IOException e)
-		{
+            sonido = (Sonido) cargarSonido(nombre);
 
-		}
+            sonidos.put(nombre, sonido);
+        }
 
-		SoundPool sonidoPool = new SoundPool(200, AudioManager.STREAM_MUSIC, 0);
-
-		int id = sonidoPool.load(descriptor, 0);
-
-		Sonido sonido = new EfectoDeSonido(id, sonidoPool);
-
-		sonidos.put(nombre, sonido);
-
-		return sonidos.get(nombre);
-
-	}
-
-	public Sonido getSonido(String nombre)
-	{
-
-		Sonido sonido = sonidos.get(nombre);
-
-		if (sonido == null)
-		{
-
-			sonido = (Sonido) cargarSonido(nombre);
-
-			sonidos.put(nombre, sonido);
-		}
-
-		return sonido;
-
-	}
-
+        return sonido;
+    }
 }

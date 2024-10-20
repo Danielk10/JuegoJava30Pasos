@@ -1,162 +1,132 @@
 package com.diamon.graficos;
 
-import com.diamon.nucleo.Graficos;
-import com.diamon.nucleo.Graficos.FormatoTextura;
-import com.diamon.nucleo.Textura;
-
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 
-public class Textura2D implements Textura
-{
+import com.diamon.nucleo.Graficos;
+import com.diamon.nucleo.Graficos.FormatoTextura;
+import com.diamon.nucleo.Textura;
 
-	private Bitmap bitmap;
+public class Textura2D implements Textura {
 
-	private Graficos.FormatoTextura formatoTextura;
+    private Bitmap bitmap;
 
-	@SuppressWarnings("deprecation")
-	public Textura2D(float ancho, float alto, Graficos.FormatoTextura formatoTextura)
-	{
+    private Graficos.FormatoTextura formatoTextura;
 
-		Bitmap.Config config;
+    @SuppressWarnings("deprecation")
+    public Textura2D(float ancho, float alto, Graficos.FormatoTextura formatoTextura) {
 
-		this.formatoTextura = formatoTextura;
+        Bitmap.Config config;
 
-		if (formatoTextura == Graficos.FormatoTextura.RGB565)
-		{
+        this.formatoTextura = formatoTextura;
 
-			config = Bitmap.Config.RGB_565;
+        if (formatoTextura == Graficos.FormatoTextura.RGB565) {
 
-			this.bitmap = Bitmap.createBitmap((int) ancho, (int) alto, config);
+            config = Bitmap.Config.RGB_565;
 
-		}
-		else if (formatoTextura == Graficos.FormatoTextura.ARGB4444)
-		{
+            this.bitmap = Bitmap.createBitmap((int) ancho, (int) alto, config);
 
-			config = Bitmap.Config.ARGB_4444;
+        } else if (formatoTextura == Graficos.FormatoTextura.ARGB4444) {
 
-			this.bitmap = Bitmap.createBitmap((int) ancho, (int) alto, config);
+            config = Bitmap.Config.ARGB_4444;
 
-		}
-		else
-		{
+            this.bitmap = Bitmap.createBitmap((int) ancho, (int) alto, config);
 
-			config = Bitmap.Config.ARGB_8888;
+        } else {
 
-			this.bitmap = Bitmap.createBitmap((int) ancho, (int) alto, config);
-		}
+            config = Bitmap.Config.ARGB_8888;
 
-		new BitmapFactory.Options().inPreferredConfig = config;
+            this.bitmap = Bitmap.createBitmap((int) ancho, (int) alto, config);
+        }
 
-	}
+        new BitmapFactory.Options().inPreferredConfig = config;
+    }
 
-	@SuppressWarnings("deprecation")
-	public Textura2D(Bitmap bitmap)
-	{
+    @SuppressWarnings("deprecation")
+    public Textura2D(Bitmap bitmap) {
 
-		if (bitmap.getConfig() == Bitmap.Config.RGB_565)
-		{
+        if (bitmap.getConfig() == Bitmap.Config.RGB_565) {
 
-			formatoTextura = Graficos.FormatoTextura.RGB565;
+            formatoTextura = Graficos.FormatoTextura.RGB565;
 
-			this.bitmap = Bitmap.createBitmap(bitmap);
+            this.bitmap = Bitmap.createBitmap(bitmap);
 
-		}
-		else if (bitmap.getConfig() == Bitmap.Config.ARGB_4444)
-		{
+        } else if (bitmap.getConfig() == Bitmap.Config.ARGB_4444) {
 
-			formatoTextura = Graficos.FormatoTextura.ARGB4444;
+            formatoTextura = Graficos.FormatoTextura.ARGB4444;
 
-			this.bitmap = Bitmap.createBitmap(bitmap);
+            this.bitmap = Bitmap.createBitmap(bitmap);
 
-		}
-		else
-		{
+        } else {
 
-			formatoTextura = Graficos.FormatoTextura.ARGB8888;
+            formatoTextura = Graficos.FormatoTextura.ARGB8888;
 
-			this.bitmap = Bitmap.createBitmap(bitmap);
-		}
+            this.bitmap = Bitmap.createBitmap(bitmap);
+        }
 
-		new BitmapFactory.Options().inPreferredConfig = bitmap.getConfig();
+        new BitmapFactory.Options().inPreferredConfig = bitmap.getConfig();
+    }
 
-	}
+    @SuppressWarnings("deprecation")
+    public Textura2D(Bitmap bitmap, float ancho, float alto) {
 
-	@SuppressWarnings("deprecation")
-	public Textura2D(Bitmap bitmap, float ancho, float alto)
-	{
+        float w = bitmap.getWidth();
 
-		float w = bitmap.getWidth();
+        float h = bitmap.getHeight();
 
-		float h = bitmap.getHeight();
+        float sw = ancho / w;
 
-		float sw = ancho / w;
+        float sh = alto / h;
 
-		float sh = alto / h;
+        Matrix max = new Matrix();
 
-		Matrix max = new Matrix();
+        max.postScale(sw, sh);
 
-		max.postScale(sw, sh);
-
-		// Obtén la configuración del bitmap
-		Bitmap.Config config = bitmap.getConfig();
+        // Obtén la configuración del bitmap
+        Bitmap.Config config = bitmap.getConfig();
 
         // Asigna el formato de textura basado en la configuración
-		if (config == Bitmap.Config.RGB_565)
-		{
-			formatoTextura = Graficos.FormatoTextura.RGB565;
-		}
-		else if (config == Bitmap.Config.ARGB_4444)
-		{
-			formatoTextura = Graficos.FormatoTextura.ARGB4444;
-		}
-		else
-		{
-			formatoTextura = Graficos.FormatoTextura.ARGB8888;
-		}
+        if (config == Bitmap.Config.RGB_565) {
+            formatoTextura = Graficos.FormatoTextura.RGB565;
+        } else if (config == Bitmap.Config.ARGB_4444) {
+            formatoTextura = Graficos.FormatoTextura.ARGB4444;
+        } else {
+            formatoTextura = Graficos.FormatoTextura.ARGB8888;
+        }
 
-		this.bitmap = Bitmap.createBitmap(bitmap, 0, 0, (int) w, (int) h, max, false);
-		
-		new BitmapFactory.Options().inPreferredConfig = this.bitmap.getConfig();
+        this.bitmap = Bitmap.createBitmap(bitmap, 0, 0, (int) w, (int) h, max, false);
 
-	}
+        new BitmapFactory.Options().inPreferredConfig = this.bitmap.getConfig();
+    }
 
-	@Override
-	public FormatoTextura getFormatoTextura()
-	{
+    @Override
+    public FormatoTextura getFormatoTextura() {
 
-		return this.formatoTextura;
-	}
+        return this.formatoTextura;
+    }
 
-	@Override
-	public Bitmap getBipmap()
-	{
+    @Override
+    public Bitmap getBipmap() {
 
-		return bitmap;
+        return bitmap;
+    }
 
-	}
+    @Override
+    public float getAncho() {
 
-	@Override
-	public float getAncho()
-	{
+        return (float) bitmap.getWidth();
+    }
 
-		return (float) bitmap.getWidth();
-	}
+    @Override
+    public float getAlto() {
 
-	@Override
-	public float getAlto()
-	{
+        return (float) bitmap.getHeight();
+    }
 
-		return (float) bitmap.getHeight();
-	}
+    @Override
+    public void dispose() {
 
-	@Override
-	public void dispose()
-	{
-
-		bitmap.recycle();
-
-	}
-
+        bitmap.recycle();
+    }
 }

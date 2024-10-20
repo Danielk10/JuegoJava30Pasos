@@ -2,6 +2,7 @@
     <string name="app_name">Juego Java 30 Pasos</string>
       <string name="tutorial">Totorial</string>
       <string name="juego">Juego</string>
+      <string name="terminos">Terminos</string>
       <string name="encabezado">Hacer un juego en Java en 30 pasos</string>
       <string name="pieDePagina">Todos los derechos reservados © 2021</string>
       <string name="textoBoton">Ver Tutorial</string>

@@ -8,117 +8,85 @@ import com.diamon.nucleo.Musica;
 
 public class PantallaNivel extends Pantalla2D {
 
-	private float tiempo;
+    private float tiempo;
 
-	private Textura2D textura;
+    private Textura2D textura;
 
-	private Musica musica;
+    private Musica musica;
 
-	public PantallaNivel(Juego juego) {
-		super(juego);
+    public PantallaNivel(Juego juego) {
+        super(juego);
 
-		tiempo = 0;
+        tiempo = 0;
 
-		textura = new Textura2D(juego.getRecurso().getTextura("nivel1.png").getBipmap(), Juego.ANCHO_PANTALLA,
-				Juego.ALTO_PANTALLA);
+        textura =
+                new Textura2D(
+                        juego.getRecurso().getTextura("nivel1.png").getBipmap(),
+                        Juego.ANCHO_PANTALLA,
+                        Juego.ALTO_PANTALLA);
 
-		musica = juego.getRecurso().getMusica("precentacion1.wav");
+        musica = juego.getRecurso().getMusica("precentacion1.wav");
 
-		musica.reproducir();
+        musica.reproducir();
+    }
 
-	}
+    @Override
+    public void mostrar() {}
 
-	@Override
-	public void mostrar() {
+    @Override
+    public void resume() {}
 
-	}
+    @Override
+    public void colisiones() {}
 
-	@Override
-	public void resume() {
+    @Override
+    public void actualizar(float delta) {
 
-	}
+        tiempo += delta;
 
-	@Override
-	public void colisiones() {
+        if (tiempo / 1.66f >= 1) {
 
-	}
+            musica.terminar();
 
-	@Override
-	public void actualizar(float delta) {
+            juego.setPantalla(new PantallaJuego(juego));
 
-		tiempo += delta;
+            tiempo = 0;
+        }
+    }
 
-		if (tiempo / 1.66f >= 1) {
+    @Override
+    public void dibujar(Graficos pincel, float delta) {
 
-			musica.terminar();
+        pincel.dibujarTextura(textura, 0, 0);
+    }
 
-			juego.setPantalla(new PantallaJuego(juego));
+    @Override
+    public void reajustarPantalla(int ancho, int alto) {}
 
+    @Override
+    public void pausa() {}
 
+    @Override
+    public void ocultar() {}
 
+    @Override
+    public void liberarRecursos() {}
 
+    @Override
+    public void teclaPresionada(int codigoDeTecla) {}
 
-			tiempo = 0;
+    @Override
+    public void teclaLevantada(int codigoDeTecla) {}
 
-		}
+    @Override
+    public void toquePresionado(float x, float y, int puntero) {}
 
-	}
+    @Override
+    public void toqueLevantado(float x, float y, int puntero) {}
 
-	@Override
-	public void dibujar(Graficos pincel, float delta) {
+    @Override
+    public void toqueDeslizando(float x, float y, int puntero) {}
 
-		pincel.dibujarTextura(textura, 0, 0);
-
-	}
-
-	@Override
-	public void reajustarPantalla(int ancho, int alto) {
-
-	}
-
-	@Override
-	public void pausa() {
-
-	}
-
-	@Override
-	public void ocultar() {
-
-	}
-
-	@Override
-	public void liberarRecursos() {
-
-	}
-
-	@Override
-	public void teclaPresionada(int codigoDeTecla) {
-
-	}
-
-	@Override
-	public void teclaLevantada(int codigoDeTecla) {
-
-	}
-
-	@Override
-	public void toquePresionado(float x, float y, int puntero) {
-
-	}
-
-	@Override
-	public void toqueLevantado(float x, float y, int puntero) {
-
-	}
-
-	@Override
-	public void toqueDeslizando(float x, float y, int puntero) {
-
-	}
-
-	@Override
-	public void acelerometro(float x, float y, float z) {
-
-	}
-
+    @Override
+    public void acelerometro(float x, float y, float z) {}
 }

@@ -1,19 +1,18 @@
 package com.diamon.entrada;
 
-import java.util.List;
+import android.view.View.OnTouchListener;
 
 import com.diamon.nucleo.Entrada.EventoDeToque;
 
-import android.view.View.OnTouchListener;
+import java.util.List;
 
 public interface ManejadorDeToque extends OnTouchListener {
 
-	public boolean isToque(int puntero);
+    public boolean isToque(int puntero);
 
-	public float getToqueEnX(int puntero);
+    public float getToqueEnX(int puntero);
 
-	public float getToqueEnY(int puntero);
+    public float getToqueEnY(int puntero);
 
-	public List<EventoDeToque> getEventosDeToque();
-
+    public List<EventoDeToque> getEventosDeToque();
 }

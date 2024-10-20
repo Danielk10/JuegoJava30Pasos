@@ -8,49 +8,47 @@ import android.hardware.SensorManager;
 
 public class ManejadorDeAcelerometro implements SensorEventListener {
 
-	private float x;
+    private float x;
 
-	private float y;
+    private float y;
 
-	private float z;
+    private float z;
 
-	public ManejadorDeAcelerometro(Context contexto) {
+    public ManejadorDeAcelerometro(Context contexto) {
 
-		SensorManager manejadorSensor = (SensorManager) contexto.getSystemService(Context.SENSOR_SERVICE);
+        SensorManager manejadorSensor =
+                (SensorManager) contexto.getSystemService(Context.SENSOR_SERVICE);
 
-		if (manejadorSensor.getSensorList(Sensor.TYPE_ACCELEROMETER).size() != 0) {
+        if (manejadorSensor.getSensorList(Sensor.TYPE_ACCELEROMETER).size() != 0) {
 
-			Sensor sensor = manejadorSensor.getSensorList(Sensor.TYPE_ACCELEROMETER).get(0);
+            Sensor sensor = manejadorSensor.getSensorList(Sensor.TYPE_ACCELEROMETER).get(0);
 
-			manejadorSensor.registerListener(this, sensor, SensorManager.SENSOR_DELAY_GAME);
-		}
-	}
+            manejadorSensor.registerListener(this, sensor, SensorManager.SENSOR_DELAY_GAME);
+        }
+    }
 
-	@Override
-	public void onAccuracyChanged(Sensor sensor, int precicion) {
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int precicion) {}
 
-	}
+    @Override
+    public void onSensorChanged(SensorEvent eventoDeSensor) {
 
-	@Override
-	public void onSensorChanged(SensorEvent eventoDeSensor) {
+        x = eventoDeSensor.values[0];
 
-		x = eventoDeSensor.values[0];
+        y = eventoDeSensor.values[1];
 
-		y = eventoDeSensor.values[1];
+        z = eventoDeSensor.values[2];
+    }
 
-		z = eventoDeSensor.values[2];
-	}
+    public float getAcelerometroEnX() {
+        return x;
+    }
 
-	public float getAcelerometroEnX() {
-		return x;
-	}
+    public float getAcelerometroEnY() {
+        return y;
+    }
 
-	public float getAcelerometroEnY() {
-		return y;
-	}
-
-	public float getAcelerometroEnZ() {
-		return z;
-	}
-
+    public float getAcelerometroEnZ() {
+        return z;
+    }
 }

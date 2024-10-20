@@ -1,1085 +1,1057 @@
 package com.diamon.actor;
 
+import android.view.KeyEvent;
+
+import com.diamon.graficos.Textura2D;
 import com.diamon.nucleo.Actor;
 import com.diamon.nucleo.Graficos;
 import com.diamon.nucleo.Juego;
 import com.diamon.nucleo.Pantalla;
 import com.diamon.nucleo.Textura;
-import com.diamon.graficos.Textura2D;
-import com.diamon.graficos.Animacion2D;
-import android.view.KeyEvent;
 
-public class Jugador extends Actor
-{
+public class Jugador extends Actor {
 
-	private float deltaXTactil, deltaYTactil;
+    private float deltaXTactil, deltaYTactil;
+    private float coordenadaPantallaX, coordenadaPantallaY;
+    private float direccionDezplazamientoX1, direccionDezplazamientoY1;
+    private float direccionDezplazamientoX2, direccionDezplazamientoY2;
 
-	private float xDelta = 0;
+    private float x1 = 0;
 
-	private float xDeltaReferencia = 0;
+    private float y1 = 0;
 
-	private float coordenadaPantallaX, coordenadaPantallaY;
+    private float velocidadX;
 
-	private float direccionDezplazamientoX1, direccionDezplazamientoY1;
+    private float velocidadY;
 
-	private float direccionDezplazamientoX2, direccionDezplazamientoY2;
+    private static final float VELOCIDAD_JUGADOR = 5;
 
-	private float x1 = 0;
+    private boolean arriba, abajo, izquierda, derecha, disparar;
 
-	private float y1 = 0;
+    private float tiemoDisparo;
 
-	private float velocidadX;
+    private float tiemoDisparoL;
 
-	private float velocidadY;
+    private float tiemoDisparoB;
 
-	private final static float VELOCIDAD_JUGADOR = 5;
+    private float tiempoParpadeo;
 
-	private boolean arriba, abajo, izquierda, derecha, disparar;
+    protected int frames = 0;
 
-	private float tiemoDisparo;
+    private boolean dezplazamientoInicial;
 
-	private float tiemoDisparoB;
+    private boolean parpadeo;
 
-	private float tiempoParpadeo;
+    private int ladoJugador;
 
-	protected int frames = 0;
+    private int vida;
 
-	private boolean dezplazamientoInicial;
+    private boolean inmune;
 
-	private boolean parpadeo;
+    private boolean poder;
 
-	private int ladoJugador;
+    private int tipoPoder;
 
-	private int vida;
+    private float velocidad;
 
-	private boolean inmune;
+    private Satelite satelite1;
 
-	private boolean poder;
+    private Satelite satelite2;
 
-	private int tipoPoder;
+    private Textura[] texturasJ;
 
-	private float velocidad;
+    private static final int LADO_DERECHO = 1;
 
-	private Satelite satelite1;
+    private static final int LADO_IZQUIERDO = 2;
 
-	private Satelite satelite2;
+    private float igual1;
 
-	private Textura[]texturasJ;
+    private float igual2;
 
-	private final static int LADO_DERECHO = 1;
+    private int ciclo;
 
-	private final static int LADO_IZQUIERDO = 2;
+    private boolean dezplazamiento;
 
-	private float igual1;
+    private int lado;
 
-	private float igual2;
+    private int dedos;
 
-	private int ciclo;
+    private boolean deltaToque;
 
-	private boolean dezplazamiento;
+    public Jugador(Pantalla pantalla, Textura textura, float x, float y, float ancho, float alto) {
+        super(pantalla, textura, x, y, ancho, alto);
 
+        velocidadX = 0;
 
-	public Jugador(Pantalla pantalla, Textura textura, float x, float y, float ancho, float alto)
-	{
-		super(pantalla, textura, x, y, ancho, alto);
+        velocidadY = 0;
 
-		velocidadX = 0;
+        deltaXTactil = deltaYTactil = 0;
 
-		velocidadY = 0;
+        dezplazamientoInicial = true;
 
-		deltaXTactil = deltaYTactil = 0;
+        arriba = abajo = izquierda = derecha = disparar = false;
 
-		dezplazamientoInicial = true;
+        parpadeo = false;
 
-		arriba = abajo = izquierda = derecha = disparar = false;
+        velocidad = VELOCIDAD_JUGADOR;
 
-		parpadeo = false;
+        ladoJugador = Jugador.LADO_DERECHO;
 
-		velocidad = VELOCIDAD_JUGADOR;
+        poder = false;
 
-		ladoJugador = Jugador.LADO_DERECHO;
+        vida = 3;
 
-		poder = false;
+        inmune = false;
 
-		vida = 3;
+        tipoPoder = 0;
 
-		inmune = false;
+        texturasJ = new Textura[4];
 
-		tipoPoder = 0;
+        texturasJ[0] = new Textura2D(recurso.getTextura("jugador1D1.png").getBipmap(), ancho, alto);
 
-		texturasJ = new Textura[4];
+        texturasJ[1] = new Textura2D(recurso.getTextura("jugador1D2.png").getBipmap(), ancho, alto);
 
-		texturasJ[0] = new Textura2D(recurso.getTextura("jugador1D1.png").getBipmap(), ancho, alto);
+        texturasJ[2] = new Textura2D(recurso.getTextura("jugador1I1.png").getBipmap(), ancho, alto);
 
-		texturasJ[1] = new Textura2D(recurso.getTextura("jugador1D2.png").getBipmap() , ancho, alto);
+        texturasJ[3] = new Textura2D(recurso.getTextura("jugador1I2.png").getBipmap(), ancho, alto);
 
-		texturasJ[2] = new Textura2D(recurso.getTextura("jugador1I1.png").getBipmap(), ancho, alto);
+        deltaToque = false;
 
-		texturasJ[3] = new Textura2D(recurso.getTextura("jugador1I2.png").getBipmap(), ancho, alto);
+        dedos = -1;
+    }
 
+    public Jugador(Pantalla pantalla, Textura textura, float x, float y) {
+        super(pantalla, textura, x, y);
 
-	}
+        velocidadX = 0;
 
-	public Jugador(Pantalla pantalla, Textura textura, float x, float y)
-	{
-		super(pantalla, textura, x, y);
+        velocidadY = 0;
 
-		velocidadX = 0;
+        deltaXTactil = deltaYTactil = 0;
 
-		velocidadY = 0;
+        dezplazamientoInicial = true;
 
-		deltaXTactil = deltaYTactil = 0;
+        arriba = abajo = izquierda = derecha = disparar = false;
 
-		dezplazamientoInicial = true;
+        parpadeo = false;
 
-		arriba = abajo = izquierda = derecha = disparar = false;
+        velocidad = VELOCIDAD_JUGADOR;
 
-		parpadeo = false;
+        ladoJugador = Jugador.LADO_DERECHO;
 
-		velocidad = VELOCIDAD_JUGADOR;
+        poder = false;
 
-		ladoJugador = Jugador.LADO_DERECHO;
+        vida = 3;
 
-		poder = false;
+        inmune = false;
 
-		vida = 3;
+        tipoPoder = 0;
 
-		inmune = false;
+        texturasJ = new Textura[4];
 
-		tipoPoder = 0;
+        texturasJ[0] = new Textura2D(recurso.getTextura("jugador1D1.png").getBipmap(), ancho, alto);
 
-		texturasJ = new Textura[4];
+        texturasJ[1] = new Textura2D(recurso.getTextura("jugador1D2.png").getBipmap(), ancho, alto);
 
-		texturasJ[0] = new Textura2D(recurso.getTextura("jugador1D1.png").getBipmap(), ancho, alto);
+        texturasJ[2] = new Textura2D(recurso.getTextura("jugador1I1.png").getBipmap(), ancho, alto);
 
-		texturasJ[1] = new Textura2D(recurso.getTextura("jugador1D2.png").getBipmap() , ancho, alto);
+        texturasJ[3] = new Textura2D(recurso.getTextura("jugador1I2.png").getBipmap(), ancho, alto);
 
-		texturasJ[2] = new Textura2D(recurso.getTextura("jugador1I1.png").getBipmap(), ancho, alto);
+        deltaToque = false;
 
-		texturasJ[3] = new Textura2D(recurso.getTextura("jugador1I2.png").getBipmap(), ancho, alto);
+        dedos = -1;
+    }
 
-	}
+    public Jugador(
+            Pantalla pantalla,
+            Textura[] texturas,
+            float x,
+            float y,
+            float ancho,
+            float alto,
+            float tiempoAnimacion) {
+        super(pantalla, texturas, x, y, ancho, alto, tiempoAnimacion);
 
-	public Jugador(Pantalla pantalla, Textura[] texturas, float x, float y, float ancho, float alto,
-				   float tiempoAnimacion)
-	{
-		super(pantalla, texturas, x, y, ancho, alto, tiempoAnimacion);
+        velocidadX = 0;
 
-		velocidadX = 0;
+        velocidadY = 0;
 
-		velocidadY = 0;
+        deltaXTactil = deltaYTactil = 0;
 
-		deltaXTactil = deltaYTactil = 0;
+        dezplazamientoInicial = true;
 
-		dezplazamientoInicial = true;
+        arriba = abajo = izquierda = derecha = disparar = false;
 
-		arriba = abajo = izquierda = derecha = disparar = false;
+        parpadeo = false;
 
-		parpadeo = false;
+        velocidad = VELOCIDAD_JUGADOR;
 
-		velocidad = VELOCIDAD_JUGADOR;
+        ladoJugador = Jugador.LADO_DERECHO;
 
-		ladoJugador = Jugador.LADO_DERECHO;
+        poder = false;
 
-		poder = false;
+        vida = 3;
 
-		vida = 3;
+        inmune = false;
 
-		inmune = false;
+        tipoPoder = 0;
 
-		tipoPoder = 0;
+        texturasJ = new Textura[4];
 
-		texturasJ = new Textura[4];
+        texturasJ[0] = new Textura2D(recurso.getTextura("jugador1D1.png").getBipmap(), ancho, alto);
 
-		texturasJ[0] = new Textura2D(recurso.getTextura("jugador1D1.png").getBipmap(), ancho, alto);
+        texturasJ[1] = new Textura2D(recurso.getTextura("jugador1D2.png").getBipmap(), ancho, alto);
 
-		texturasJ[1] = new Textura2D(recurso.getTextura("jugador1D2.png").getBipmap() , ancho, alto);
+        texturasJ[2] = new Textura2D(recurso.getTextura("jugador1I1.png").getBipmap(), ancho, alto);
 
-		texturasJ[2] = new Textura2D(recurso.getTextura("jugador1I1.png").getBipmap(), ancho, alto);
+        texturasJ[3] = new Textura2D(recurso.getTextura("jugador1I2.png").getBipmap(), ancho, alto);
 
-		texturasJ[3] = new Textura2D(recurso.getTextura("jugador1I2.png").getBipmap(), ancho, alto);
+        deltaToque = false;
 
+        dedos = -1;
+    }
 
-	}
+    public void agregarSatelites() {
 
+        satelite1 = new Satelite(pantalla, recurso.getTextura("sateliteHD1.png"), 70, 50, 16, 16);
 
+        satelite2 = new Satelite(pantalla, recurso.getTextura("sateliteHD1.png"), 70, -50, 16, 16);
 
-	public void agregarSatelites()
-	{
+        satelite1.setDisparar(false);
 
-		satelite1 = new Satelite(pantalla, recurso.getTextura("sateliteHD1.png"), 70, 50, 16, 16);
+        satelite2.setDisparar(false);
 
-		satelite2 = new Satelite(pantalla, recurso.getTextura("sateliteHD1.png"), 70, -50, 16, 16);
+        satelite1.setGradosIniciales(45);
 
-		satelite1.setDisparar(false);
+        satelite2.setGradosIniciales(315);
 
-		satelite2.setDisparar(false);
+        satelite1.setDistancia(70);
 
-		satelite1.setGradosIniciales(45);
+        satelite2.setDistancia(70);
 
-		satelite2.setGradosIniciales(315);
+        satelite1.setVelocidad(4);
 
-		satelite1.setDistancia(70);
+        satelite2.setVelocidad(4);
 
-		satelite2.setDistancia(70);
+        satelite1.setDireccion(Satelite.DIRECCION_ATRAS);
 
-		satelite1.setVelocidad(4);
+        satelite2.setDireccion(Satelite.DIRECCION_ADELANTE);
 
-		satelite2.setVelocidad(4);
+        actores.add(satelite1);
 
-		satelite1.setDireccion(Satelite.DIRECCION_ATRAS);
+        actores.add(satelite2);
+    }
 
-		satelite2.setDireccion(Satelite.DIRECCION_ADELANTE);
+    @Override
+    public void obtenerActores() {
+        // TODO: Implement this method
+    }
 
-		actores.add(satelite1);
+    public float getVelocidad() {
+        return velocidad;
+    }
 
-		actores.add(satelite2);
+    public void setVelocidad(float velocidad) {
+        this.velocidad = velocidad;
+    }
 
-	}
+    @Override
+    public void actualizar(float delta) {
 
-	@Override
-	public void obtenerActores()
-	{
-		// TODO: Implement this method
-	}
+        if (vida > 0) {
 
+            super.actualizar(delta);
 
-	public float getVelocidad()
-	{
-		return velocidad;
-	}
+            x += velocidadX / Juego.DELTA_A_PIXEL * delta;
 
-	public void setVelocidad(float velocidad)
-	{
-		this.velocidad = velocidad;
-	}
+            y += velocidadY / Juego.DELTA_A_PIXEL * delta;
 
-	@Override
-	public void actualizar(float delta)
-	{
+            if (dezplazamientoInicial) {
 
-if (vida > 0)
-		{
+                if (x <= (Juego.ANCHO_PANTALLA / 2) - ancho) {
 
-		super.actualizar(delta);
+                    x += 3 / Juego.DELTA_A_PIXEL * delta;
 
+                } else {
 
-		x += velocidadX / Juego.DELTA_A_PIXEL * delta;
+                    dezplazamientoInicial = false;
+                }
+            }
 
-		y += velocidadY / Juego.DELTA_A_PIXEL * delta;
+            if (x >= (Juego.ANCHO_PANTALLA - 32) - ancho) {
 
+                x = (Juego.ANCHO_PANTALLA - 32) - ancho;
+            }
 
+            if (x <= 32) {
 
-		if (dezplazamientoInicial)
-		{
+                x = 32;
+            }
 
-			if (x <= (Juego.ANCHO_PANTALLA / 2) - ancho)
-			{
+            if (y >= (Juego.ALTO_PANTALLA - 32) - alto) {
 
-				x += 3 / Juego.DELTA_A_PIXEL * delta;
+                y = (Juego.ALTO_PANTALLA - 32) - alto;
+            }
 
-			}
-			else
-			{
+            if (y <= 32) {
 
-				dezplazamientoInicial = false;
-			}
+                y = 32;
+            }
 
-		}
+            tiemoDisparo += delta;
 
-		if (x >= (Juego.ANCHO_PANTALLA - 32) - ancho)
-		{
+            tiemoDisparoB += delta;
 
-			x = (Juego.ANCHO_PANTALLA - 32) - ancho;
+            tiemoDisparoL += delta;
 
-		}
+            if (disparar) {
 
-		if (x <= 32)
-		{
+                if (!poder) {
 
-			x = 32;
+                    disparar();
+                }
 
-		}
+                if (poder) {
+                    disparoEspecial();
+                }
+            }
 
-		if (y >= (Juego.ALTO_PANTALLA - 32) - alto)
-		{
+            if (tiempoParpadeo % 2 == 0) {
 
-			y = (Juego.ALTO_PANTALLA - 32) - alto;
+                parpadeo = true;
 
-		}
+            } else {
 
-		if (y <= 32)
-		{
+                parpadeo = false;
+            }
 
-			y = 32;
+            if (tiempoParpadeo <= 0) {
 
-		}
+                tiempoParpadeo = 0;
 
-		tiemoDisparo += delta;
+                inmune = true;
+            } else {
+                inmune = false;
+            }
 
-		tiemoDisparoB += delta;
+            tiempoParpadeo -= 1;
 
-		if (disparar)
-		{
+            if (vida == 0) {
 
-			if (!poder)
-			{
+                vida = 0;
 
-				disparar();
-			}
+                satelite1.remover();
 
-			if (poder)
-			{
-				disparoEspecial();
+                satelite2.remover();
 
-			}
+                // remover = true;
+            }
 
-		}
+            if (dezplazamiento) {
 
-		if (tiempoParpadeo % 2 == 0)
-		{
+                if (ciclo >= 3) {
 
-			parpadeo = true;
+                    ciclo = 0;
+                }
 
-		}
-		else
-		{
+                if (ciclo == 0) {
 
-			parpadeo = false;
-		}
+                    igual1 = x;
 
-		if (tiempoParpadeo <= 0)
-		{
+                    direccionDezplazamientoX1 = coordenadaPantallaX;
+                }
+                if (ciclo == 1) {
 
-			tiempoParpadeo = 0;
+                    igual2 = x;
 
-			inmune = true;
-		}
-		else
-		{
-			inmune = false;
-		}
+                    direccionDezplazamientoX2 = coordenadaPantallaX;
+                }
 
-		tiempoParpadeo -= 1;
+                if ((int) igual1 == (int) igual2) {
+                    dezplazamiento = false;
 
-		if (vida == 0)
-		{
+                    satelite1.setDezlizandoDedo(false);
 
-			vida = 0;
+                    satelite2.setDezlizandoDedo(false);
 
-			satelite1.remover();
+                } else {
 
-			satelite2.remover();
+                    dezplazamiento = true;
 
-			//remover = true;
-		}
+                    satelite1.setDezlizandoDedo(true);
 
+                    satelite2.setDezlizandoDedo(true);
+                }
 
-		if (dezplazamiento)
-		{
+                if (ciclo == 2) {
 
-			if (ciclo >= 3)
-			{
+                    if ((int) direccionDezplazamientoX1 > (int) direccionDezplazamientoX2) {
 
+                        satelite1.setLado(Satelite.LADO_IZQUIERDO);
 
-				ciclo = 0;
+                        satelite2.setLado(Satelite.LADO_IZQUIERDO);
 
-			}
+                        lado = Jugador.LADO_IZQUIERDO;
+                    }
 
+                    if ((int) direccionDezplazamientoX1 < (int) direccionDezplazamientoX2) {
 
-			if (ciclo == 0)
-			{
+                        satelite1.setLado(Satelite.LADO_DERECHO);
 
-				igual1 = x;
+                        satelite2.setLado(Satelite.LADO_DERECHO);
 
-				direccionDezplazamientoX1 = coordenadaPantallaX;
+                        lado = Jugador.LADO_DERECHO;
+                    }
+                }
 
+                ciclo++;
+            }
+        }
 
+        if (vida == 0) {
 
-			}
-			if (ciclo == 1)
-			{
+            vida = 0;
 
+            satelite1.remover();
 
-                igual2 = x;
+            satelite2.remover();
 
-				direccionDezplazamientoX2 = coordenadaPantallaX;
+            // remover = true;
+        }
+    }
 
+    @Override
+    public void dibujar(Graficos pincel, float delta) {
+        if (vida > 0) {
+            if (!parpadeo) {
 
-			}
+                if (disparar) {
 
-			if ((int)igual1 == (int)igual2)
-			{
-				dezplazamiento = false;
+                    animar = true;
 
-				satelite1.setDezlizandoDedo(false);
+                    if (ladoJugador == Jugador.LADO_DERECHO) {
 
-				satelite2.setDezlizandoDedo(false);
+                        texturas[0] = texturasJ[0];
 
+                        texturas[1] = texturasJ[1];
 
+                        super.dibujar(pincel, delta);
+                    }
+                    if (ladoJugador == Jugador.LADO_IZQUIERDO) {
 
+                        texturas[0] = texturasJ[2];
 
+                        texturas[1] = texturasJ[3];
 
-			}
-			else
-			{
+                        super.dibujar(pincel, delta);
+                    }
 
+                } else {
 
+                    animar = false;
 
-				dezplazamiento = true;
+                    if (ladoJugador == Jugador.LADO_DERECHO) {
 
-				satelite1.setDezlizandoDedo(true);
+                        texturas[0] = texturasJ[0];
 
-				satelite2.setDezlizandoDedo(true);
+                        texturas[1] = texturasJ[0];
 
-			}
+                        super.dibujar(pincel, delta);
+                    }
+                    if (ladoJugador == Jugador.LADO_IZQUIERDO) {
 
+                        texturas[0] = texturasJ[2];
+                        texturas[1] = texturasJ[2];
 
-			if (ciclo == 2)
-			{
+                        super.dibujar(pincel, delta);
+                    }
+                }
+            }
+        }
+    }
 
-				if ((int)direccionDezplazamientoX1 > (int)direccionDezplazamientoX2)
-				{
+    @Override
+    public void colision(Actor actor) {
 
+        if (inmune) {
 
-					satelite1.setLado(Satelite.LADO_IZQUIERDO);
+            if (actor instanceof BalaEnemigo
+                    || actor instanceof Volador
+                    || actor instanceof LanzaMisil
+                    || actor instanceof Caja
+                    || actor instanceof BalaEnemigoDestruible
+                    || actor instanceof MaquinaFinal
+                    || actor instanceof Misil
+                    || actor instanceof MaquinaPared
+                    || actor instanceof Saltador
+                    || actor instanceof AntiAreo
+                    || actor instanceof Robot) {
 
-					satelite2.setLado(Satelite.LADO_IZQUIERDO);
+                poder = false;
 
+                velocidad = Jugador.VELOCIDAD_JUGADOR;
 
+                tiempoParpadeo = 100;
 
-				}
+                vida--;
+            }
+        }
 
-				if ((int)direccionDezplazamientoX1 < (int)direccionDezplazamientoX2)
-				{
+        if (actor instanceof Poder) {
 
+            Poder p = (Poder) actor;
 
-					satelite1.setLado(Satelite.LADO_DERECHO);
+            recurso.getSonido("poder.wav").reproducir(1);
 
-					satelite2.setLado(Satelite.LADO_DERECHO);
+            if (p.getPoder() != Caja.AGILIDAD_S) {
 
+                tipoPoder = p.getPoder();
 
-				}
+                poder = true;
+            }
 
+            if (p.getPoder() == Caja.AGILIDAD_S) {
 
-			}
+                velocidad += 1;
+            }
+        }
+    }
 
+    public int getVida() {
+        return vida;
+    }
 
-			ciclo++;
+    protected void actualizarVelocidad() {
 
-		}
-}
+        velocidadX = 0;
 
-		if (vida == 0)
-		{
+        velocidadY = 0;
 
-			vida = 0;
+        if (abajo) {
+            velocidadY = velocidad;
+        }
 
-			satelite1.remover();
+        if (arriba) {
 
-			satelite2.remover();
+            velocidadY = -velocidad;
+        }
 
-			//remover = true;
-		}
+        if (izquierda) {
+            velocidadX = -velocidad;
+        }
 
-	}
+        if (derecha) {
+            velocidadX = velocidad;
+        }
+    }
 
-	@Override
-	public void dibujar(Graficos pincel, float delta)
-	{
-if (vida > 0)
-		{
-		if (!parpadeo)
-		{
+    public void disparar() {
 
-			if (disparar)
-			{
+        if (tiemoDisparo / 0.33f >= 1) {
 
-				animar = true;
+            if (ladoJugador == Jugador.LADO_DERECHO) {
 
-				if (ladoJugador == Jugador.LADO_DERECHO)
-				{
+                Bala bala =
+                        new Bala(pantalla, recurso.getTextura("balaHD.png"), x + 56, y + 16, 16, 4);
 
-					texturas[0] = texturasJ[0];
+                bala.setLado(Bala.DERECHO);
 
-					texturas[1] = texturasJ[1];
+                actores.add(bala);
+            }
+            if (ladoJugador == Jugador.LADO_IZQUIERDO) {
 
-					super.dibujar(pincel, delta);
+                Bala bala = new Bala(pantalla, recurso.getTextura("balaHI.png"), x, y + 16, 16, 4);
 
-				}
-				if (ladoJugador == Jugador.LADO_IZQUIERDO)
-				{
+                bala.setLado(Bala.IZQUIERDO);
 
-					texturas[0] = texturasJ[2];
+                actores.add(bala);
+            }
 
-					texturas[1] = texturasJ[3];
+            tiemoDisparo = 0;
 
-					super.dibujar(pincel, delta);
-				}
+            recurso.getSonido("disparo.wav").reproducir(1);
+        }
+    }
 
-			}
-			else
-			{
+    public void disparoEspecial() {
 
+        if (ladoJugador == Jugador.LADO_DERECHO) {
 
+            if (tiemoDisparo / 0.33f >= 1) {
 
-				animar = false;
+                if (tipoPoder == BalaEspecial.BALA_W) {
 
-				if (ladoJugador == Jugador.LADO_DERECHO)
-				{
+                    Textura[] texturas =
+                            new Textura[] {
+                                recurso.getTextura("balaWD1.png"),
+                                recurso.getTextura("balaWD2.png"),
+                                recurso.getTextura("balaWD3.png")
+                            };
 
-					texturas[0] = texturasJ[0];
+                    BalaEspecial bala =
+                            new BalaEspecial(pantalla, texturas, x + 56, y - 16, 16, 64, 5);
 
-					texturas[1] = texturasJ[0];
+                    bala.setLado(BalaEspecial.DERECHO);
 
-					super.dibujar(pincel, delta);
+                    bala.setBala(BalaEspecial.BALA_W);
 
-				}
-				if (ladoJugador == Jugador.LADO_IZQUIERDO)
-				{
+                    actores.add(bala);
+                }
+                tiemoDisparo = 0;
+            }
 
-					texturas[0] = texturasJ[2];
-					texturas[1] = texturasJ[2];
+            if (tiemoDisparoL / 0.1f >= 1) {
 
-					super.dibujar(pincel, delta);
-				}
+                if (tipoPoder == BalaEspecial.BALA_L) {
 
-			}
+                    Textura[] texturas =
+                            new Textura[] {
+                                recurso.getTextura("balaLD3.png"),
+                                recurso.getTextura("balaLD3.png"),
+                                recurso.getTextura("balaLD3.png")
+                            };
 
-		}
-		
-		}
+                    BalaEspecial bala =
+                            new BalaEspecial(pantalla, texturas, x - 48, y + 16, 256, 4, 5);
 
-	}
+                    bala.setLado(BalaEspecial.DERECHO);
 
-	@Override
-	public void colision(Actor actor)
-	{
+                    bala.setBala(BalaEspecial.BALA_L);
 
-		if (inmune)
-		{
+                    bala.setVelocidad(70);
 
-			if (actor instanceof BalaEnemigo || actor instanceof Volador || actor instanceof LanzaMisil
-				|| actor instanceof Caja || actor instanceof BalaEnemigoDestruible || actor instanceof MaquinaFinal
-				|| actor instanceof Misil || actor instanceof MaquinaPared || actor instanceof Saltador
-				|| actor instanceof AntiAreo || actor instanceof Robot)
-			{
+                    recurso.getSonido("disparoL.wav").reproducir(1);
 
-				poder = false;
+                    actores.add(bala);
+                }
 
-				velocidad = Jugador.VELOCIDAD_JUGADOR;
+                tiemoDisparoL = 0;
+            }
 
-				tiempoParpadeo = 100;
+            if (tiemoDisparoB / 0.5f >= 1) {
 
-				vida--;
+                if (tipoPoder == BalaEspecial.BALA_B) {
 
-			}
+                    BalaEspecial bala =
+                            new BalaEspecial(
+                                    pantalla,
+                                    recurso.getTextura("balaBD.png"),
+                                    x + 56,
+                                    y + 12,
+                                    12,
+                                    12);
 
-		}
+                    bala.setLado(BalaEspecial.DERECHO);
 
-		if (actor instanceof Poder)
-		{
+                    bala.setBala(BalaEspecial.BALA_B);
 
-			Poder p = (Poder) actor;
+                    recurso.getSonido("disparo.wav").reproducir(1);
 
-			recurso.getSonido("poder.wav").reproducir(1);
+                    actores.add(bala);
+                }
 
-			if (p.getPoder() != Caja.AGILIDAD_S)
-			{
+                tiemoDisparoB = 0;
+            }
+        }
+        if (ladoJugador == Jugador.LADO_IZQUIERDO) {
 
-				tipoPoder = p.getPoder();
+            if (tiemoDisparo / 0.33f >= 1) {
 
-				poder = true;
-			}
+                if (tipoPoder == BalaEspecial.BALA_W) {
 
-			if (p.getPoder() == Caja.AGILIDAD_S)
-			{
+                    Textura[] texturas =
+                            new Textura[] {
+                                recurso.getTextura("balaWI1.png"),
+                                recurso.getTextura("balaWI2.png"),
+                                recurso.getTextura("balaWI3.png")
+                            };
 
-				velocidad += 1;
+                    BalaEspecial bala = new BalaEspecial(pantalla, texturas, x, y - 16, 16, 64, 5);
 
-			}
+                    bala.setLado(BalaEspecial.IZQUIERDO);
 
-		}
+                    bala.setBala(BalaEspecial.BALA_W);
 
-	}
+                    actores.add(bala);
+                }
 
-	public int getVida()
-	{
-		return vida;
-	}
+                tiemoDisparo = 0;
+            }
 
-	protected void actualizarVelocidad()
-	{
+            if (tiemoDisparoL / 0.1f >= 1) {
 
-		velocidadX = 0;
+                if (tipoPoder == BalaEspecial.BALA_L) {
 
-		velocidadY = 0;
+                    Textura[] texturas =
+                            new Textura[] {
+                                recurso.getTextura("balaLI3.png"),
+                                recurso.getTextura("balaLI3.png"),
+                                recurso.getTextura("balaLI3.png")
+                            };
 
-		if (abajo)
-		{
-			velocidadY = velocidad;
-		}
+                    BalaEspecial bala =
+                            new BalaEspecial(pantalla, texturas, x - 144, y + 16, 256, 4, 5);
 
-		if (arriba)
-		{
+                    bala.setLado(BalaEspecial.IZQUIERDO);
 
-			velocidadY = -velocidad;
-		}
+                    bala.setBala(BalaEspecial.BALA_L);
 
-		if (izquierda)
-		{
-			velocidadX = -velocidad;
+                    bala.setVelocidad(70);
 
-		}
+                    recurso.getSonido("disparoL.wav").reproducir(1);
 
-		if (derecha)
-		{
-			velocidadX = velocidad;
+                    actores.add(bala);
+                }
 
-		}
+                tiemoDisparoL = 0;
+            }
 
-	}
+            if (tiemoDisparoB / 0.5f >= 1) {
 
-	public void disparar()
-	{
+                if (tipoPoder == BalaEspecial.BALA_B) {
 
-		if (tiemoDisparo / 0.33f >= 1)
-		{
+                    BalaEspecial bala =
+                            new BalaEspecial(
+                                    pantalla, recurso.getTextura("balaBI.png"), x, y + 12, 12, 12);
 
-			if (ladoJugador == Jugador.LADO_DERECHO)
-			{
+                    bala.setLado(BalaEspecial.IZQUIERDO);
 
+                    bala.setBala(BalaEspecial.BALA_B);
 
-				Bala bala = new Bala(pantalla, recurso.getTextura("balaHD.png"), x + 56, y + 16, 16, 4);
+                    recurso.getSonido("disparo.wav").reproducir(1);
 
-				bala.setLado(Bala.DERECHO);
+                    actores.add(bala);
+                }
 
-				actores.add(bala);
+                tiemoDisparoB = 0;
+            }
+        }
+    }
 
+    public void teclaPresionada(int codigoDeTecla) {
 
-			}
-			if (ladoJugador == Jugador.LADO_IZQUIERDO)
-			{
+        switch (codigoDeTecla) {
+            case KeyEvent.KEYCODE_0:
+                izquierda = true;
+                dezplazamientoInicial = false;
 
-				Bala bala = new Bala(pantalla, recurso.getTextura("balaHI.png"), x, y + 16, 16, 4);
+                ladoJugador = Jugador.LADO_DERECHO;
 
-				bala.setLado(Bala.IZQUIERDO);
+                break;
 
-				actores.add(bala);
+            case KeyEvent.KEYCODE_1:
+                derecha = true;
+                dezplazamientoInicial = false;
 
-			}
+                ladoJugador = Jugador.LADO_IZQUIERDO;
 
-			tiemoDisparo = 0;
+                break;
+            case KeyEvent.KEYCODE_2:
+                arriba = true;
+                dezplazamientoInicial = false;
+                break;
+            case KeyEvent.KEYCODE_3:
+                abajo = true;
+                dezplazamientoInicial = false;
+                break;
 
-			recurso.getSonido("disparo.wav").reproducir(1);
+            case KeyEvent.KEYCODE_4:
+                disparar = true;
 
-		}
+                satelite1.setDisparar(true);
 
-	}
+                satelite2.setDisparar(true);
 
-	public void disparoEspecial()
-	{
+                break;
 
-		if (ladoJugador == Jugador.LADO_DERECHO)
-		{
+            case KeyEvent.KEYCODE_5:
+                break;
 
-			if (tiemoDisparo / 0.33f >= 1)
-			{
+            default:
+                break;
+        }
 
-				if (tipoPoder == BalaEspecial.BALA_W)
-				{
+        actualizarVelocidad();
+    }
 
-					Textura[] texturas = new Textura[] { recurso.getTextura("balaWD1.png"),
-						recurso.getTextura("balaWD2.png"), recurso.getTextura("balaWD3.png") };
+    public void teclaLevantada(int codigoDeTecla) {
 
-					BalaEspecial bala = new BalaEspecial(pantalla, texturas, x + 56, y - 16, 16, 64, 5);
+        switch (codigoDeTecla) {
+            case KeyEvent.KEYCODE_0:
+                izquierda = false;
 
-					bala.setLado(BalaEspecial.DERECHO);
+                dezplazamientoInicial = false;
 
-					bala.setBala(BalaEspecial.BALA_W);
+                break;
 
-					actores.add(bala);
+            case KeyEvent.KEYCODE_1:
+                derecha = false;
 
-				}
+                dezplazamientoInicial = false;
 
-				if (tipoPoder == BalaEspecial.BALA_L)
-				{
+                break;
+            case KeyEvent.KEYCODE_2:
+                arriba = false;
 
-					Textura[] texturas = new Textura[] { recurso.getTextura("balaLD1.png"),
-						recurso.getTextura("balaLD2.png"), recurso.getTextura("balaLD3.png") };
+                dezplazamientoInicial = false;
 
-					BalaEspecial bala = new BalaEspecial(pantalla, texturas, x - 48, y + 16, 256, 4, 5);
+                break;
+            case KeyEvent.KEYCODE_3:
+                abajo = false;
 
-					bala.setLado(BalaEspecial.DERECHO);
+                dezplazamientoInicial = false;
 
-					bala.setBala(BalaEspecial.BALA_L);
+                break;
 
-					recurso.getSonido("disparoL.wav").reproducir(1);
+            case KeyEvent.KEYCODE_4:
+                disparar = false;
 
-					actores.add(bala);
+                satelite1.setDisparar(false);
 
-				}
+                satelite2.setDisparar(false);
 
-				tiemoDisparo = 0;
+                break;
 
-			}
+            default:
+                break;
+        }
 
-			if (tiemoDisparoB / 0.5f >= 1)
-			{
+        actualizarVelocidad();
+    }
 
-				if (tipoPoder == BalaEspecial.BALA_B)
-				{
+    public void toquePresionado(float xPantalla, float yPantalla, int puntero) {
 
-					BalaEspecial bala = new BalaEspecial(pantalla, recurso.getTextura("balaBD.png"), x + 56, y + 12, 12,
-														 12);
+        dedos++;
 
-					bala.setLado(BalaEspecial.DERECHO);
-
-					bala.setBala(BalaEspecial.BALA_B);
-
-					recurso.getSonido("disparo.wav").reproducir(1);
-
-					actores.add(bala);
-
-				}
-
-				tiemoDisparoB = 0;
-			}
-
-		}
-		if (ladoJugador == Jugador.LADO_IZQUIERDO)
-		{
-
-			if (tiemoDisparo / 0.33f >= 1)
-			{
-
-				if (tipoPoder == BalaEspecial.BALA_W)
-				{
-
-					Textura[] texturas = new Textura[] { recurso.getTextura("balaWI1.png"),
-						recurso.getTextura("balaWI2.png"), recurso.getTextura("balaWI3.png") };
-
-					BalaEspecial bala = new BalaEspecial(pantalla, texturas, x, y - 16, 16, 64, 5);
-
-					bala.setLado(BalaEspecial.IZQUIERDO);
-
-					bala.setBala(BalaEspecial.BALA_W);
-
-					actores.add(bala);
-
-				}
-
-				if (tipoPoder == BalaEspecial.BALA_L)
-				{
-
-					Textura[] texturas = new Textura[] { recurso.getTextura("balaLI1.png"),
-						recurso.getTextura("balaLI2.png"), recurso.getTextura("balaLI3.png") };
-
-					BalaEspecial bala = new BalaEspecial(pantalla, texturas, x - 144, y + 16, 256, 4, 5);
-
-					bala.setLado(BalaEspecial.IZQUIERDO);
-
-					bala.setBala(BalaEspecial.BALA_L);
-
-					recurso.getSonido("disparoL.wav").reproducir(1);
-
-					actores.add(bala);
-
-				}
-
-				tiemoDisparo = 0;
-
-			}
-
-			if (tiemoDisparoB / 0.5f >= 1)
-			{
-
-				if (tipoPoder == BalaEspecial.BALA_B)
-				{
-
-					BalaEspecial bala = new BalaEspecial(pantalla, recurso.getTextura("balaBI.png"), x, y + 12, 12, 12);
-
-					bala.setLado(BalaEspecial.IZQUIERDO);
-
-					bala.setBala(BalaEspecial.BALA_B);
-
-					recurso.getSonido("disparo.wav").reproducir(1);
-
-					actores.add(bala);
-				}
-
-				tiemoDisparoB = 0;
-
-			}
-
-		}
-
-	}
-
-	public void teclaPresionada(int codigoDeTecla)
-	{
-
-		switch (codigoDeTecla)
-		{
-
-			case KeyEvent.KEYCODE_0:
-
-				izquierda = true;
-				dezplazamientoInicial = false;
-
-				ladoJugador = Jugador.LADO_DERECHO;
-
-				break;
-
-			case KeyEvent.KEYCODE_1:
-
-				derecha = true;
-				dezplazamientoInicial = false;
-
-				ladoJugador = Jugador.LADO_IZQUIERDO;
-
-				break;
-			case KeyEvent.KEYCODE_2:
-
-				arriba = true;
-				dezplazamientoInicial = false;
-				break;
-			case KeyEvent.KEYCODE_3:
-
-				abajo = true;
-				dezplazamientoInicial = false;
-				break;
-
-			case KeyEvent.KEYCODE_4:
-
-				disparar = true;
-
-				satelite1.setDisparar(true);
-
-				satelite2.setDisparar(true);
-
-				break;
-
-			case KeyEvent.KEYCODE_5:
-
-				break;
-
-			default:
-
-				break;
-
-		}
-
-		actualizarVelocidad();
-
-	}
-
-	public void teclaLevantada(int codigoDeTecla)
-	{
-
-		switch (codigoDeTecla)
-		{
-
-			case KeyEvent.KEYCODE_0:
-
-				izquierda = false;
-				dezplazamientoInicial = false;
-
-				break;
-
-			case KeyEvent.KEYCODE_1:
-
-				derecha = false;
-				dezplazamientoInicial = false;
-
-				break;
-			case KeyEvent.KEYCODE_2:
-
-				arriba = false;
-				dezplazamientoInicial = false;
-				break;
-			case KeyEvent.KEYCODE_3:
-
-				abajo = false;
-				dezplazamientoInicial = false;
-				break;
-
-			case KeyEvent.KEYCODE_4:
-
-				disparar = false;
-
-				satelite1.setDisparar(false);
-
-				satelite2.setDisparar(false);
-
-				break;
-
-			default:
-
-				break;
-
-		}
-
-		actualizarVelocidad();
-
-	}
-
-	public void toquePresionado(float xPantalla, float yPantalla, int puntero)
-	{
-
-		if (puntero == 0)
-		{
+        if (dedos == 0) {
 
             dezplazamiento = false;
 
-			xDeltaReferencia = x;
+            disparar = true;
 
-			disparar = true;
+            satelite1.setDisparar(true);
 
-			satelite1.setDisparar(true);
+            satelite2.setDisparar(true);
 
-			satelite2.setDisparar(true);
+            satelite1.setDezlizandoDedo(false);
 
-			satelite1.setDezlizandoDedo(false);
+            satelite2.setDezlizandoDedo(false);
 
-			satelite2.setDezlizandoDedo(false);
+            x1 = this.x;
 
+            y1 = this.y;
 
-			x1 = x;
+            deltaXTactil = (int) xPantalla - x1;
 
-			y1 = y;
+            deltaYTactil = (int) yPantalla - y1;
 
-			x = x1;
+            if (x1 <= 32) {
+                x1 = 32;
+            }
 
-			y = y1;
+            if (y1 >= ((Juego.ALTO_PANTALLA - 32) - alto)) {
 
-			deltaXTactil = (int) xPantalla - x1;
+                y1 = (Juego.ALTO_PANTALLA - 32) - alto;
+            }
+            if (x1 >= (Juego.ANCHO_PANTALLA - 32) - ancho) {
+                x1 = (Juego.ANCHO_PANTALLA - 32) - ancho;
+            }
 
-			deltaYTactil = (int) yPantalla - y1;
+            if (y1 <= 32) {
+                y1 = 32;
+            }
 
-			if (x1 <= 32)
-			{
-				x1 = 32;
+        } else if (puntero == 0) {
 
-			}
+            dezplazamiento = false;
 
-			if (y1 >= ((Juego.ALTO_PANTALLA - 32) - alto))
-			{
+            disparar = true;
 
-				y1 = (Juego.ALTO_PANTALLA - 32) - alto;
+            satelite1.setDisparar(true);
 
-			}
-			if (x1 >= (Juego.ANCHO_PANTALLA - 32) - ancho)
-			{
-				x1 = (Juego.ANCHO_PANTALLA - 32) - ancho;
-			}
+            satelite2.setDisparar(true);
 
-			if (y1 <= 32)
-			{
-				y1 = 32;
+            satelite1.setDezlizandoDedo(false);
 
-			}
+            satelite2.setDezlizandoDedo(false);
 
-		}
+            x1 = this.x;
 
-	}
+            y1 = this.y;
 
-	public void toqueLevantado(float x, float y, int puntero)
-	{
-		if (puntero == 0)
-		{
+            deltaXTactil = (int) xPantalla - x1;
 
-			dezplazamiento = false;
+            deltaYTactil = (int) yPantalla - y1;
 
-			disparar = false;
+            if (x1 <= 32) {
+                x1 = 32;
+            }
 
-			satelite1.setDisparar(false);
+            if (y1 >= ((Juego.ALTO_PANTALLA - 32) - alto)) {
 
-			satelite2.setDisparar(false);
+                y1 = (Juego.ALTO_PANTALLA - 32) - alto;
+            }
+            if (x1 >= (Juego.ANCHO_PANTALLA - 32) - ancho) {
+                x1 = (Juego.ANCHO_PANTALLA - 32) - ancho;
+            }
 
-			satelite1.setDezlizandoDedo(false);
+            if (y1 <= 32) {
+                y1 = 32;
+            }
+        }
+    }
 
-			satelite2.setDezlizandoDedo(false);
-		}
+    public void toqueLevantado(float x, float y, int puntero) {
 
-	}
+        if (dedos == 0) {
 
-	public void toqueDeslizando(float xPantalla, float yPantalla, int puntero)
-	{
+            dezplazamiento = false;
 
-		if (puntero == 0)
-		{
+            disparar = false;
 
+            satelite1.setDisparar(false);
 
-			xDelta = (int) xPantalla;
+            satelite2.setDisparar(false);
 
-			if (xDelta >= xDeltaReferencia)
-			{
+            satelite1.setDezlizandoDedo(false);
 
-				// Derecho
+            satelite2.setDezlizandoDedo(false);
+        }
 
-				ladoJugador = Jugador.LADO_DERECHO;
+        deltaToque = true;
 
+        dedos--;
 
+        if (dedos == -1) {
 
-			}
-			else
-			{
+            disparar = false;
+        }
+    }
 
-				// Izquierdo
+    public void toqueDeslizando(float xPantalla, float yPantalla, int puntero) {
 
-				ladoJugador = Jugador.LADO_IZQUIERDO;
+        if (dedos == 0) {
 
+            if (deltaToque) {
 
+                x1 = this.x;
 
-			}
+                y1 = this.y;
 
-			dezplazamiento = true;
+                deltaXTactil = xPantalla - x1;
+
+                deltaYTactil = yPantalla - y1;
+
+                deltaToque = false;
+            }
+
+            if (xPantalla > this.x) {
+
+                if (lado == Jugador.LADO_DERECHO) {
+
+                    // Derecho
+
+                    ladoJugador = Jugador.LADO_DERECHO;
+                }
+            }
+
+            if (xPantalla < this.x) {
+
+                if (lado == Jugador.LADO_IZQUIERDO) {
+
+                    // Izquierdo
+
+                    ladoJugador = Jugador.LADO_IZQUIERDO;
+                }
+            }
+
+            dezplazamiento = true;
 
             this.coordenadaPantallaX = xPantalla;
 
-			this.coordenadaPantallaY = yPantalla;
+            this.coordenadaPantallaY = yPantalla;
 
+            x1 = (int) xPantalla - deltaXTactil;
 
-			x1 = (int) xPantalla - deltaXTactil;
+            y1 = (int) yPantalla - deltaYTactil;
 
-			y1 = (int) yPantalla - deltaYTactil;
+            if (x1 <= 32) {
 
-			if (x1 <= 32)
-			{
+                x1 = 32;
+            }
+            if (y1 >= (Juego.ALTO_PANTALLA - 32) - alto) {
+                y1 = (Juego.ALTO_PANTALLA - 32) - alto;
+            }
 
-				x1 = 32;
-			}
-			if (y1 >= (Juego.ALTO_PANTALLA - 32) - alto)
-			{
-				y1 = (Juego.ALTO_PANTALLA - 32) - alto;
-			}
+            if (x1 >= (Juego.ANCHO_PANTALLA - 32) - ancho) {
+                x1 = (Juego.ANCHO_PANTALLA - 32) - ancho;
+            }
+            if (y1 <= 32) {
 
-			if (x1 >= (Juego.ANCHO_PANTALLA - 32) - ancho)
-			{
-				x1 = (Juego.ANCHO_PANTALLA - 32) - ancho;
-			}
-			if (y1 <= 32)
-			{
+                y1 = 32;
+            }
 
-				y1 = 32;
-			}
+            this.x = x1;
 
-			x = x1;
+            this.y = y1;
 
-			y = y1;
+            dezplazamientoInicial = false;
 
-			dezplazamientoInicial = false;
+        } else if (puntero == 0) {
 
+            if (xPantalla > this.x) {
 
-		}
+                if (lado == Jugador.LADO_DERECHO) {
 
-	}
+                    // Derecho
 
-	public void acelerometro(float x, float y, float z)
-	{
+                    ladoJugador = Jugador.LADO_DERECHO;
+                }
+            }
 
+            if (xPantalla < this.x) {
 
-	}
+                if (lado == Jugador.LADO_IZQUIERDO) {
 
-} 
+                    // Izquierdo
+
+                    ladoJugador = Jugador.LADO_IZQUIERDO;
+                }
+            }
+
+            dezplazamiento = true;
+
+            this.coordenadaPantallaX = xPantalla;
+
+            this.coordenadaPantallaY = yPantalla;
+
+            x1 = (int) xPantalla - deltaXTactil;
+
+            y1 = (int) yPantalla - deltaYTactil;
+
+            if (x1 <= 32) {
+
+                x1 = 32;
+            }
+            if (y1 >= (Juego.ALTO_PANTALLA - 32) - alto) {
+                y1 = (Juego.ALTO_PANTALLA - 32) - alto;
+            }
+
+            if (x1 >= (Juego.ANCHO_PANTALLA - 32) - ancho) {
+                x1 = (Juego.ANCHO_PANTALLA - 32) - ancho;
+            }
+            if (y1 <= 32) {
+
+                y1 = 32;
+            }
+
+            this.x = x1;
+
+            this.y = y1;
+
+            dezplazamientoInicial = false;
+        }
+    }
+
+    public void acelerometro(float x, float y, float z) {}
+}

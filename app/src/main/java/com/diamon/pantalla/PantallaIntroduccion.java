@@ -8,136 +8,115 @@ import com.diamon.nucleo.Musica;
 
 public class PantallaIntroduccion extends Pantalla2D {
 
-	private Musica musica;
+    private Musica musica;
 
-	private float tiempo;
+    private float tiempo;
 
-	private Textura2D textura1;
+    private Textura2D textura1;
 
-	private Textura2D textura2;
+    private Textura2D textura2;
 
-	private float x;
+    private float x;
 
-	public PantallaIntroduccion(Juego juego) {
-		super(juego);
+    public PantallaIntroduccion(Juego juego) {
+        super(juego);
 
-		tiempo = 0;
+        tiempo = 0;
 
-		textura1 = new Textura2D(juego.getRecurso().getTextura("fondoIntroduccion3.png").getBipmap(),
-				Juego.ANCHO_PANTALLA, Juego.ALTO_PANTALLA);
+        textura1 =
+                new Textura2D(
+                        juego.getRecurso().getTextura("fondoIntroduccion3.png").getBipmap(),
+                        Juego.ANCHO_PANTALLA,
+                        Juego.ALTO_PANTALLA);
 
-		textura2 = new Textura2D(juego.getRecurso().getTextura("fondoIntroduccion3.png").getBipmap(),
-				Juego.ANCHO_PANTALLA, Juego.ALTO_PANTALLA);
+        textura2 =
+                new Textura2D(
+                        juego.getRecurso().getTextura("fondoIntroduccion3.png").getBipmap(),
+                        Juego.ANCHO_PANTALLA,
+                        Juego.ALTO_PANTALLA);
 
-		musica = juego.getRecurso().getMusica("introduccion.wav");
+        musica = juego.getRecurso().getMusica("introduccion.wav");
 
-		musica.reproducir();
+        musica.reproducir();
 
-		x = 0;
-	}
+        x = 0;
+    }
 
-	@Override
-	public void mostrar() {
+    @Override
+    public void mostrar() {}
 
-	}
+    @Override
+    public void resume() {}
 
-	@Override
-	public void resume() {
+    @Override
+    public void colisiones() {}
 
-	}
+    @Override
+    public void actualizar(float delta) {
 
-	@Override
-	public void colisiones() {
+        tiempo += delta;
 
-	}
+        if (tiempo / 120f >= 1) {
 
-	@Override
-	public void actualizar(float delta) {
+            musica.terminar();
 
-		tiempo += delta;
+            juego.setPantalla(new PantallaMenu(juego));
 
-		if (tiempo / 120f >= 1) {
+            tiempo = 0;
+        }
 
-			musica.terminar();
+        x--;
 
-			juego.setPantalla(new PantallaMenu(juego));
+        if (x <= -Juego.ANCHO_PANTALLA) {
 
-			tiempo = 0;
+            x = 0;
+        }
+    }
 
-		}
+    @Override
+    public void dibujar(Graficos pincel, float delta) {
 
-		x--;
+        pincel.dibujarTextura(textura1, x, 0);
 
-		if (x <= -Juego.ANCHO_PANTALLA) {
+        pincel.dibujarTextura(textura2, x + Juego.ANCHO_PANTALLA, 0);
+    }
 
-			x = 0;
-		}
+    @Override
+    public void reajustarPantalla(int ancho, int alto) {}
 
-	}
+    @Override
+    public void pausa() {}
 
-	@Override
-	public void dibujar(Graficos pincel, float delta) {
+    @Override
+    public void ocultar() {
 
-		pincel.dibujarTextura(textura1, x, 0);
+        musica.terminar();
+    }
 
-		pincel.dibujarTextura(textura2, x + Juego.ANCHO_PANTALLA, 0);
+    @Override
+    public void liberarRecursos() {}
 
-	}
+    @Override
+    public void teclaPresionada(int codigoDeTecla) {}
 
-	@Override
-	public void reajustarPantalla(int ancho, int alto) {
+    @Override
+    public void teclaLevantada(int codigoDeTecla) {}
 
-	}
+    @Override
+    public void toquePresionado(float x, float y, int puntero) {
 
-	@Override
-	public void pausa() {
+        juego.setPantalla(new PantallaMenu(juego));
+    }
 
-	}
+    @Override
+    public void toqueLevantado(float x, float y, int puntero) {
 
-	@Override
-	public void ocultar() {
+        juego.setPantalla(new PantallaMenu(juego));
+    }
 
-		musica.terminar();
+    @Override
+    public void toqueDeslizando(float x, float y, int puntero) {}
 
-	}
-
-	@Override
-	public void liberarRecursos() {
-
-	}
-
-	@Override
-	public void teclaPresionada(int codigoDeTecla) {
-
-	}
-
-	@Override
-	public void teclaLevantada(int codigoDeTecla) {
-
-	}
-
-	@Override
-	public void toquePresionado(float x, float y, int puntero) {
-
-		juego.setPantalla(new PantallaMenu(juego));
-
-	}
-
-	@Override
-	public void toqueLevantado(float x, float y, int puntero) {
-
-		juego.setPantalla(new PantallaMenu(juego));
-
-	}
-
-	@Override
-	public void toqueDeslizando(float x, float y, int puntero) {
-
-	}
-
-	@Override
-	public void acelerometro(float x, float y, float z) {
-
-	}
-
+    @Override
+    public void acelerometro(float x, float y, float z) {}
 }

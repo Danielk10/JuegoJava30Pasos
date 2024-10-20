@@ -1,51 +1,51 @@
 package com.diamon.nucleo;
 
-import java.util.ArrayList;
-
 import com.diamon.actor.Jugador;
 import com.diamon.dato.ConfiguracionesDeJuego;
 import com.diamon.graficos.Pantalla2D;
 import com.diamon.utilidad.Recurso;
 
+import java.util.ArrayList;
+
 public abstract class Mundo {
 
-	protected Pantalla pantalla;
+    protected Pantalla pantalla;
 
-	protected Jugador jugador;
+    protected Jugador jugador;
 
-	protected Juego juego;
+    protected Juego juego;
 
-	protected ArrayList<Actor> actores;
+    protected ArrayList<Actor> actores;
 
-	protected Recurso recurso;
+    protected Recurso recurso;
 
-	protected ConfiguracionesDeJuego configuracionesDeJuego;
+    protected ConfiguracionesDeJuego configuracionesDeJuego;
 
-	public Mundo(Pantalla pantalla, Jugador jugador) {
+    public Mundo(Pantalla pantalla, Jugador jugador) {
 
-		this.pantalla = pantalla;
+        this.pantalla = pantalla;
 
-		this.juego = ((Pantalla2D) pantalla).getJuego();
+        this.juego = ((Pantalla2D) pantalla).getJuego();
 
-		this.jugador = jugador;
+        this.jugador = jugador;
 
-		this.actores = ((Pantalla2D) pantalla).getActores();
+        this.actores = ((Pantalla2D) pantalla).getActores();
 
-		this.recurso = ((Pantalla2D) pantalla).getJuego().getRecurso();
+        this.recurso = ((Pantalla2D) pantalla).getJuego().getRecurso();
 
-		this.configuracionesDeJuego = ((Pantalla2D) pantalla).getJuego().getConfiguracionesDeJuego();
+        this.configuracionesDeJuego =
+                ((Pantalla2D) pantalla).getJuego().getConfiguracionesDeJuego();
 
-		iniciar();
-	}
+        iniciar();
+    }
 
-	protected abstract void iniciar();
+    protected abstract void iniciar();
 
-	public abstract void actualizar(float delta);
+    public abstract void actualizar(float delta);
 
-	public abstract void dibujar(Graficos pincel, float delta);
+    public abstract void dibujar(Graficos pincel, float delta);
 
-	public abstract void guardarDatos();
+    public abstract void guardarDatos();
 
-	public abstract void liberarRecursos();
-
+    public abstract void liberarRecursos();
 }

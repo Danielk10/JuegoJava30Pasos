@@ -1,9 +1,5 @@
 package com.diamon.juego;
 
-
-import com.diamon.utilidad.PantallaCompleta;
-
-
 import android.app.Activity;
 import android.content.Context;
 import android.media.AudioManager;
@@ -14,105 +10,104 @@ import android.view.KeyEvent;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 
-
+import com.diamon.utilidad.PantallaCompleta;
 
 public class Inicio extends Activity {
 
-	private WakeLock wakeLock;
+    private WakeLock wakeLock;
 
-	private FinalMision juego;
+    private FinalMision juego;
 
-	private PantallaCompleta pantallaCompleta;
+    private PantallaCompleta pantallaCompleta;
 
-	@SuppressWarnings({ "deprecation", "unused" })
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
+    @SuppressWarnings({"deprecation", "unused"})
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
 
-		super.onCreate(savedInstanceState);
+        super.onCreate(savedInstanceState);
 
-		pantallaCompleta = new PantallaCompleta(this);
+        pantallaCompleta = new PantallaCompleta(this);
 
-		pantallaCompleta.pantallaCompleta();
+        pantallaCompleta.pantallaCompleta();
 
-		pantallaCompleta.ocultarBotonesVirtuales();
+        pantallaCompleta.ocultarBotonesVirtuales();
 
-		setVolumeControlStream(AudioManager.STREAM_MUSIC);
+        setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
-		juego = new FinalMision(this);
+        juego = new FinalMision(this);
 
-		RelativeLayout mainLayout = new RelativeLayout(this);
+        RelativeLayout mainLayout = new RelativeLayout(this);
 
-		FrameLayout frame = new FrameLayout(this);
+        FrameLayout frame = new FrameLayout(this);
 
-		RelativeLayout.LayoutParams mrecParameters = new RelativeLayout.LayoutParams(
-				RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-		mrecParameters.addRule(RelativeLayout.CENTER_HORIZONTAL);
-		mrecParameters.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+        RelativeLayout.LayoutParams mrecParameters =
+                new RelativeLayout.LayoutParams(
+                        RelativeLayout.LayoutParams.WRAP_CONTENT,
+                        RelativeLayout.LayoutParams.WRAP_CONTENT);
+        mrecParameters.addRule(RelativeLayout.CENTER_HORIZONTAL);
+        mrecParameters.addRule(RelativeLayout.ALIGN_PARENT_TOP);
 
-		frame.addView(juego, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT,
-				FrameLayout.LayoutParams.MATCH_PARENT));
+        frame.addView(
+                juego,
+                new FrameLayout.LayoutParams(
+                        FrameLayout.LayoutParams.MATCH_PARENT,
+                        FrameLayout.LayoutParams.MATCH_PARENT));
 
-		frame.addView(mainLayout);
+        frame.addView(mainLayout);
 
-		setContentView(frame);
+        setContentView(frame);
 
-		PowerManager powerManejador = (PowerManager) getSystemService(Context.POWER_SERVICE);
-		wakeLock = powerManejador.newWakeLock(PowerManager.FULL_WAKE_LOCK, "GLGame");
-	}
+        PowerManager powerManejador = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        wakeLock = powerManejador.newWakeLock(PowerManager.FULL_WAKE_LOCK, "GLGame");
+    }
 
-	@Override
-	protected void onPause() {
+    @Override
+    protected void onPause() {
 
-		super.onPause();
+        super.onPause();
 
-		juego.pausa();
+        juego.pausa();
 
-		wakeLock.release();
+        wakeLock.release();
 
-		if (isFinishing()) {
-			juego.liberarRecursos();
+        if (isFinishing()) {
+            juego.liberarRecursos();
+        }
+    }
 
-		}
+    @Override
+    protected void onResume() {
 
-	}
+        super.onResume();
 
-	@Override
-	protected void onResume() {
+        juego.resumen();
 
-		super.onResume();
+        wakeLock.acquire();
+    }
 
-		juego.resumen();
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
 
-		wakeLock.acquire();
+        if (hasFocus) {
 
-	}
+            pantallaCompleta.ocultarBotonesVirtuales();
+        }
+    }
 
-	@Override
-	public void onWindowFocusChanged(boolean hasFocus) {
-		super.onWindowFocusChanged(hasFocus);
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
 
-		if (hasFocus) {
+        pantallaCompleta.ocultarBotonesVirtuales();
 
-			pantallaCompleta.ocultarBotonesVirtuales();
-		}
+        return super.onKeyUp(keyCode, event);
+    }
 
-	}
+    @Override
+    public void onBackPressed() {
 
-	@Override
-	public boolean onKeyUp(int keyCode, KeyEvent event) {
+        super.onBackPressed();
 
-		pantallaCompleta.ocultarBotonesVirtuales();
-
-		return super.onKeyUp(keyCode, event);
-	}
-
-	@Override
-	public void onBackPressed() {
-
-		super.onBackPressed();
-
-		System.exit(0);
-
-	}
-
+        System.exit(0);
+    }
 }

@@ -1,6 +1,12 @@
 package com.diamon.nucleo;
 
-import java.util.List;
+import android.app.Activity;
+import android.content.res.Configuration;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Rect;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 
 import com.diamon.dato.ConfiguracionesDeJuego;
 import com.diamon.dato.DatosJuego;
@@ -12,497 +18,422 @@ import com.diamon.nucleo.Entrada.EventoDeToque;
 import com.diamon.nucleo.Graficos.FormatoTextura;
 import com.diamon.utilidad.Recurso;
 
-import android.app.Activity;
-import android.content.res.Configuration;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Rect;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
+import java.util.List;
 
+public abstract class Juego extends SurfaceView implements Runnable, SurfaceHolder.Callback {
 
+    public static final float ANCHO_PANTALLA = 640;
 
+    public static final float ALTO_PANTALLA = 480;
 
-public abstract class Juego extends SurfaceView implements Runnable, SurfaceHolder.Callback
-{
+    public static final float DELTA_A_PIXEL = 0.0166666666666667F;
 
-	public final static float ANCHO_PANTALLA = 640;
+    public static final int FPS = 60;
 
-	public final static float ALTO_PANTALLA = 480;
+    private Thread hilo;
 
-	public static final float DELTA_A_PIXEL = 0.0166666666666667F;
+    public static final String TITULO_JUEGO = "Final Mision";
 
-	public static final int FPS = 60;
+    private volatile boolean iniciar;
 
-	private Thread hilo;
+    private static final int UNIDAD_TIEMPO = 1000000000;
 
-	public static final String TITULO_JUEGO = "Final Mision";
+    private double delta;
 
-	private volatile boolean iniciar;
+    private static final byte CICLOS = 60;
 
-	private final static int UNIDAD_TIEMPO = 1000000000;
+    private static final double LIMITE_CICLOS = UNIDAD_TIEMPO / CICLOS;
 
-	private double delta;
+    protected Pantalla pantalla;
 
-	private final static byte CICLOS = 60;
+    private SurfaceHolder holder;
 
-	private final static double LIMITE_CICLOS = UNIDAD_TIEMPO / CICLOS;
+    protected Recurso recurso;
 
-	protected Pantalla pantalla;
+    protected DatosJuego datos;
 
-	private SurfaceHolder holder;
+    protected ConfiguracionesDeJuego configuracionesDeJuego;
 
-	protected Recurso recurso;
+    private Textura bufer;
 
-	protected DatosJuego datos;
+    protected EntradaDeControles entraDeControles;
 
-	protected ConfiguracionesDeJuego configuracionesDeJuego;
+    private boolean mostrarFPS;
 
-	private Textura bufer;
+    private boolean colorAzul;
 
-	protected EntradaDeControles entraDeControles;
+    @SuppressWarnings("deprecation")
+    public Juego(Activity actividad) {
 
+        super(actividad);
 
+        mostrarFPS = true;
 
-	@SuppressWarnings("deprecation")
-	public Juego(Activity actividad)
-	{
+        colorAzul = false;
 
-		super(actividad);
+        boolean isModoHorizontal =
+                getResources().getConfiguration().orientation
+                        == Configuration.ORIENTATION_LANDSCAPE;
 
-		boolean isModoHorizontal = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
+        int imagenBuferAncho = 0;
 
-		int imagenBuferAncho = 0;
+        int imagenBuferAlto = 0;
 
-		int imagenBuferAlto = 0;
+        if (isModoHorizontal) {
 
+            imagenBuferAncho = (int) Juego.ANCHO_PANTALLA;
 
-		if (isModoHorizontal)
-		{
+            imagenBuferAlto = (int) Juego.ALTO_PANTALLA;
 
-			imagenBuferAncho =  (int) Juego.ANCHO_PANTALLA;
+        } else {
 
-			imagenBuferAlto = (int) Juego.ALTO_PANTALLA;
+            imagenBuferAncho = (int) Juego.ALTO_PANTALLA;
 
+            imagenBuferAlto = (int) Juego.ANCHO_PANTALLA;
+        }
 
-		}
-		else
-		{
+        bufer = new Textura2D(imagenBuferAncho, imagenBuferAlto, FormatoTextura.ARGB8888);
 
-			imagenBuferAncho = (int) Juego.ALTO_PANTALLA;
+        float escalaX =
+                (float) imagenBuferAncho
+                        / actividad.getWindowManager().getDefaultDisplay().getWidth();
 
-			imagenBuferAlto = (int) Juego.ANCHO_PANTALLA;
-		}
+        float escalaY =
+                (float) imagenBuferAlto
+                        / actividad.getWindowManager().getDefaultDisplay().getHeight();
 
+        configuracionesDeJuego =
+                new ConfiguracionesDeJuego(actividad, ConfiguracionesDeJuego.INTERNO);
 
-		bufer = new Textura2D(imagenBuferAncho, imagenBuferAlto, FormatoTextura.ARGB8888);
+        configuracionesDeJuego = configuracionesDeJuego.cargarConfiguraciones();
 
-		float escalaX = (float) imagenBuferAncho / actividad.getWindowManager().getDefaultDisplay().getWidth();
+        if (configuracionesDeJuego.isLeerDatosAsset()) {
 
-		float escalaY = (float) imagenBuferAlto / actividad.getWindowManager().getDefaultDisplay().getHeight();
+            ConfiguracionesDeJuego configuracionesDeJuegoInterna =
+                    new ConfiguracionesDeJuego(actividad, ConfiguracionesDeJuego.ASSET);
 
-		configuracionesDeJuego = new ConfiguracionesDeJuego(actividad, ConfiguracionesDeJuego.INTERNO);
+            configuracionesDeJuego = configuracionesDeJuegoInterna.cargarConfiguraciones();
 
-		configuracionesDeJuego = configuracionesDeJuego.cargarConfiguraciones();
+            configuracionesDeJuego.setLeerDatosAsset(false);
 
-		if (configuracionesDeJuego.isLeerDatosAsset())
-		{
+            configuracionesDeJuego.guardarConfiguraciones();
+        }
 
-			ConfiguracionesDeJuego configuracionesDeJuegoInterna = new ConfiguracionesDeJuego(actividad,
-																							  ConfiguracionesDeJuego.ASSET);
+        delta = 0;
 
-			configuracionesDeJuego = configuracionesDeJuegoInterna.cargarConfiguraciones();
+        hilo = new Thread(this);
 
-			configuracionesDeJuego.setLeerDatosAsset(false);
+        iniciar = false;
 
-			configuracionesDeJuego.guardarConfiguraciones();
+        pantalla = null;
 
-		}
+        holder = getHolder();
 
+        holder.addCallback(this);
 
-		delta = 0;
+        holder.setType(SurfaceHolder.SURFACE_TYPE_GPU);
 
-		hilo = new Thread(this);
+        recurso = new Recurso(actividad);
 
-		iniciar = false;
+        entraDeControles = new EntradaDeControles(actividad, this, escalaX, escalaY);
 
-		pantalla = null;
+        setFocusable(true);
 
-		holder = getHolder();
+        requestFocus();
 
-		holder.addCallback(this);
+        setFocusableInTouchMode(true);
+    }
 
-		holder.setType(SurfaceHolder.SURFACE_TYPE_GPU);
+    @Override
+    public void run() {
 
-		recurso = new Recurso(actividad);
+        Rect rectangulo = new Rect();
 
-		entraDeControles = new EntradaDeControles(actividad, this, escalaX, escalaY);
+        Canvas pincel;
 
-		setFocusable(true);
+        final Graficos pincelBufer = new Graficos2D(bufer);
 
-		requestFocus();
+        double referencia = System.nanoTime();
 
-		setFocusableInTouchMode(true);
+        while (iniciar) {
 
-	}
+            final double tiempoInicial = System.nanoTime();
 
-	@Override
-	public void run()
-	{
+            delta = (float) (tiempoInicial - referencia) / UNIDAD_TIEMPO;
 
-		Rect rectangulo = new Rect();
+            if (!holder.getSurface().isValid()) {
+                continue;
+            }
 
-		Canvas pincel;
+            eventos();
 
-		final Graficos pincelBufer = new Graficos2D(bufer);
+            colisiones();
 
-		double referencia = System.nanoTime();
+            actualizar((float) delta);
 
-		while (iniciar)
-		{
+            pincel = holder.getSurface().lockHardwareCanvas();
 
-			final double tiempoInicial = System.nanoTime();
+            pincel.getClipBounds(rectangulo);
 
-			delta = (float) (tiempoInicial - referencia) / UNIDAD_TIEMPO;
+            pincelBufer.limpiar(Color.BLUE);
 
-			if (!holder.getSurface().isValid())
-			{
-				continue;
-			}
+            renderizar(pincelBufer, (float) delta);
 
-			eventos();
+            pincel.drawBitmap(bufer.getBipmap(), null, rectangulo, null);
 
-			colisiones();
+            holder.getSurface().unlockCanvasAndPost(pincel);
 
-			actualizar((float) delta);
+            referencia = tiempoInicial;
 
-			pincel = holder.getSurface().lockHardwareCanvas();
+            do {
 
-			pincel.getClipBounds(rectangulo);
+                Thread.yield();
 
-			pincelBufer.limpiar(Color.BLUE);
+            } while (System.nanoTime() - tiempoInicial < LIMITE_CICLOS);
+        }
+    }
 
-			renderizar(pincelBufer, (float) delta);
+    public void renderizar(Graficos pincel, float delta) {
+        if (pantalla != null) {
+            pantalla.dibujar(pincel, delta);
+        }
 
-			pincel.drawBitmap(bufer.getBipmap(), null, rectangulo, null);
+        if (mostrarFPS) {
+            
+            pincel.getLapiz().setTextSize(20);
 
-			holder.getSurface().unlockCanvasAndPost(pincel);
+            if (colorAzul) {
 
-			referencia = tiempoInicial;
+                pincel.dibujarTexto((int) getFPS() + " FPS", 20, 20, Color.BLUE);
 
-			do {
+            } else {
+                pincel.dibujarTexto((int) getFPS() + " FPS", 20, 20, Color.GREEN);
+            }
+        }
+    }
 
-				Thread.yield();
+    public void actualizar(float delta) {
+        if (pantalla != null) {
+            pantalla.actualizar(delta);
+        }
+    }
 
-			} while (System.nanoTime() - tiempoInicial < LIMITE_CICLOS);
+    public void colisiones() {
+        if (pantalla != null) {
+            pantalla.colisiones();
+        }
+    }
 
-		}
+    public void reajustarPantalla(int ancho, int alto) {
+        if (pantalla != null) {
+            pantalla.reajustarPantalla(ancho, alto);
+        }
+    }
 
-	}
+    public void resumen() {
 
-	public void renderizar(Graficos pincel, float delta)
-	{
-		if (pantalla != null)
-		{
-			pantalla.dibujar(pincel, delta);
+        if (pantalla != null) {
 
-		}
+            iniciar = true;
+            hilo = new Thread(this);
+            hilo.start();
+            pantalla.mostrar();
+            pantalla.resume();
+        }
+    }
 
-		pincel.dibujarTexto((int)getFPS() + " FPS", 20, 20, Color.GREEN);
-	}
+    public void pausa() {
+        if (pantalla != null) {
 
-	public void actualizar(float delta)
-	{
-		if (pantalla != null)
-		{
-			pantalla.actualizar(delta);
+            pantalla.pausa();
+            iniciar = false;
+            while (true) {
+                try {
+                    hilo.join();
 
-		}
-	}
+                    return;
 
-	public void colisiones()
-	{
-		if (pantalla != null)
-		{
-			pantalla.colisiones();
+                } catch (InterruptedException e) {
 
-		}
+                }
+            }
+        }
+    }
 
-	}
+    public void liberarRecursos() {
+        if (pantalla != null) {
 
-	public void reajustarPantalla(int ancho, int alto)
-	{
-		if (pantalla != null)
-		{
-			pantalla.reajustarPantalla(ancho, ancho);
-		}
-	}
+            pantalla.ocultar();
 
-	public void resumen()
-	{
-		if (pantalla != null)
-		{
+            pantalla.liberarRecursos();
+        }
+    }
 
-			iniciar = true;
-			hilo = new Thread(this);
-			hilo.start();
-			pantalla.mostrar();
-			pantalla.resume();
-		}
-	}
+    public void setPantalla(Pantalla pantalla) {
+        if (this.pantalla != null) {
 
-	public void pausa()
-	{
-		if (pantalla != null)
-		{
+            this.pantalla.ocultar();
+        }
 
-			pantalla.pausa();
-			iniciar = false;
-			while (true)
-			{
-				try
-				{
-					hilo.join();
+        this.pantalla = pantalla;
 
-					return;
+        if (this.pantalla != null) {
 
-				}
-				catch (InterruptedException e)
-				{
+            this.pantalla.mostrar();
 
-				}
+            this.pantalla.reajustarPantalla(getWidth(), getHeight());
+        }
+    }
 
-			}
+    public Pantalla getPantalla() {
 
-		}
-	}
+        return pantalla;
+    }
 
-	public void liberarRecursos()
-	{
-		if (pantalla != null)
-		{
+    public float getFPS() {
 
-			pantalla.ocultar();
+        return (float) (1 / delta);
+    }
 
-			pantalla.liberarRecursos();
-		}
-	}
+    public void teclaPresionada(int codigoDeTecla) {
 
-	public void setPantalla(Pantalla pantalla)
-	{
-		if (this.pantalla != null)
-		{
+        if (pantalla != null) {
 
-			this.pantalla.ocultar();
-		}
+            pantalla.teclaPresionada(codigoDeTecla);
+        }
+    }
 
-		this.pantalla = pantalla;
+    public void teclaLevantada(int codigoDeTecla) {
 
-		if (this.pantalla != null)
-		{
+        if (pantalla != null) {
 
-			this.pantalla.mostrar();
+            pantalla.teclaLevantada(codigoDeTecla);
+        }
+    }
 
-			this.pantalla.reajustarPantalla(getWidth(), getHeight());
+    public void toquePresionado(float x, float y, int puntero) {
 
-		}
-	}
+        if (pantalla != null) {
 
-	public Pantalla getPantalla()
-	{
+            pantalla.toquePresionado(x, y, puntero);
+        }
+    }
 
-		return pantalla;
+    public void toqueLevantado(float x, float y, int puntero) {
 
-	}
+        if (pantalla != null) {
 
-	public float getFPS()
-	{
+            pantalla.toqueLevantado(x, y, puntero);
+        }
+    }
 
-		return (float)(1 / delta);
+    public void toqueDeslizando(float x, float y, int puntero) {
 
-	}
+        if (pantalla != null) {
 
-	public void teclaPresionada(int codigoDeTecla)
-	{
+            pantalla.toqueDeslizando(x, y, puntero);
+        }
+    }
 
-		if (pantalla != null)
-		{
+    public void acelerometro(float x, float y, float z) {
 
-			pantalla.teclaPresionada(codigoDeTecla);
+        if (pantalla != null) {
 
-		}
+            pantalla.acelerometro(x, y, z);
+        }
+    }
 
-	}
+    private void eventos() {
 
-	public void teclaLevantada(int codigoDeTecla)
-	{
+        List<EventoDeToque> eventosDeToque = entraDeControles.getEventosDeToque();
 
-		if (pantalla != null)
-		{
+        List<EventoDeTecla> eventosDeTecla = entraDeControles.getEventosDeTecla();
 
-			pantalla.teclaLevantada(codigoDeTecla);
+        acelerometro(
+                entraDeControles.getAcelerometroEnX(),
+                entraDeControles.getAcelerometroEnY(),
+                entraDeControles.getAcelerometroEnZ());
 
-		}
+        for (int i = 0; i < eventosDeToque.size(); i++) {
 
-	}
+            EventoDeToque eventoDeToque = eventosDeToque.get(i);
 
-	public void toquePresionado(float x, float y, int puntero)
-	{
+            switch (eventoDeToque.tipoEventoDeToque) {
+                case EventoDeToque.TOQUE_ARRIBA:
+                    this.toqueLevantado(eventoDeToque.x, eventoDeToque.y, eventoDeToque.puntero);
 
-		if (pantalla != null)
-		{
+                    break;
 
-			pantalla.toquePresionado(x, y, puntero);
+                case EventoDeToque.TOQUE_ABAJO:
+                    this.toquePresionado(eventoDeToque.x, eventoDeToque.y, eventoDeToque.puntero);
 
-		}
+                    break;
 
-	}
+                case EventoDeToque.TOQUE_DESLIZANDO:
+                    this.toqueDeslizando(eventoDeToque.x, eventoDeToque.y, eventoDeToque.puntero);
 
-	public void toqueLevantado(float x, float y, int puntero)
-	{
+                    break;
 
-		if (pantalla != null)
-		{
+                default:
+                    break;
+            }
+        }
 
-			pantalla.toqueLevantado(x, y, puntero);
+        for (int i = 0; i < eventosDeTecla.size(); i++) {
 
-		}
+            EventoDeTecla eventoDeTecla = eventosDeTecla.get(i);
 
-	}
+            switch (eventoDeTecla.tipoEventoDeTecla) {
+                case EventoDeTecla.TECLA_ARRIBA:
+                    this.teclaLevantada(eventoDeTecla.codigoDeTecla);
 
-	public void toqueDeslizando(float x, float y, int puntero)
-	{
+                    break;
 
-		if (pantalla != null)
-		{
+                case EventoDeTecla.TECLA_ABAJO:
+                    this.teclaPresionada(eventoDeTecla.codigoDeTecla);
 
-			pantalla.toqueDeslizando(x, y, puntero);
+                    break;
 
-		}
+                default:
+                    break;
+            }
+        }
+    }
 
-	}
+    @Override
+    public void surfaceCreated(SurfaceHolder surfeceHolder) {}
 
-	public void acelerometro(float x, float y, float z)
-	{
+    @Override
+    public void surfaceChanged(SurfaceHolder surfeceHolder, int p2, int p3, int p4) {}
 
-		if (pantalla != null)
-		{
+    @Override
+    public void surfaceDestroyed(SurfaceHolder surfeceHolder) {}
 
-			pantalla.acelerometro(x, y, z);
+    public Recurso getRecurso() {
+        return recurso;
+    }
 
-		}
+    public ConfiguracionesDeJuego getConfiguracionesDeJuego() {
+        return configuracionesDeJuego;
+    }
 
-	}
+    public EntradaDeControles getEntraDeControles() {
+        return entraDeControles;
+    }
 
-	private void eventos()
-	{
+    public boolean getMostrarFPS() {
+        return this.mostrarFPS;
+    }
 
-		List<EventoDeToque> eventosDeToque = entraDeControles.getEventosDeToque();
+    public void setMostrarFPS(boolean mostrarFPS) {
+        this.mostrarFPS = mostrarFPS;
+    }
 
-		List<EventoDeTecla> eventosDeTecla = entraDeControles.getEventosDeTecla();
+    public boolean getColorAzul() {
+        return this.colorAzul;
+    }
 
-		acelerometro(entraDeControles.getAcelerometroEnX(), entraDeControles.getAcelerometroEnY(),
-					 entraDeControles.getAcelerometroEnZ());
-
-		for (int i = 0; i < eventosDeToque.size(); i++)
-		{
-
-			EventoDeToque eventoDeToque = eventosDeToque.get(i);
-
-			switch (eventoDeToque.tipoEventoDeToque)
-			{
-				case EventoDeToque.TOQUE_ARRIBA:
-
-
-					this.toqueLevantado(eventoDeToque.x, eventoDeToque.y, eventoDeToque.puntero);
-
-
-					break;
-
-				case EventoDeToque.TOQUE_ABAJO:
-
-
-					this.toquePresionado(eventoDeToque.x, eventoDeToque.y, eventoDeToque.puntero);
-
-
-					break;
-
-
-				case EventoDeToque.TOQUE_DESLIZANDO:
-
-					this.toqueDeslizando(eventoDeToque.x, eventoDeToque.y, eventoDeToque.puntero);
-
-
-					break;
-
-				default:
-
-					break;
-			}
-
-		}
-
-		for (int i = 0; i < eventosDeTecla.size(); i++)
-		{
-
-			EventoDeTecla eventoDeTecla = eventosDeTecla.get(i);
-
-			switch (eventoDeTecla.tipoEventoDeTecla)
-			{
-
-				case EventoDeTecla.TECLA_ARRIBA:
-
-
-					this.teclaLevantada(eventoDeTecla.codigoDeTecla);
-
-					break;
-
-				case EventoDeTecla.TECLA_ABAJO:
-
-					this.teclaPresionada(eventoDeTecla.codigoDeTecla);
-
-					break;
-
-				default:
-
-					break;
-			}
-
-		}
-
-	}
-
-	@Override
-	public void surfaceCreated(SurfaceHolder p1)
-	{
-
-	}
-
-	@Override
-	public void surfaceChanged(SurfaceHolder p1, int p2, int p3, int p4)
-	{
-
-	}
-
-	@Override
-	public void surfaceDestroyed(SurfaceHolder p1)
-	{
-
-	}
-
-	public Recurso getRecurso()
-	{
-		return recurso;
-	}
-
-	public ConfiguracionesDeJuego getConfiguracionesDeJuego()
-	{
-		return configuracionesDeJuego;
-	}
-
-	public EntradaDeControles getEntraDeControles()
-	{
-		return entraDeControles;
-	}
-
+    public void setColorAzul(boolean colorAzul) {
+        this.colorAzul = colorAzul;
+    }
 }

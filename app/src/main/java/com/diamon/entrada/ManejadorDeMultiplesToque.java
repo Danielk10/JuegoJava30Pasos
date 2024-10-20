@@ -1,315 +1,272 @@
 package com.diamon.entrada;
 
-import java.util.ArrayList;
-import java.util.List;
+import android.view.MotionEvent;
+import android.view.View;
 
 import com.diamon.nucleo.Entrada.EventoDeToque;
 import com.diamon.utilidad.Pool;
 import com.diamon.utilidad.Pool.PoolObjectFactory;
 
-import android.view.MotionEvent;
-import android.view.View;
+import java.util.ArrayList;
+import java.util.List;
 
-public class ManejadorDeMultiplesToque implements ManejadorDeToque
-{
+public class ManejadorDeMultiplesToque implements ManejadorDeToque {
 
-	boolean tocando[];
+    boolean tocando[];
 
-	private float[] x;
+    private float[] x;
 
-	private float[] y;
+    private float[] y;
 
-	private float escalaX;
+    private float escalaX;
 
-	private float escalaY;
+    private float escalaY;
 
-	private Pool<EventoDeToque> eventoDeToquePool;
+    private Pool<EventoDeToque> eventoDeToquePool;
 
-	private List<EventoDeToque> eventosDeToqueBufer;
+    private List<EventoDeToque> eventosDeToqueBufer;
 
-	private List<EventoDeToque> eventosDeToque;
+    private List<EventoDeToque> eventosDeToque;
 
-	public ManejadorDeMultiplesToque(View vista, float escalaX, float escalaY)
-	{
+    public ManejadorDeMultiplesToque(View vista, float escalaX, float escalaY) {
 
-		x = new float[20];
+        x = new float[20];
 
-		y = new float[20];
+        y = new float[20];
 
-		tocando = new boolean[20];
+        tocando = new boolean[20];
 
-		eventosDeToqueBufer = new ArrayList<EventoDeToque>();
+        eventosDeToqueBufer = new ArrayList<EventoDeToque>();
 
-		eventosDeToque = new ArrayList<EventoDeToque>();
+        eventosDeToque = new ArrayList<EventoDeToque>();
 
-		PoolObjectFactory<EventoDeToque> factory = new PoolObjectFactory<EventoDeToque>() {
+        PoolObjectFactory<EventoDeToque> factory =
+                new PoolObjectFactory<EventoDeToque>() {
 
-			@Override
-			public EventoDeToque crearObjeto()
-			{
+                    @Override
+                    public EventoDeToque crearObjeto() {
 
-				return new EventoDeToque();
-			}
+                        return new EventoDeToque();
+                    }
+                };
 
-		};
+        eventoDeToquePool = new Pool<EventoDeToque>(factory, 100);
 
-		eventoDeToquePool = new Pool<EventoDeToque>(factory, 100);
+        vista.setOnTouchListener(this);
 
-		vista.setOnTouchListener(this);
+        this.escalaX = escalaX;
 
-		this.escalaX = escalaX;
+        this.escalaY = escalaY;
+    }
 
-		this.escalaY = escalaY;
-	}
-	@SuppressWarnings("unused")
-	@Override
-	public boolean onTouch(View vista, MotionEvent eventoDeMovimiento)
-	{
+    @SuppressWarnings("unused")
+    @Override
+    public boolean onTouch(View vista, MotionEvent eventoDeMovimiento) {
 
-		synchronized (this)
-		{
+        synchronized (this) {
+            int accion = eventoDeMovimiento.getAction() & MotionEvent.ACTION_MASK;
 
-			int accion = eventoDeMovimiento.getAction() & MotionEvent.ACTION_MASK;
+            int punteroIndice =
+                    (eventoDeMovimiento.getAction() & MotionEvent.ACTION_POINTER_INDEX_MASK)
+                            >> MotionEvent.ACTION_POINTER_INDEX_SHIFT;
 
-			int punteroIndice = (eventoDeMovimiento.getAction()
-				& MotionEvent.ACTION_POINTER_INDEX_MASK) >> MotionEvent.ACTION_POINTER_INDEX_SHIFT;
+            int punteroId = eventoDeMovimiento.getPointerId(punteroIndice);
 
-			int punteroId = eventoDeMovimiento.getPointerId(punteroIndice);
+            EventoDeToque eventoDeToque;
 
-			EventoDeToque eventoDeToque;
+            switch (accion) {
+                case MotionEvent.ACTION_POINTER_UP:
+                    eventoDeToque = eventoDeToquePool.nuevoObjeto();
 
-			switch (accion)
-			{
+                    eventoDeToque.tipoEventoDeToque = EventoDeToque.TOQUE_ARRIBA;
 
-				case MotionEvent.ACTION_POINTER_UP:
-					
-					eventoDeToque = eventoDeToquePool.nuevoObjeto();
+                    eventoDeToque.puntero = punteroId;
 
-					eventoDeToque.tipoEventoDeToque = EventoDeToque.TOQUE_ARRIBA;
+                    eventoDeToque.x =
+                            x[punteroId] = eventoDeMovimiento.getX(punteroIndice) * escalaX;
 
-					eventoDeToque.puntero = punteroId;
+                    eventoDeToque.y =
+                            y[punteroId] = eventoDeMovimiento.getY(punteroIndice) * escalaY;
 
-					eventoDeToque.x = x[punteroId] = eventoDeMovimiento.getX(punteroIndice) * escalaX;
+                    tocando[punteroId] = false;
 
-					eventoDeToque.y = y[punteroId] = eventoDeMovimiento.getY(punteroIndice) * escalaY;
+                    eventosDeToqueBufer.add(eventoDeToque);
 
-					tocando[punteroId] = false;
+                    break;
 
-					eventosDeToqueBufer.add(eventoDeToque);
+                case MotionEvent.ACTION_POINTER_DOWN:
+                    eventoDeToque = eventoDeToquePool.nuevoObjeto();
 
+                    eventoDeToque.tipoEventoDeToque = EventoDeToque.TOQUE_ABAJO;
 
+                    eventoDeToque.puntero = punteroId;
 
+                    eventoDeToque.x =
+                            x[punteroId] = eventoDeMovimiento.getX(punteroIndice) * escalaX;
 
-					break;
+                    eventoDeToque.y =
+                            y[punteroId] = eventoDeMovimiento.getY(punteroIndice) * escalaY;
 
-				case MotionEvent.ACTION_POINTER_DOWN:
+                    tocando[punteroId] = true;
 
-					eventoDeToque = eventoDeToquePool.nuevoObjeto();
+                    eventosDeToqueBufer.add(eventoDeToque);
 
-					eventoDeToque.tipoEventoDeToque = EventoDeToque.TOQUE_ABAJO;
+                    break;
 
-					eventoDeToque.puntero = punteroId;
+                case MotionEvent.ACTION_UP:
+                    eventoDeToque = eventoDeToquePool.nuevoObjeto();
 
-					eventoDeToque.x = x[punteroId] = eventoDeMovimiento.getX(punteroIndice) * escalaX;
+                    eventoDeToque.tipoEventoDeToque = EventoDeToque.TOQUE_ARRIBA;
 
-					eventoDeToque.y = y[punteroId] = eventoDeMovimiento.getY(punteroIndice) * escalaY;
+                    eventoDeToque.puntero = punteroId;
 
-					tocando[punteroId] = true;
+                    eventoDeToque.x =
+                            x[punteroId] = eventoDeMovimiento.getX(punteroIndice) * escalaX;
 
-					eventosDeToqueBufer.add(eventoDeToque);
+                    eventoDeToque.y =
+                            y[punteroId] = eventoDeMovimiento.getY(punteroIndice) * escalaY;
 
-					break;
+                    tocando[punteroId] = false;
 
-				case MotionEvent.ACTION_UP:
+                    eventosDeToqueBufer.add(eventoDeToque);
 
+                    break;
 
-					eventoDeToque = eventoDeToquePool.nuevoObjeto();
+                case MotionEvent.ACTION_DOWN:
+                    eventoDeToque = eventoDeToquePool.nuevoObjeto();
 
-					eventoDeToque.tipoEventoDeToque = EventoDeToque.TOQUE_ARRIBA;
+                    eventoDeToque.tipoEventoDeToque = EventoDeToque.TOQUE_ABAJO;
 
-					eventoDeToque.puntero = punteroId;
+                    eventoDeToque.puntero = punteroId;
 
-					eventoDeToque.x = x[punteroId] = eventoDeMovimiento.getX(punteroIndice) * escalaX;
+                    eventoDeToque.x =
+                            x[punteroId] = eventoDeMovimiento.getX(punteroIndice) * escalaX;
 
-					eventoDeToque.y = y[punteroId] = eventoDeMovimiento.getY(punteroIndice) * escalaY;
+                    eventoDeToque.y =
+                            y[punteroId] = eventoDeMovimiento.getY(punteroIndice) * escalaY;
 
-					tocando[punteroId] = false;
+                    tocando[punteroId] = true;
 
-					eventosDeToqueBufer.add(eventoDeToque);
+                    eventosDeToqueBufer.add(eventoDeToque);
 
+                    break;
 
+                case MotionEvent.ACTION_CANCEL:
+                    eventoDeToque = eventoDeToquePool.nuevoObjeto();
 
+                    eventoDeToque.tipoEventoDeToque = EventoDeToque.TOQUE_ARRIBA;
 
-					break;
+                    eventoDeToque.puntero = punteroId;
 
-				case MotionEvent.ACTION_DOWN:
-					
-					eventoDeToque = eventoDeToquePool.nuevoObjeto();
+                    eventoDeToque.x =
+                            x[punteroId] = eventoDeMovimiento.getX(punteroIndice) * escalaX;
 
-					eventoDeToque.tipoEventoDeToque = EventoDeToque.TOQUE_ABAJO;
+                    eventoDeToque.y =
+                            y[punteroId] = eventoDeMovimiento.getY(punteroIndice) * escalaY;
 
-					eventoDeToque.puntero = punteroId;
+                    tocando[punteroId] = false;
 
-					eventoDeToque.x = x[punteroId] = eventoDeMovimiento.getX(punteroIndice) * escalaX;
+                    eventosDeToqueBufer.add(eventoDeToque);
 
-					eventoDeToque.y = y[punteroId] = eventoDeMovimiento.getY(punteroIndice) * escalaY;
+                    break;
 
-					tocando[punteroId] = true;
+                case MotionEvent.ACTION_MOVE:
+                    int contadorPuntero = eventoDeMovimiento.getPointerCount();
 
-					eventosDeToqueBufer.add(eventoDeToque);
+                    for (int i = 0; i < contadorPuntero; i++) {
 
-					
+                        punteroIndice = i;
 
-					break;
+                        punteroId = eventoDeMovimiento.getPointerId(punteroIndice);
 
+                        eventoDeToque = eventoDeToquePool.nuevoObjeto();
 
-				case MotionEvent.ACTION_CANCEL:
+                        eventoDeToque.tipoEventoDeToque = EventoDeToque.TOQUE_DESLIZANDO;
 
-					eventoDeToque = eventoDeToquePool.nuevoObjeto();
+                        eventoDeToque.puntero = punteroId;
 
-					eventoDeToque.tipoEventoDeToque = EventoDeToque.TOQUE_ARRIBA;
+                        eventoDeToque.x =
+                                x[punteroId] = eventoDeMovimiento.getX(punteroIndice) * escalaX;
 
-					eventoDeToque.puntero = punteroId;
+                        eventoDeToque.y =
+                                y[punteroId] = eventoDeMovimiento.getY(punteroIndice) * escalaY;
 
-					eventoDeToque.x = x[punteroId] = eventoDeMovimiento.getX(punteroIndice) * escalaX;
+                        eventosDeToqueBufer.add(eventoDeToque);
+                    }
 
-					eventoDeToque.y = y[punteroId] = eventoDeMovimiento.getY(punteroIndice) * escalaY;
+                    break;
 
-					tocando[punteroId] = false;
+                default:
+                    break;
+            }
 
-					eventosDeToqueBufer.add(eventoDeToque);
+            return true;
+        }
+    }
 
-					break;
+    @Override
+    public boolean isToque(int puntero) {
 
-				case MotionEvent.ACTION_MOVE:
+        synchronized (this) {
+            if (puntero < 0 || puntero >= 20) {
 
-					int contadorPuntero = eventoDeMovimiento.getPointerCount();
+                return false;
 
-					for (int i = 0; i < contadorPuntero; i++)
-					{
+            } else {
 
-						punteroIndice = i;
+                return tocando[puntero];
+            }
+        }
+    }
 
-						punteroId = eventoDeMovimiento.getPointerId(punteroIndice);
+    @Override
+    public float getToqueEnX(int puntero) {
 
-						eventoDeToque = eventoDeToquePool.nuevoObjeto();
+        synchronized (this) {
+            if (puntero < 0 || puntero >= 20) {
 
-						eventoDeToque.tipoEventoDeToque = EventoDeToque.TOQUE_DESLIZANDO;
+                return 0;
 
-						eventoDeToque.puntero = punteroId;
+            } else {
 
-						eventoDeToque.x = x[punteroId] = eventoDeMovimiento.getX(punteroIndice) * escalaX;
+                return x[puntero];
+            }
+        }
+    }
 
-						eventoDeToque.y = y[punteroId] = eventoDeMovimiento.getY(punteroIndice) * escalaY;
+    @Override
+    public float getToqueEnY(int puntero) {
 
-						eventosDeToqueBufer.add(eventoDeToque);
-					}
+        synchronized (this) {
+            if (puntero < 0 || puntero >= 20) {
 
-					break;
+                return 0;
 
-				default:
+            } else {
 
-					break;
+                return y[puntero];
+            }
+        }
+    }
 
-			}
+    @Override
+    public List<EventoDeToque> getEventosDeToque() {
 
-			return true;
+        synchronized (this) {
+            int tamano = eventosDeToque.size();
 
-		}
-	}
+            for (int i = 0; i < tamano; i++) {
 
-	@Override
-	public boolean isToque(int puntero)
-	{
+                eventoDeToquePool.objetoLibre(eventosDeToque.get(i));
+            }
 
-		synchronized (this)
-		{
+            eventosDeToque.clear();
 
-			if (puntero < 0 || puntero >= 20)
-			{
+            eventosDeToque.addAll(eventosDeToqueBufer);
 
-				return false;
+            eventosDeToqueBufer.clear();
 
-			}
-			else
-			{
-
-				return tocando[puntero];
-			}
-
-		}
-
-	}
-
-	@Override
-	public float getToqueEnX(int puntero)
-	{
-
-		synchronized (this)
-		{
-
-			if (puntero < 0 || puntero >= 20)
-			{
-
-				return 0;
-
-			}
-			else
-			{
-
-				return x[puntero];
-			}
-
-		}
-	}
-
-	@Override
-	public float getToqueEnY(int puntero)
-	{
-
-		synchronized (this)
-		{
-
-			if (puntero < 0 || puntero >= 20)
-			{
-
-				return 0;
-
-			}
-			else
-			{
-
-				return y[puntero];
-			}
-
-		}
-	}
-
-	@Override
-	public List<EventoDeToque> getEventosDeToque()
-	{
-
-		synchronized (this)
-		{
-
-			int tamano = eventosDeToque.size();
-
-			for (int i = 0; i < tamano; i++)
-			{
-
-				eventoDeToquePool.objetoLibre(eventosDeToque.get(i));
-
-			}
-
-			eventosDeToque.clear();
-
-			eventosDeToque.addAll(eventosDeToqueBufer);
-
-			eventosDeToqueBufer.clear();
-
-			return eventosDeToque;
-
-		}
-	}
-
+            return eventosDeToque;
+        }
+    }
 }

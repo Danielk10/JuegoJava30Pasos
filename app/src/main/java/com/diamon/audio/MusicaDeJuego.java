@@ -1,140 +1,129 @@
 package com.diamon.audio;
 
-import com.diamon.nucleo.Musica;
-
 import android.content.res.AssetFileDescriptor;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 
+import com.diamon.nucleo.Musica;
+
 public class MusicaDeJuego implements Musica, OnCompletionListener {
 
-	private MediaPlayer mediaPlayer;
+    private MediaPlayer mediaPlayer;
 
-	private boolean preparado;
+    private boolean preparado;
 
-	public MusicaDeJuego(AssetFileDescriptor descriptor) {
+    public MusicaDeJuego(AssetFileDescriptor descriptor) {
 
-		preparado = false;
+        preparado = false;
 
-		mediaPlayer = new MediaPlayer();
+        mediaPlayer = new MediaPlayer();
 
-		try {
-			mediaPlayer.setDataSource(descriptor.getFileDescriptor(), descriptor.getStartOffset(),
-					descriptor.getLength());
+        try {
+            mediaPlayer.setDataSource(
+                    descriptor.getFileDescriptor(),
+                    descriptor.getStartOffset(),
+                    descriptor.getLength());
 
-			mediaPlayer.prepare();
+            mediaPlayer.prepare();
 
-			preparado = true;
+            preparado = true;
 
-			mediaPlayer.setOnCompletionListener(this);
+            mediaPlayer.setOnCompletionListener(this);
 
-		} catch (Exception e) {
+        } catch (Exception e) {
 
-		}
+        }
+    }
 
-	}
+    @Override
+    public void reproducir() {
 
-	@Override
-	public void reproducir() {
+        if (mediaPlayer.isPlaying()) {
 
-		if (mediaPlayer.isPlaying()) {
+            return;
+        }
 
-			return;
-		}
+        try {
 
-		try {
+            synchronized (this) {
+                if (!preparado) {
 
-			synchronized (this) {
+                    mediaPlayer.prepare();
+                }
 
-				if (!preparado) {
+                mediaPlayer.start();
+            }
 
-					mediaPlayer.prepare();
-				}
+        } catch (Exception e) {
 
-				mediaPlayer.start();
+        }
+    }
 
-			}
+    @Override
+    public void pausar() {
 
-		} catch (Exception e) {
+        if (mediaPlayer.isPlaying()) {
 
-		}
+            mediaPlayer.pause();
+        }
+    }
 
-	}
+    @Override
+    public void terminar() {
 
-	@Override
-	public void pausar() {
+        mediaPlayer.stop();
 
-		if (mediaPlayer.isPlaying()) {
+        synchronized (this) {
+            preparado = false;
+        }
+    }
 
-			mediaPlayer.pause();
-		}
+    @Override
+    public void setRepetir(boolean repetir) {
 
-	}
+        mediaPlayer.setLooping(repetir);
+    }
 
-	@Override
-	public void terminar() {
+    @Override
+    public void setVolumen(float volumen) {
 
-		mediaPlayer.stop();
+        mediaPlayer.setVolume(volumen, volumen);
+    }
 
-		synchronized (this) {
+    @Override
+    public boolean isReproduciendo() {
 
-			preparado = false;
-		}
+        return mediaPlayer.isPlaying();
+    }
 
-	}
+    @Override
+    public boolean isRepitiendo() {
 
-	@Override
-	public void setRepetir(boolean repetir) {
+        return mediaPlayer.isLooping();
+    }
 
-		mediaPlayer.setLooping(repetir);
+    @Override
+    public boolean isTerminado() {
 
-	}
+        return !preparado;
+    }
 
-	@Override
-	public void setVolumen(float volumen) {
+    @Override
+    public void liberarRecurso() {
 
-		mediaPlayer.setVolume(volumen, volumen);
+        if (mediaPlayer.isPlaying()) {
 
-	}
+            mediaPlayer.stop();
+        }
 
-	@Override
-	public boolean isReproduciendo() {
+        mediaPlayer.release();
+    }
 
-		return mediaPlayer.isPlaying();
-	}
+    @Override
+    public void onCompletion(MediaPlayer mediaPlayer) {
 
-	@Override
-	public boolean isRepitiendo() {
-
-		return mediaPlayer.isLooping();
-	}
-
-	@Override
-	public boolean isTerminado() {
-
-		return !preparado;
-	}
-
-	@Override
-	public void liberarRecurso() {
-
-		if (mediaPlayer.isPlaying()) {
-
-			mediaPlayer.stop();
-		}
-
-		mediaPlayer.release();
-
-	}
-
-	@Override
-	public void onCompletion(MediaPlayer mediaPlayer) {
-
-		synchronized (this) {
-
-			preparado = false;
-		}
-
-	}
-
+        synchronized (this) {
+            preparado = false;
+        }
+    }
 }

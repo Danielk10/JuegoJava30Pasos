@@ -5,221 +5,186 @@ import com.diamon.nucleo.Juego;
 import com.diamon.nucleo.Pantalla;
 import com.diamon.nucleo.Textura;
 
-public class Bala extends Actor
-{
+public class Bala extends Actor {
 
-	public final static int VELOCIDAD_BALA = 8;
+    public static final int VELOCIDAD_BALA = 8;
 
-	public static final int DERECHO_ARRIBA = 0;
+    public static final int DERECHO_ARRIBA = 0;
 
-	public static final int DERECHO_ABAJO = 1;
+    public static final int DERECHO_ABAJO = 1;
 
-	public static final int DERECHO = 2;
+    public static final int DERECHO = 2;
 
-	public static final int IZQUIERDO_ARRIBA = 3;
+    public static final int IZQUIERDO_ARRIBA = 3;
 
-	public static final int IZQUIERDO_ABAJO = 4;
+    public static final int IZQUIERDO_ABAJO = 4;
 
-	public static final int IZQUIERDO = 5;
+    public static final int IZQUIERDO = 5;
 
-	public static final int ARRIBA = 6;
+    public static final int ARRIBA = 6;
 
-	public static final int ABAJO = 7;
+    public static final int ABAJO = 7;
 
-	private int lado;
+    private int lado;
 
-	private float velocidad;
+    private float velocidad;
 
-	public Bala(Pantalla pantalla, Textura textura, float x, float y, float ancho, float alto)
-	{
-		super(pantalla, textura, x, y, ancho, alto);
+    public Bala(Pantalla pantalla, Textura textura, float x, float y, float ancho, float alto) {
+        super(pantalla, textura, x, y, ancho, alto);
 
-		lado = Bala.DERECHO;
+        lado = Bala.DERECHO;
 
-		velocidad = VELOCIDAD_BALA;
-	}
+        velocidad = VELOCIDAD_BALA;
+    }
 
-	public Bala(Pantalla pantalla, Textura textura, float x, float y)
-	{
-		super(pantalla, textura, x, y);
+    public Bala(Pantalla pantalla, Textura textura, float x, float y) {
+        super(pantalla, textura, x, y);
 
-		lado = Bala.DERECHO;
+        lado = Bala.DERECHO;
 
-		velocidad = VELOCIDAD_BALA;
-	}
+        velocidad = VELOCIDAD_BALA;
+    }
 
-	public Bala(Pantalla pantalla, Textura[] texturas, float x, float y, float ancho, float alto,
-				float tiempoAnimacion)
-	{
-		super(pantalla, texturas, x, y, ancho, alto, tiempoAnimacion);
+    public Bala(
+            Pantalla pantalla,
+            Textura[] texturas,
+            float x,
+            float y,
+            float ancho,
+            float alto,
+            float tiempoAnimacion) {
+        super(pantalla, texturas, x, y, ancho, alto, tiempoAnimacion);
 
-	    lado = Bala.DERECHO;
+        lado = Bala.DERECHO;
 
-		velocidad = VELOCIDAD_BALA;
-	}
+        velocidad = VELOCIDAD_BALA;
+    }
 
-	@Override
-	public void obtenerActores()
-	{
-		// TODO: Implement this method
-	}
+    @Override
+    public void obtenerActores() {
+        // TODO: Implement this method
+    }
 
+    public float getVelocidad() {
+        return velocidad;
+    }
 
-	public float getVelocidad()
-	{
-		return velocidad;
-	}
+    public void setVelocidad(float velocidad) {
+        this.velocidad = velocidad;
+    }
 
-	public void setVelocidad(float velocidad)
-	{
-		this.velocidad = velocidad;
-	}
+    @Override
+    public void actualizar(float delta) {
 
-	@Override
-	public void actualizar(float delta)
-	{
+        super.actualizar(delta);
 
-		super.actualizar(delta);
+        if (lado == Bala.DERECHO) {
+            x += velocidad / Juego.DELTA_A_PIXEL * delta;
 
-		if (lado == Bala.DERECHO)
-		{
-			x += velocidad / Juego.DELTA_A_PIXEL * delta;
+            if (x >= Juego.ANCHO_PANTALLA) {
 
-			if (x >= Juego.ANCHO_PANTALLA)
-			{
+                remover = true;
+            }
+        }
 
-				remover = true;
-			}
+        if (lado == Bala.IZQUIERDO) {
 
-		}
+            x -= velocidad / Juego.DELTA_A_PIXEL * delta;
 
-		if (lado == Bala.IZQUIERDO)
-		{
+            if (x <= -ancho) {
 
-			x -= velocidad / Juego.DELTA_A_PIXEL * delta;
+                remover = true;
+            }
+        }
 
-			if (x <= -ancho)
-			{
+        if (lado == Bala.ARRIBA) {
 
-				remover = true;
-			}
+            y -= velocidad / Juego.DELTA_A_PIXEL * delta;
 
-		}
+            if (y <= -alto) {
 
-		if (lado == Bala.ARRIBA)
-		{
+                remover = true;
+            }
+        }
 
-			y -= velocidad / Juego.DELTA_A_PIXEL * delta;
+        if (lado == Bala.ABAJO) {
 
-			if (y <= -alto)
-			{
+            y += velocidad / Juego.DELTA_A_PIXEL * delta;
 
-				remover = true;
-			}
+            if (y >= Juego.ALTO_PANTALLA) {
 
-		}
+                remover = true;
+            }
+        }
 
-		if (lado == Bala.ABAJO)
-		{
+        if (lado == Bala.IZQUIERDO_ABAJO) {
 
-			y += velocidad / Juego.DELTA_A_PIXEL * delta;
+            x -= velocidad / Juego.DELTA_A_PIXEL * delta;
 
-			if (y >= Juego.ALTO_PANTALLA)
-			{
+            y += velocidad / Juego.DELTA_A_PIXEL * delta;
 
-				remover = true;
-			}
+            if (y >= Juego.ALTO_PANTALLA && x <= -ancho) {
 
-		}
+                remover = true;
+            }
+        }
 
-		if (lado == Bala.IZQUIERDO_ABAJO)
-		{
+        if (lado == Bala.IZQUIERDO_ARRIBA) {
 
-			x -= velocidad / Juego.DELTA_A_PIXEL * delta;
+            x -= velocidad / Juego.DELTA_A_PIXEL * delta;
 
-			y += velocidad / Juego.DELTA_A_PIXEL * delta;
+            y -= velocidad / Juego.DELTA_A_PIXEL * delta;
 
-			if (y >= Juego.ALTO_PANTALLA && x <= -ancho)
-			{
+            if (y <= -alto && x <= -ancho) {
 
-				remover = true;
-			}
+                remover = true;
+            }
+        }
 
-		}
+        if (lado == Bala.DERECHO_ABAJO) {
 
-		if (lado == Bala.IZQUIERDO_ARRIBA)
-		{
+            x += velocidad / Juego.DELTA_A_PIXEL * delta;
 
-			x -= velocidad / Juego.DELTA_A_PIXEL * delta;
+            y += velocidad / Juego.DELTA_A_PIXEL * delta;
 
-			y -= velocidad / Juego.DELTA_A_PIXEL * delta;
+            if (y >= Juego.ALTO_PANTALLA && x >= Juego.ANCHO_PANTALLA) {
 
-			if (y <= -alto && x <= -ancho)
-			{
+                remover = true;
+            }
+        }
 
-				remover = true;
-			}
+        if (lado == Bala.DERECHO_ARRIBA) {
 
+            x += velocidad / Juego.DELTA_A_PIXEL * delta;
 
+            y -= velocidad / Juego.DELTA_A_PIXEL * delta;
 
-		}
+            if (y <= -alto && x >= Juego.ANCHO_PANTALLA) {
 
-		if (lado == Bala.DERECHO_ABAJO)
-		{
+                remover = true;
+            }
+        }
+    }
 
-			x += velocidad / Juego.DELTA_A_PIXEL * delta;
+    public void setLado(int lado) {
+        this.lado = lado;
+    }
 
-			y += velocidad / Juego.DELTA_A_PIXEL * delta;
+    @Override
+    public void colision(Actor actor) {
 
-			if (y >= Juego.ALTO_PANTALLA && x >= Juego.ANCHO_PANTALLA)
-			{
+        if (actor instanceof Volador
+                || actor instanceof Caja
+                || actor instanceof Saltador
+                || actor instanceof BalaEnemigoDestruible
+                || actor instanceof MaquinaFinal
+                || actor instanceof MaquinaPared
+                || actor instanceof LanzaMisil
+                || actor instanceof Misil
+                || actor instanceof Robot
+                || actor instanceof AntiAreo) {
 
-				remover = true;
-			}
-
-		}
-
-		if (lado == Bala.DERECHO_ARRIBA)
-		{
-
-			x += velocidad / Juego.DELTA_A_PIXEL * delta;
-
-			y -= velocidad / Juego.DELTA_A_PIXEL * delta;
-
-
-			if (y <= -alto && x >= Juego.ANCHO_PANTALLA)
-			{
-
-				remover = true;
-			}
-
-
-
-		}
-
-
-
-	}
-
-	public void setLado(int lado)
-	{
-		this.lado = lado;
-	}
-
-	@Override
-	public void colision(Actor actor)
-	{
-
-		if (actor instanceof Volador || actor instanceof Caja || actor instanceof Saltador
-			|| actor instanceof BalaEnemigoDestruible || actor instanceof MaquinaFinal
-			|| actor instanceof MaquinaPared || actor instanceof LanzaMisil || actor instanceof Misil
-			|| actor instanceof Robot || actor instanceof AntiAreo)
-		{
-
-			remover = true;
-
-		}
-
-	}
-
+            remover = true;
+        }
+    }
 }

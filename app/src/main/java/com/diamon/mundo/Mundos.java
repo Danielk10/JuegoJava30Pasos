@@ -7,34 +7,22 @@ import com.diamon.nucleo.Pantalla;
 
 public class Mundos extends Mundo {
 
-	public Mundos(Pantalla pantalla, Jugador jugador) {
-		super(pantalla, jugador);
+    public Mundos(Pantalla pantalla, Jugador jugador) {
+        super(pantalla, jugador);
+    }
 
-	}
+    @Override
+    protected void iniciar() {}
 
-	@Override
-	protected void iniciar() {
+    @Override
+    public void actualizar(float delta) {}
 
-	}
+    @Override
+    public void dibujar(Graficos pincel, float delta) {}
 
-	@Override
-	public void actualizar(float delta) {
+    @Override
+    public void guardarDatos() {}
 
-	}
-
-	@Override
-	public void dibujar(Graficos pincel, float delta) {
-
-	}
-
-	@Override
-	public void guardarDatos() {
-
-	}
-
-	@Override
-	public void liberarRecursos() {
-
-	}
-
+    @Override
+    public void liberarRecursos() {}
 }

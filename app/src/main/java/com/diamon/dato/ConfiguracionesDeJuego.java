@@ -1,588 +1,471 @@
 package com.diamon.dato;
 
+import android.app.Activity;
+import android.os.Environment;
+
+import com.diamon.nucleo.Actor;
+import com.diamon.utilidad.Vector2D;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-
-import android.content.res.AssetManager;
-import android.app.Activity;
-import android.os.Environment;
-
 import java.util.ArrayList;
 
-import com.diamon.nucleo.Actor;
-import com.diamon.utilidad.Vector2D;
+public class ConfiguracionesDeJuego {
 
+    public static final String NIVEL_1 = "Nivel 1";
+    public static final String NIVEL_2 = "Nivel 2";
+    public static final String NIVEL_3 = "Nivel 3";
+    public static final String NIVEL_4 = "Nivel 4";
+    public static final String NIVEL_5 = "Nivel 5";
 
-public class ConfiguracionesDeJuego
-{
+    public static final String ANTI_AEREO = "com.diamon.actor.AntiAereo";
+    public static final String VOLADOR = "com.diamon.actor.Volador";
+    public static final String ROBOT = "com.diamon.actor.Robot";
+    public static final String SALTADOR = "com.diamon.actor.Saltador";
+    public static final String CAJA = "com.diamon.actor.Caja";
+    public static final String LANZA_MISIL = "com.diamon.actor.LanzaMisil";
+    public static final String MAQUINA_PARED = "com.diamon.actor.MaquinaPared";
+    private ArrayList<Vector2D>[] posicionActores;
 
-	public final static String NIVEL_1 = "Nivel 1";
-	public final static String NIVEL_2 = "Nivel 2";
-	public final static String NIVEL_3 = "Nivel 3";
-	public final static String NIVEL_4 = "Nivel 4";
-	public final static String NIVEL_5 = "Nivel 5";
+    private ArrayList<String>[] tipoActores;
 
-	public final static String ANTI_AEREO = "com.diamon.actor.AntiAereo";
-	public final static String VOLADOR = "com.diamon.actor.Volador";
-	public final static String ROBOT = "com.diamon.actor.Robot";
-	public final static String SALTADOR = "com.diamon.actor.Saltador";
-	public final static String CAJA = "com.diamon.actor.Caja";
-	public final static String LANZA_MISIL = "com.diamon.actor.LanzaMisil";
-	public final static String MAQUINA_PARED = "com.diamon.actor.MaquinaPared";
-	private ArrayList<Vector2D>[] posicionActores;
+    private int t[] = new int[5];
 
-	private ArrayList<String>[] tipoActores;
+    private int numeroNivel;
 
-	private int t[] = new int[5];
-	
-	private int numeroNivel;
-	
-	
-	private boolean sonido;
+    private boolean sonido;
 
-	private int puntuaciones[] = new int[20];
+    private int puntuaciones[] = new int[20];
 
-	private boolean leerDatosAsset;
+    private boolean leerDatosAsset;
 
-	private DatosJuego datos;
+    private DatosJuego datos;
 
-	public static final int ASSET = 1;
+    public static final int ASSET = 1;
 
-	public static final int INTERNO = 0;
+    public static final int INTERNO = 0;
 
-	public static final int EXTERNO = 3;
-	
-	private int tipo;
+    public static final int EXTERNO = 3;
 
-	public ConfiguracionesDeJuego(Activity actividad, int tipo)
-	{
+    private int tipo;
 
-		datos = new DatosJuego(actividad);
+    public ConfiguracionesDeJuego(Activity actividad, int tipo) {
 
-		this.tipo = tipo;
+        datos = new DatosJuego(actividad);
 
-		sonido = true;
+        this.tipo = tipo;
 
-		leerDatosAsset = true;
-		
-		numeroNivel = 1;
-		
-		posicionActores = new ArrayList[5];
+        sonido = true;
 
-		tipoActores = new ArrayList[5];
+        leerDatosAsset = true;
 
-		for (int i = 0; i < posicionActores.length; i++) {
+        numeroNivel = 1;
 
-			posicionActores[i] = new ArrayList<Vector2D>();
+        posicionActores = new ArrayList[5];
 
-		}
+        tipoActores = new ArrayList[5];
 
-		for (int i = 0; i < tipoActores.length; i++) {
+        for (int i = 0; i < posicionActores.length; i++) {
 
-			tipoActores[i] = new ArrayList<String>();
+            posicionActores[i] = new ArrayList<Vector2D>();
+        }
 
-		}
+        for (int i = 0; i < tipoActores.length; i++) {
 
-		for (int i = 0; i < t.length; i++) {
+            tipoActores[i] = new ArrayList<String>();
+        }
 
-			t[i] = 0;
+        for (int i = 0; i < t.length; i++) {
 
-		}
+            t[i] = 0;
+        }
+    }
 
-	}
-	
-	
-	public int getNumeroNivel() {
-		return numeroNivel;
-	}
+    public int getNumeroNivel() {
+        return numeroNivel;
+    }
 
-	public void setNumeroNivel(int numeroNivel) {
-		this.numeroNivel = numeroNivel;
-	}
-	
+    public void setNumeroNivel(int numeroNivel) {
+        this.numeroNivel = numeroNivel;
+    }
 
-	public boolean isSonido()
-	{
-		return sonido;
-	}
+    public boolean isSonido() {
+        return sonido;
+    }
 
-	public boolean isLeerDatosAsset()
-	{
-		return leerDatosAsset;
-	}
+    public boolean isLeerDatosAsset() {
+        return leerDatosAsset;
+    }
 
-	public void setLeerDatosAsset(boolean leerDatosAsset)
-	{
-		this.leerDatosAsset = leerDatosAsset;
-	}
+    public void setLeerDatosAsset(boolean leerDatosAsset) {
+        this.leerDatosAsset = leerDatosAsset;
+    }
 
-	public void setSonido(boolean sonido)
-	{
-		this.sonido = sonido;
-	}
+    public void setSonido(boolean sonido) {
+        this.sonido = sonido;
+    }
 
-	public int[] getPuntuaciones()
-	{
-		return puntuaciones;
-	}
+    public int[] getPuntuaciones() {
+        return puntuaciones;
+    }
 
-	public void setPuntuaciones(int[] puntuaciones)
-	{
-		this.puntuaciones = puntuaciones;
-	}
+    public void setPuntuaciones(int[] puntuaciones) {
+        this.puntuaciones = puntuaciones;
+    }
 
-	public ConfiguracionesDeJuego cargarConfiguraciones()
-	{
+    public ConfiguracionesDeJuego cargarConfiguraciones() {
 
-		BufferedReader buferarchivoLeer = null;
+        BufferedReader buferarchivoLeer = null;
 
-		try
-		{
+        try {
 
+            if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+                if (tipo == ConfiguracionesDeJuego.ASSET) {
 
+                    tipo = ConfiguracionesDeJuego.ASSET;
 
-			if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED))
-			{
-				if (tipo == ConfiguracionesDeJuego.ASSET)
-				{
+                } else {
 
-					tipo = ConfiguracionesDeJuego.ASSET;
+                    tipo = ConfiguracionesDeJuego.EXTERNO;
+                }
 
+            } else {
 
-				}
-				else
-				{
+                if (tipo == ConfiguracionesDeJuego.ASSET) {
 
-					tipo = ConfiguracionesDeJuego.EXTERNO;
+                    tipo = ConfiguracionesDeJuego.ASSET;
 
-				}
+                } else {
 
-			}
-			else
-			{
+                    tipo = ConfiguracionesDeJuego.INTERNO;
+                }
+            }
 
-				if (tipo == ConfiguracionesDeJuego.ASSET)
-				{
+            if (tipo == ConfiguracionesDeJuego.ASSET) {
 
-					tipo = ConfiguracionesDeJuego.ASSET;
+                buferarchivoLeer =
+                        new BufferedReader(
+                                new InputStreamReader(datos.leerAsset("datos.txt"), "UTF-8"));
+            }
 
+            if (tipo == ConfiguracionesDeJuego.EXTERNO) {
 
-				}
-				else
-				{
+                buferarchivoLeer =
+                        new BufferedReader(
+                                new InputStreamReader(
+                                        datos.leerDatoExterno(DatosJuego.DATOS), "UTF-8"));
+            }
 
-					tipo = ConfiguracionesDeJuego.INTERNO;
+            if (tipo == ConfiguracionesDeJuego.INTERNO) {
 
-				}
+                buferarchivoLeer =
+                        new BufferedReader(
+                                new InputStreamReader(
+                                        datos.leerDatoInterno(DatosJuego.DATOS), "UTF-8"));
+            }
 
+            sonido = Boolean.parseBoolean(buferarchivoLeer.readLine());
 
-			}
+            leerDatosAsset = Boolean.parseBoolean(buferarchivoLeer.readLine());
 
-			if (tipo == ConfiguracionesDeJuego.ASSET)
-			{
+            for (int i = 0; i < puntuaciones.length; i++) {
 
-				buferarchivoLeer = new BufferedReader(new InputStreamReader(datos.leerAsset("datos.txt"), "UTF-8"));
+                puntuaciones[i] = Integer.parseInt(buferarchivoLeer.readLine());
+            }
 
-			}
+            numeroNivel = Integer.parseInt(buferarchivoLeer.readLine());
 
+            for (int i = 0; i < t.length; i++) {
 
+                t[i] = Integer.parseInt(buferarchivoLeer.readLine());
+            }
 
-			if (tipo == ConfiguracionesDeJuego.EXTERNO)
-			{
+            obtenerPosiciones(buferarchivoLeer);
 
-				buferarchivoLeer = new BufferedReader(new InputStreamReader(datos.leerDatoExterno(DatosJuego.DATOS), "UTF-8"));
+            obtenerTipos(buferarchivoLeer);
 
-			}
+        } catch (IOException e) {
 
+        } finally {
+            try {
+                if (buferarchivoLeer != null) {
 
+                    buferarchivoLeer.close();
+                }
 
-			if (tipo == ConfiguracionesDeJuego.INTERNO)
-			{
+            } catch (IOException e) {
 
-				buferarchivoLeer = new BufferedReader(new InputStreamReader(datos.leerDatoInterno(DatosJuego.DATOS), "UTF-8"));
+            }
+        }
 
-			}
+        return this;
+    }
 
+    public void guardarConfiguraciones() {
 
-			sonido = Boolean.parseBoolean(buferarchivoLeer.readLine());
+        BufferedWriter buferarchivoEscribir = null;
 
-			leerDatosAsset = Boolean.parseBoolean(buferarchivoLeer.readLine());
+        try {
 
-			for (int i = 0; i < puntuaciones.length; i++)
-			{
+            if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+                tipo = ConfiguracionesDeJuego.EXTERNO;
 
-				puntuaciones[i] = Integer.parseInt(buferarchivoLeer.readLine());
+            } else {
 
-			}
-			
-			
-			numeroNivel = Integer.parseInt(buferarchivoLeer.readLine());
+                tipo = ConfiguracionesDeJuego.INTERNO;
+            }
 
-			for (int i = 0; i < t.length; i++) {
+            if (tipo == ConfiguracionesDeJuego.EXTERNO) {
 
-				t[i] = Integer.parseInt(buferarchivoLeer.readLine());
-			}
+                buferarchivoEscribir =
+                        new BufferedWriter(
+                                new OutputStreamWriter(
+                                        datos.escribirDatoExterno(DatosJuego.DATOS), "UTF-8"));
+            }
 
-			obtenerPosiciones(buferarchivoLeer);
+            if (tipo == ConfiguracionesDeJuego.INTERNO) {
 
-			obtenerTipos(buferarchivoLeer);
-			
-			
-			
+                buferarchivoEscribir =
+                        new BufferedWriter(
+                                new OutputStreamWriter(
+                                        datos.escribirDatoInterno(DatosJuego.DATOS), "UTF-8"));
+            }
 
-		}
-		catch (IOException e)
-		{
+            buferarchivoEscribir.write(Boolean.toString(sonido));
 
-		}
-		finally
-		{
-			try
-			{
-				if (buferarchivoLeer != null)
-				{
+            buferarchivoEscribir.newLine();
 
-					buferarchivoLeer.close();
-				}
+            buferarchivoEscribir.write(Boolean.toString(leerDatosAsset));
 
-			}
-			catch (IOException e)
-			{
+            buferarchivoEscribir.newLine();
 
-			}
+            for (int i = 0; i < puntuaciones.length; i++) {
 
-		}
+                buferarchivoEscribir.write(Integer.toString(puntuaciones[i]));
 
-		return this;
+                buferarchivoEscribir.newLine();
+            }
 
-	}
+            guardarPoiciones(buferarchivoEscribir);
 
-	public void guardarConfiguraciones()
-	{
+            guardarTipos(buferarchivoEscribir);
 
-		BufferedWriter buferarchivoEscribir = null;
+        } catch (IOException e) {
 
-		try
-		{
+        } finally {
+            if (buferarchivoEscribir != null) {
+                try {
 
-		if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED))
-			{
-				tipo = ConfiguracionesDeJuego.EXTERNO;
+                    buferarchivoEscribir.close();
 
-			}
-			else
-			{
+                } catch (IOException e) {
 
-				tipo = ConfiguracionesDeJuego.INTERNO;
+                }
+            }
+        }
+    }
 
+    public void anadirPuntuaciones(int puntuacion) {
 
-			}
+        for (int i = 0; i < puntuaciones.length; i++) {
+            if (puntuaciones[i] < puntuacion) {
+                for (int j = (puntuaciones.length - 1); j > i; j--) {
+                    puntuaciones[j] = puntuaciones[j - 1];
+                }
+                puntuaciones[i] = puntuacion;
+                break;
+            }
+        }
+    }
 
-			
-			if (tipo == ConfiguracionesDeJuego.EXTERNO)
-			{
+    private void guardarPoiciones(BufferedWriter buferarchivoEscribir) throws IOException {
 
-			buferarchivoEscribir = new BufferedWriter(new OutputStreamWriter(datos.escribirDatoExterno(DatosJuego.DATOS),  "UTF-8"));
+        for (int i = 0; i < posicionActores.length; i++) {
 
-			}
-	
-			if (tipo == ConfiguracionesDeJuego.INTERNO)
-			{
+            for (int j = 0; j < posicionActores[i].size(); j++) {
 
-				buferarchivoEscribir = new BufferedWriter(new OutputStreamWriter(datos.escribirDatoInterno(DatosJuego.DATOS),  "UTF-8"));
+                buferarchivoEscribir.write(Float.toString(posicionActores[i].get(j).x));
 
-			}
-			
-			
-			buferarchivoEscribir.write(Boolean.toString(sonido));
+                buferarchivoEscribir.newLine();
 
-			buferarchivoEscribir.newLine();
+                buferarchivoEscribir.write(Float.toString(posicionActores[i].get(j).y));
 
-			buferarchivoEscribir.write(Boolean.toString(leerDatosAsset));
+                buferarchivoEscribir.newLine();
+            }
+        }
+    }
 
-			buferarchivoEscribir.newLine();
+    private void guardarTipos(BufferedWriter buferarchivoEscribir) throws IOException {
 
-			for (int i = 0; i < puntuaciones.length; i++)
-			{
+        for (int i = 0; i < tipoActores.length; i++) {
 
-				buferarchivoEscribir.write(Integer.toString(puntuaciones[i]));
+            for (int j = 0; j < tipoActores[i].size(); j++) {
 
-				buferarchivoEscribir.newLine();
-			}
-			
-			
-			guardarPoiciones(buferarchivoEscribir);
+                buferarchivoEscribir.write(tipoActores[i].get(j));
 
-			guardarTipos(buferarchivoEscribir);
-			
-			
-		}
-		catch (IOException e)
-		{
+                buferarchivoEscribir.newLine();
+            }
+        }
+    }
 
-		}
-		finally
-		{
-			if (buferarchivoEscribir != null)
-			{
-				try
-				{
+    private void obtenerPosiciones(BufferedReader BuferarchivoLeer) throws IOException {
 
-					buferarchivoEscribir.close();
+        int v1 = 0;
 
-				}
-				catch (IOException e)
-				{
+        int v2 = 0;
 
-				}
+        for (int j = 0; j < t[numeroNivel - 1]; j++) {
 
-			}
+            v1 = Integer.parseInt(BuferarchivoLeer.readLine());
 
-		} 
+            v2 = Integer.parseInt(BuferarchivoLeer.readLine());
 
-	}
+            posicionActores[numeroNivel - 1].add(new Vector2D(v1, v2));
+        }
+    }
 
-	public void anadirPuntuaciones(int puntuacion)
-	{
+    private void obtenerTipos(BufferedReader BuferarchivoLeer) throws IOException {
 
-		for (int i = 0; i < puntuaciones.length; i++)
-		{
-			if (puntuaciones[i] < puntuacion)
-			{
-				for (int j = (puntuaciones.length - 1); j > i; j--)
-				{
-					puntuaciones[j] = puntuaciones[j - 1];
-				}
-				puntuaciones[i] = puntuacion;
-				break;
-			}
+        for (int j = 0; j < t[numeroNivel - 1]; j++) {
 
-		}
+            tipoActores[numeroNivel - 1].add(BuferarchivoLeer.readLine());
+        }
+    }
 
-	}
-	
-	
-	private void guardarPoiciones(BufferedWriter buferarchivoEscribir) throws IOException {
+    public void gurdarActores(ArrayList<Actor> personajes, String tipo, String nivel) {
 
-		for (int i = 0; i < posicionActores.length; i++) {
+        String ni = "";
 
-			for (int j = 0; j < posicionActores[i].size(); j++) {
+        int n = 1;
 
-				buferarchivoEscribir.write(Float.toString(posicionActores[i].get(j).x));
+        for (int i = 0; i < posicionActores.length; i++) {
 
-				buferarchivoEscribir.newLine();
+            ni = "Nivel " + n;
 
-				buferarchivoEscribir.write(Float.toString(posicionActores[i].get(j).y));
+            if (nivel.contentEquals(ni)) {
 
-				buferarchivoEscribir.newLine();
+                for (int j = 0; j < personajes.size(); j++) {
 
-			}
+                    if (tipo.contentEquals(personajes.get(j).getClass().getName().toString())) {
 
-		}
+                        posicionActores[i].add(
+                                new Vector2D(personajes.get(j).getX(), personajes.get(j).getY()));
 
-	}
+                        tipoActores[i].add(personajes.get(j).getClass().getName().toString());
+                    }
+                }
+            }
 
-	private void guardarTipos(BufferedWriter buferarchivoEscribir) throws IOException {
+            n++;
+        }
+    }
 
-		for (int i = 0; i < tipoActores.length; i++) {
+    public ArrayList<Vector2D> getPosicionActores(String tipo, String nivel) {
 
-			for (int j = 0; j < tipoActores[i].size(); j++) {
+        ArrayList<Vector2D> v = new ArrayList<Vector2D>();
 
-				buferarchivoEscribir.write(tipoActores[i].get(j));
+        String ni = "";
 
-				buferarchivoEscribir.newLine();
+        int n = 1;
 
-			}
+        for (int i = 0; i < posicionActores.length; i++) {
 
-		}
+            ni = "Nivel " + n;
 
-	}
+            if (nivel.contentEquals(ni)) {
 
-	private void obtenerPosiciones(BufferedReader BuferarchivoLeer) throws IOException {
+                for (int j = 0; j < tipoActores[i].size(); j++) {
 
-		int v1 = 0;
+                    if (tipo.contentEquals(tipoActores[i].get(j))) {
 
-		int v2 = 0;
+                        v.add(posicionActores[i].get(j));
+                    }
+                }
+            }
 
-		for (int j = 0; j < t[numeroNivel - 1]; j++) {
+            n++;
+        }
 
-			v1 = Integer.parseInt(BuferarchivoLeer.readLine());
+        return v;
+    }
 
-			v2 = Integer.parseInt(BuferarchivoLeer.readLine());
+    public ArrayList<Vector2D> getTamanoArray(String nivel) {
 
-			posicionActores[numeroNivel - 1].add(new Vector2D(v1, v2));
+        ArrayList<Vector2D> v = new ArrayList<Vector2D>();
 
-		}
+        String ni = "";
 
-	}
+        int n = 1;
 
-	private void obtenerTipos(BufferedReader BuferarchivoLeer) throws IOException {
+        for (int i = 0; i < posicionActores.length; i++) {
 
-		for (int j = 0; j < t[numeroNivel - 1]; j++) {
+            ni = "Nivel " + n;
 
-			tipoActores[numeroNivel - 1].add(BuferarchivoLeer.readLine());
-		}
+            if (nivel.contentEquals(ni)) {
 
-	}
-	
-	
-	
-	public void gurdarActores(ArrayList<Actor> personajes, String tipo, String nivel) {
+                for (int j = 0; j < posicionActores[i].size(); j++) {
 
-		String ni = "";
+                    v.add(posicionActores[i].get(j));
+                }
+            }
 
-		int n = 1;
+            n++;
+        }
 
-		for (int i = 0; i < posicionActores.length; i++) {
+        return v;
+    }
 
-			ni = "Nivel " + n;
+    public void eliminarActores(String nivel) {
 
-			if (nivel.contentEquals(ni)) {
+        String ni = "";
 
-				for (int j = 0; j < personajes.size(); j++) {
+        int n = 1;
 
-					if (tipo.contentEquals(personajes.get(j).getClass().getName().toString())) {
+        for (int i = 0; i < posicionActores.length; i++) {
 
-						posicionActores[i].add(new Vector2D(personajes.get(j).getX(), personajes.get(j).getY()));
+            ni = "Nivel " + n;
 
-						tipoActores[i].add(personajes.get(j).getClass().getName().toString());
+            if (nivel.contentEquals(ni)) {
 
-					}
+                posicionActores[i].clear();
 
-				}
+                tipoActores[i].clear();
+            }
 
-			}
+            n++;
+        }
+    }
 
-			n++;
-		}
+    public void eliminarActor(String nivel, String tipo, int indice) {
 
-	}
+        String ni = "";
 
-	public ArrayList<Vector2D> getPosicionActores(String tipo, String nivel) {
+        int n = 1;
 
-		ArrayList<Vector2D> v = new ArrayList<Vector2D>();
+        for (int i = 0; i < posicionActores.length; i++) {
 
-		String ni = "";
+            ni = "Nivel " + n;
 
-		int n = 1;
+            if (nivel.contentEquals(ni)) {
 
-		for (int i = 0; i < posicionActores.length; i++) {
+                for (int j = 0; j < tipoActores[i].size(); j++) {
 
-			ni = "Nivel " + n;
+                    if (tipo.contentEquals(tipoActores[i].get(j))) {
 
-			if (nivel.contentEquals(ni)) {
+                        if (indice == j) {
 
-				for (int j = 0; j < tipoActores[i].size(); j++) {
+                            posicionActores[i].remove(j);
 
-					if (tipo.contentEquals(tipoActores[i].get(j))) {
+                            tipoActores[i].remove(j);
+                        }
+                    }
+                }
+            }
 
-						v.add(posicionActores[i].get(j));
-
-					}
-
-				}
-
-			}
-
-			n++;
-
-		}
-
-		return v;
-
-	}
-
-	public ArrayList<Vector2D> getTamanoArray(String nivel) {
-
-		ArrayList<Vector2D> v = new ArrayList<Vector2D>();
-
-		String ni = "";
-
-		int n = 1;
-
-		for (int i = 0; i < posicionActores.length; i++) {
-
-			ni = "Nivel " + n;
-
-			if (nivel.contentEquals(ni)) {
-
-				for (int j = 0; j < posicionActores[i].size(); j++) {
-
-					v.add(posicionActores[i].get(j));
-
-				}
-
-			}
-
-			n++;
-		}
-
-		return v;
-
-	}
-
-	public void eliminarActores(String nivel) {
-
-		String ni = "";
-
-		int n = 1;
-
-		for (int i = 0; i < posicionActores.length; i++) {
-
-			ni = "Nivel " + n;
-
-			if (nivel.contentEquals(ni)) {
-
-				posicionActores[i].clear();
-
-				tipoActores[i].clear();
-
-			}
-
-			n++;
-
-		}
-
-	}
-
-	public void eliminarActor(String nivel, String tipo, int indice) {
-
-		String ni = "";
-
-		int n = 1;
-
-		for (int i = 0; i < posicionActores.length; i++) {
-
-			ni = "Nivel " + n;
-
-			if (nivel.contentEquals(ni)) {
-
-				for (int j = 0; j < tipoActores[i].size(); j++) {
-
-					if (tipo.contentEquals(tipoActores[i].get(j))) {
-
-						if (indice == j) {
-
-							posicionActores[i].remove(j);
-
-							tipoActores[i].remove(j);
-
-						}
-
-					}
-
-				}
-
-			}
-
-			n++;
-
-		}
-
-	}
-	
-
+            n++;
+        }
+    }
 }

@@ -1,109 +1,88 @@
 package com.diamon.entrada;
 
-import java.util.List;
-
-import com.diamon.nucleo.Entrada;
-
 import android.content.Context;
 import android.os.Build.VERSION;
 import android.view.View;
 
-public class EntradaDeControles implements Entrada
-{
+import com.diamon.nucleo.Entrada;
 
-	private ManejadorDeAcelerometro manejadorDeAcelerometro;
+import java.util.List;
 
-	private ManejadorDeTeclado manejadorDeTeclado;
+public class EntradaDeControles implements Entrada {
 
-	private ManejadorDeToque manejadorDeToque;
+    private ManejadorDeAcelerometro manejadorDeAcelerometro;
 
-	public EntradaDeControles(Context contexto, View vista, float escalaX, float escalaY)
-	{
+    private ManejadorDeTeclado manejadorDeTeclado;
 
-		manejadorDeAcelerometro = new ManejadorDeAcelerometro(contexto);
+    private ManejadorDeToque manejadorDeToque;
 
-		manejadorDeTeclado = new ManejadorDeTeclado(vista);
+    public EntradaDeControles(Context contexto, View vista, float escalaX, float escalaY) {
 
-		if (VERSION.SDK_INT > 5)
-		{
+        manejadorDeAcelerometro = new ManejadorDeAcelerometro(contexto);
 
-			manejadorDeToque = new ManejadorDeMultiplesToque(vista, escalaX, escalaY);
+        manejadorDeTeclado = new ManejadorDeTeclado(vista);
 
-		}
-		else
-		{
+        if (VERSION.SDK_INT > 5) {
 
-          manejadorDeToque = new ManejadorDeUnToque(vista, escalaX, escalaY);
+            manejadorDeToque = new ManejadorDeMultiplesToque(vista, escalaX, escalaY);
 
-			
+        } else {
 
+            manejadorDeToque = new ManejadorDeUnToque(vista, escalaX, escalaY);
+        }
+    }
 
+    @Override
+    public boolean isTeclaPrecionada(int codigoDeTecla) {
 
-		}
+        return manejadorDeTeclado.isTeclaPrecionada(codigoDeTecla);
+    }
 
-	}
+    @Override
+    public boolean isToque(int puntero) {
 
-	@Override
-	public boolean isTeclaPrecionada(int codigoDeTecla)
-	{
+        return manejadorDeToque.isToque(puntero);
+    }
 
-		return manejadorDeTeclado.isTeclaPrecionada(codigoDeTecla);
-	}
+    @Override
+    public float getToqueEnX(int puntero) {
 
-	@Override
-	public boolean isToque(int puntero)
-	{
+        return manejadorDeToque.getToqueEnX(puntero);
+    }
 
-		return manejadorDeToque.isToque(puntero);
-	}
+    @Override
+    public float getToqueEnY(int puntero) {
 
-	@Override
-	public float getToqueEnX(int puntero)
-	{
+        return manejadorDeToque.getToqueEnY(puntero);
+    }
 
-		return manejadorDeToque.getToqueEnX(puntero);
-	}
+    @Override
+    public float getAcelerometroEnX() {
 
-	@Override
-	public float getToqueEnY(int puntero)
-	{
+        return manejadorDeAcelerometro.getAcelerometroEnX();
+    }
 
-		return manejadorDeToque.getToqueEnY(puntero);
-	}
+    @Override
+    public float getAcelerometroEnY() {
 
-	@Override
-	public float getAcelerometroEnX()
-	{
+        return manejadorDeAcelerometro.getAcelerometroEnY();
+    }
 
-		return manejadorDeAcelerometro.getAcelerometroEnX();
-	}
+    @Override
+    public float getAcelerometroEnZ() {
 
-	@Override
-	public float getAcelerometroEnY()
-	{
+        return manejadorDeAcelerometro.getAcelerometroEnZ();
+    }
 
-		return manejadorDeAcelerometro.getAcelerometroEnY();
-	}
+    @Override
+    public List<EventoDeTecla> getEventosDeTecla() {
 
-	@Override
-	public float getAcelerometroEnZ()
-	{
+        return manejadorDeTeclado.getEventosDeTecla();
+    }
 
-		return manejadorDeAcelerometro.getAcelerometroEnZ();
-	}
+    @Override
+    public List<EventoDeToque> getEventosDeToque() {
 
-	@Override
-	public List<EventoDeTecla> getEventosDeTecla()
-	{
-
-		return manejadorDeTeclado.getEventosDeTecla();
-	}
-
-	@Override
-	public List<EventoDeToque> getEventosDeToque()
-	{
-
-		return manejadorDeToque.getEventosDeToque();
-	}
-
+        return manejadorDeToque.getEventosDeToque();
+    }
 }

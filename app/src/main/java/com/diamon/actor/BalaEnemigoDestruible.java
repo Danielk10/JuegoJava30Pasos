@@ -1,241 +1,206 @@
 package com.diamon.actor;
 
+import com.diamon.graficos.Animacion2D;
 import com.diamon.nucleo.Actor;
 import com.diamon.nucleo.Juego;
 import com.diamon.nucleo.Pantalla;
 import com.diamon.nucleo.Textura;
-import com.diamon.graficos.Animacion2D;
 
-public class BalaEnemigoDestruible extends Actor
-{
+public class BalaEnemigoDestruible extends Actor {
 
-	public static final int DERECHO_ARRIBA = 0;
+    public static final int DERECHO_ARRIBA = 0;
 
-	public static final int DERECHO_ABAJO = 1;
+    public static final int DERECHO_ABAJO = 1;
 
-	public static final int DERECHO = 2;
+    public static final int DERECHO = 2;
 
-	public static final int IZQUIERDO_ARRIBA = 3;
+    public static final int IZQUIERDO_ARRIBA = 3;
 
-	public static final int IZQUIERDO_ABAJO = 4;
+    public static final int IZQUIERDO_ABAJO = 4;
 
-	public static final int IZQUIERDO = 5;
+    public static final int IZQUIERDO = 5;
 
-	public static final int ARRIBA = 6;
+    public static final int ARRIBA = 6;
 
-	public static final int ABAJO = 7;
+    public static final int ABAJO = 7;
 
-	private int lado;
+    private int lado;
 
-	public final static float VELOCIDAD_BALA = 3;
+    public static final float VELOCIDAD_BALA = 3;
 
-	private float velocidad;
+    private float velocidad;
 
-	public BalaEnemigoDestruible(Pantalla pantalla, Textura textura, float x, float y, float ancho, float alto)
-	{
-		super(pantalla, textura, x, y, ancho, alto);
+    public BalaEnemigoDestruible(
+            Pantalla pantalla, Textura textura, float x, float y, float ancho, float alto) {
+        super(pantalla, textura, x, y, ancho, alto);
 
-		velocidad = VELOCIDAD_BALA;
+        velocidad = VELOCIDAD_BALA;
 
-		lado = BalaEnemigoDestruible.IZQUIERDO;
-	}
+        lado = BalaEnemigoDestruible.IZQUIERDO;
+    }
 
-	public BalaEnemigoDestruible(Pantalla pantalla, Textura textura, float x, float y)
-	{
-		super(pantalla, textura, x, y);
+    public BalaEnemigoDestruible(Pantalla pantalla, Textura textura, float x, float y) {
+        super(pantalla, textura, x, y);
 
-		velocidad = VELOCIDAD_BALA;
+        velocidad = VELOCIDAD_BALA;
 
-		lado = BalaEnemigoDestruible.IZQUIERDO;
-	}
+        lado = BalaEnemigoDestruible.IZQUIERDO;
+    }
 
-	public BalaEnemigoDestruible(Pantalla pantalla, Textura[] texturas, float x, float y, float ancho, float alto,
-								 float tiempoAnimacion)
-	{
-		super(pantalla, texturas, x, y, ancho, alto, tiempoAnimacion);
+    public BalaEnemigoDestruible(
+            Pantalla pantalla,
+            Textura[] texturas,
+            float x,
+            float y,
+            float ancho,
+            float alto,
+            float tiempoAnimacion) {
+        super(pantalla, texturas, x, y, ancho, alto, tiempoAnimacion);
 
-		velocidad = VELOCIDAD_BALA;
+        velocidad = VELOCIDAD_BALA;
 
-		lado = BalaEnemigoDestruible.IZQUIERDO;
-	}
+        lado = BalaEnemigoDestruible.IZQUIERDO;
+    }
 
-	public void setLado(int lado)
-	{
-		this.lado = lado;
-	}
+    public void setLado(int lado) {
+        this.lado = lado;
+    }
 
-	public int getLado()
-	{
-		return lado;
-	}
+    public int getLado() {
+        return lado;
+    }
 
-	@Override
-	public void obtenerActores()
-	{
-		// TODO: Implement this method
-	}
+    @Override
+    public void obtenerActores() {
+        // TODO: Implement this method
+    }
 
+    @Override
+    public void actualizar(float delta) {
 
-	@Override
-	public void actualizar(float delta)
-	{
+        super.actualizar(delta);
 
-		super.actualizar(delta);
+        if (lado == BalaEnemigoDestruible.DERECHO) {
+            x += velocidad / Juego.DELTA_A_PIXEL * delta;
 
+            if (x >= Juego.ANCHO_PANTALLA) {
 
-		if (lado == BalaEnemigoDestruible.DERECHO)
-		{
-			x += velocidad / Juego.DELTA_A_PIXEL * delta;
+                remover = true;
+            }
+        }
 
-			if (x >= Juego.ANCHO_PANTALLA)
-			{
+        if (lado == BalaEnemigoDestruible.IZQUIERDO) {
 
-				remover = true;
-			}
+            x -= velocidad / Juego.DELTA_A_PIXEL * delta;
 
-		}
+            if (x <= -ancho) {
 
-		if (lado == BalaEnemigoDestruible.IZQUIERDO)
-		{
+                remover = true;
+            }
+        }
 
-			x -= velocidad / Juego.DELTA_A_PIXEL * delta;
+        if (lado == BalaEnemigoDestruible.ARRIBA) {
 
-			if (x <= -ancho)
-			{
+            y -= velocidad / Juego.DELTA_A_PIXEL * delta;
 
-				remover = true;
-			}
+            if (y <= -alto) {
 
-		}
+                remover = true;
+            }
+        }
 
-		if (lado == BalaEnemigoDestruible.ARRIBA)
-		{
+        if (lado == BalaEnemigoDestruible.ABAJO) {
 
-			y -= velocidad / Juego.DELTA_A_PIXEL * delta;
+            y += velocidad / Juego.DELTA_A_PIXEL * delta;
 
-			if (y <= -alto)
-			{
+            if (y >= Juego.ALTO_PANTALLA) {
 
-				remover = true;
-			}
+                remover = true;
+            }
+        }
 
-		}
+        if (lado == BalaEnemigoDestruible.IZQUIERDO_ABAJO) {
 
-		if (lado == BalaEnemigoDestruible.ABAJO)
-		{
+            x -= velocidad / Juego.DELTA_A_PIXEL * delta;
 
-			y += velocidad / Juego.DELTA_A_PIXEL * delta;
+            y += velocidad / Juego.DELTA_A_PIXEL * delta;
 
-			if (y >= Juego.ALTO_PANTALLA)
-			{
+            if (y >= Juego.ALTO_PANTALLA && x <= -ancho) {
 
-				remover = true;
-			}
+                remover = true;
+            }
+        }
 
-		}
+        if (lado == BalaEnemigoDestruible.IZQUIERDO_ARRIBA) {
 
-		if (lado == BalaEnemigoDestruible.IZQUIERDO_ABAJO)
-		{
+            x -= velocidad / Juego.DELTA_A_PIXEL * delta;
 
-			x -= velocidad / Juego.DELTA_A_PIXEL * delta;
+            y -= velocidad / Juego.DELTA_A_PIXEL * delta;
 
-			y += velocidad / Juego.DELTA_A_PIXEL * delta;
+            if (y <= -alto && x <= -ancho) {
 
-			if (y >= Juego.ALTO_PANTALLA && x <= -ancho)
-			{
+                remover = true;
+            }
+        }
 
-				remover = true;
-			}
+        if (lado == BalaEnemigoDestruible.DERECHO_ABAJO) {
 
-		}
+            x += velocidad / Juego.DELTA_A_PIXEL * delta;
 
-		if (lado == BalaEnemigoDestruible.IZQUIERDO_ARRIBA)
-		{
+            y += velocidad / Juego.DELTA_A_PIXEL * delta;
 
-			x -= velocidad / Juego.DELTA_A_PIXEL * delta;
+            if (y >= Juego.ALTO_PANTALLA && x >= Juego.ANCHO_PANTALLA) {
 
-			y -= velocidad / Juego.DELTA_A_PIXEL * delta;
+                remover = true;
+            }
+        }
 
-			if (y <= -alto && x <= -ancho)
-			{
+        if (lado == BalaEnemigoDestruible.DERECHO_ARRIBA) {
 
-				remover = true;
-			}
+            x += velocidad / Juego.DELTA_A_PIXEL * delta;
 
+            y -= velocidad / Juego.DELTA_A_PIXEL * delta;
 
+            if (y <= -alto && x >= Juego.ANCHO_PANTALLA) {
 
-		}
+                remover = true;
+            }
+        }
+    }
 
-		if (lado == BalaEnemigoDestruible.DERECHO_ABAJO)
-		{
+    public void explosion() {
 
-			x += velocidad / Juego.DELTA_A_PIXEL * delta;
+        Textura[] texturas =
+                new Textura[] {
+                    recurso.getTextura("explosion1.png"),
+                    recurso.getTextura("explosion2.png"),
+                    recurso.getTextura("explosion3.png"),
+                    recurso.getTextura("explosion4.png")
+                };
 
-			y += velocidad / Juego.DELTA_A_PIXEL * delta;
+        Explosion explosion = new Explosion(pantalla, texturas, x - 32, y - 32, 64, 64, 4);
 
-			if (y >= Juego.ALTO_PANTALLA && x >= Juego.ANCHO_PANTALLA)
-			{
+        explosion.getAnimacion().setModo(Animacion2D.NORMAL);
 
-				remover = true;
-			}
+        if (explosion.getX() <= 640) {
 
-		}
+            actores.add(explosion);
+        }
+    }
 
-		if (lado == BalaEnemigoDestruible.DERECHO_ARRIBA)
-		{
+    @Override
+    public void colision(Actor actor) {
 
-			x += velocidad / Juego.DELTA_A_PIXEL * delta;
+        if (actor instanceof Jugador
+                || actor instanceof Bala
+                || actor instanceof BalaEspecial
+                || actor instanceof BalaInteligente) {
 
-			y -= velocidad / Juego.DELTA_A_PIXEL * delta;
+            recurso.getSonido("explosion.wav").reproducir(1);
 
+            explosion();
 
-			if (y <= -alto && x >= Juego.ANCHO_PANTALLA)
-			{
-
-				remover = true;
-			}
-
-
-
-		}
-
-
-	}
-
-	public void explosion()
-	{
-
-		Textura[] texturas = new Textura[] { recurso.getTextura("explosion1.png"), recurso.getTextura("explosion2.png"),
-			recurso.getTextura("explosion3.png"), recurso.getTextura("explosion4.png") };
-
-		Explosion explosion = new Explosion(pantalla, texturas, x - 32, y - 32, 64, 64, 4);
-
-		explosion.getAnimacion().setModo(Animacion2D.NORMAL);
-
-		if (explosion.getX() <= 640)
-		{
-
-			actores.add(explosion);
-
-		}
-
-	}
-
-	@Override
-	public void colision(Actor actor)
-	{
-
-		if (actor instanceof Jugador || actor instanceof Bala || actor instanceof BalaEspecial || actor instanceof BalaInteligente)
-		{
-
-			recurso.getSonido("explosion.wav").reproducir(1);
-
-			explosion();
-
-			remover = true;
-
-		}
-
-	}
-
+            remover = true;
+        }
+    }
 }

@@ -1,209 +1,214 @@
 package com.diamon.actor;
 
+import com.diamon.graficos.Animacion2D;
 import com.diamon.nucleo.Actor;
 import com.diamon.nucleo.Juego;
 import com.diamon.nucleo.Pantalla;
 import com.diamon.nucleo.Textura;
-import com.diamon.graficos.Animacion2D;
 
 public class MaquinaFinal extends Actor {
 
-	private float tiempoDisparo;
-	
-	private float tiempoChoque;
+    private float tiempoDisparo;
 
-	private float tiempoDisparoDestruible;
+    private float tiempoChoque;
 
-	private int vida;
+    private float tiempoDisparoDestruible;
 
-	private boolean disparar;
+    private int vida;
 
-	private boolean choque;
+    private boolean disparar;
 
-	public MaquinaFinal(Pantalla pantalla, Textura textura, float x, float y, float ancho, float alto) {
-		super(pantalla, textura, x, y, ancho, alto);
+    private boolean choque;
 
-		vida = 50;
+    public MaquinaFinal(
+            Pantalla pantalla, Textura textura, float x, float y, float ancho, float alto) {
+        super(pantalla, textura, x, y, ancho, alto);
 
-		disparar = false;
+        vida = 50;
 
-		choque = false;
-	}
+        disparar = false;
 
-	public MaquinaFinal(Pantalla pantalla, Textura textura, float x, float y) {
-		super(pantalla, textura, x, y);
+        choque = false;
+    }
 
-		vida = 50;
+    public MaquinaFinal(Pantalla pantalla, Textura textura, float x, float y) {
+        super(pantalla, textura, x, y);
 
-		disparar = false;
+        vida = 50;
 
-		choque = false;
-	}
+        disparar = false;
 
-	public MaquinaFinal(Pantalla pantalla, Textura[] texturas, float x, float y, float ancho, float alto,
-			float tiempoAnimacion) {
-		super(pantalla, texturas, x, y, ancho, alto, tiempoAnimacion);
+        choque = false;
+    }
 
-		vida = 50;
+    public MaquinaFinal(
+            Pantalla pantalla,
+            Textura[] texturas,
+            float x,
+            float y,
+            float ancho,
+            float alto,
+            float tiempoAnimacion) {
+        super(pantalla, texturas, x, y, ancho, alto, tiempoAnimacion);
 
-		disparar = false;
+        vida = 50;
 
-		choque = false;
-	}
+        disparar = false;
 
-@Override
-	public void obtenerActores()
-	{
-		// TODO: Implement this method
-	}
-	
+        choque = false;
+    }
 
+    @Override
+    public void obtenerActores() {
+        // TODO: Implement this method
+    }
 
-	public int getVida() {
-		return vida;
-	}
+    public int getVida() {
+        return vida;
+    }
 
-	public void setVida(int vida) {
-		this.vida = vida;
-	}
+    public void setVida(int vida) {
+        this.vida = vida;
+    }
 
-	public boolean isDisparar() {
-		return disparar;
-	}
+    public boolean isDisparar() {
+        return disparar;
+    }
 
-	public void setDisparar(boolean disparar) {
-		this.disparar = disparar;
-	}
+    public void setDisparar(boolean disparar) {
+        this.disparar = disparar;
+    }
 
-	@Override
-	public void actualizar(float delta) {
-		// TODO Auto-generated method stub
-		super.actualizar(delta);
+    @Override
+    public void actualizar(float delta) {
+        // TODO Auto-generated method stub
+        super.actualizar(delta);
 
-		tiempoDisparo += delta;
+        tiempoDisparo += delta;
 
-		tiempoChoque += delta;
+        tiempoChoque += delta;
 
-		tiempoDisparoDestruible += delta;
+        tiempoDisparoDestruible += delta;
 
-		if (vida == 0) {
-			
-			vida = 0;
+        if (vida == 0) {
 
-		}
+            vida = 0;
+        }
 
-		if (disparar) {
+        if (disparar) {
 
-			if (tiempoDisparo / 2 >= 1) {
+            if (tiempoDisparo / 2 >= 1) {
 
-				disparar();
+                disparar();
 
-				tiempoDisparo = 0;
+                tiempoDisparo = 0;
+            }
 
-			}
+            if (tiempoDisparoDestruible / 1 >= 1) {
 
-			if (tiempoDisparoDestruible / 1 >= 1) {
+                dispararBalaDestruible();
 
-				dispararBalaDestruible();
+                tiempoDisparoDestruible = 0;
+            }
+        }
 
-				tiempoDisparoDestruible = 0;
+        if (choque) {
 
-			}
+            if (tiempoChoque / 0.33f >= 1) {
 
-		}
+                vida--;
 
-		if (choque) {
+                tiempoChoque = 0;
 
-			if (tiempoChoque / 0.33f >= 1) {
+                choque = false;
+            }
+        }
+    }
 
-				vida--;
+    public void explosion() {
 
-				tiempoChoque = 0;
+        Textura[] texturas =
+                new Textura[] {
+                    recurso.getTextura("explosion1.png"),
+                    recurso.getTextura("explosion2.png"),
+                    recurso.getTextura("explosion3.png"),
+                    recurso.getTextura("explosion4.png")
+                };
 
-				choque = false;
+        Explosion explosion = new Explosion(pantalla, texturas, x - 32, y - 32, 64, 64, 4);
 
-			}
+        explosion.getAnimacion().setModo(Animacion2D.NORMAL);
 
-		}
+        if (explosion.getX() <= Juego.ANCHO_PANTALLA) {
 
-	}
+            actores.add(explosion);
+        }
+    }
 
-	public void explosion() {
+    public void disparar() {
 
-		Textura[] texturas = new Textura[] { recurso.getTextura("explosion1.png"), recurso.getTextura("explosion2.png"),
-				recurso.getTextura("explosion3.png"), recurso.getTextura("explosion4.png") };
+        BalaEnemigo bala =
+                new BalaEnemigo(pantalla, recurso.getTextura("balaParedI.png"), x, y + 26, 32, 12);
 
-		Explosion explosion = new Explosion(pantalla, texturas, x - 32, y - 32, 64, 64, 4);
-		
-		explosion.getAnimacion().setModo(Animacion2D.NORMAL);
+        bala.setModoClasico(true);
 
-		if (explosion.getX() <= Juego.ANCHO_PANTALLA) {
+        bala.setLado(BalaEnemigo.IZQUIERDO);
 
-			actores.add(explosion);
+        bala.setVelocidadY(1);
 
-		}
+        if (bala.getX() <= 640) {
 
-	}
+            actores.add(bala);
+        }
+    }
 
-	public void disparar() {
+    public void dispararBalaDestruible() {
 
-		BalaEnemigo bala = new BalaEnemigo(pantalla, recurso.getTextura("balaParedI.png"), x, y + 26, 32, 12);
+        Textura[] texturas1 =
+                new Textura[] {
+                    recurso.getTextura("balaSaltador1.png"), recurso.getTextura("balaSaltador2.png")
+                };
 
-bala.setModoClasico(true);
+        BalaEnemigoDestruible bala1 =
+                new BalaEnemigoDestruible(pantalla, texturas1, x, y - 128, 32, 32, 20);
 
-		bala.setLado(BalaEnemigo.IZQUIERDO);
+        if (bala1.getX() <= Juego.ANCHO_PANTALLA) {
 
-		bala.setVelocidadY(1);
+            actores.add(bala1);
+        }
 
-		if (bala.getX() <= 640) {
+        Textura[] texturas2 =
+                new Textura[] {
+                    recurso.getTextura("balaSaltador1.png"), recurso.getTextura("balaSaltador2.png")
+                };
 
-			actores.add(bala);
-		}
+        BalaEnemigoDestruible bala2 =
+                new BalaEnemigoDestruible(pantalla, texturas2, x, y + 128, 32, 32, 20);
 
-	}
+        if (bala2.getX() <= Juego.ANCHO_PANTALLA) {
 
-	public void dispararBalaDestruible() {
+            actores.add(bala2);
+        }
+    }
 
-		Textura[] texturas1 = new Textura[] { recurso.getTextura("balaSaltador1.png"),
-				recurso.getTextura("balaSaltador2.png") };
+    @Override
+    public void colision(Actor actor) {
 
-		BalaEnemigoDestruible bala1 = new BalaEnemigoDestruible(pantalla, texturas1, x, y - 128, 32, 32, 20);
+        if (actor instanceof Bala
+                || actor instanceof Jugador
+                || actor instanceof BalaEspecial
+                || actor instanceof ExplosionB
+                || actor instanceof BalaInteligente) {
 
-		if (bala1.getX() <= Juego.ANCHO_PANTALLA) {
+            recurso.getSonido("explosion.wav").reproducir(1);
 
-			actores.add(bala1);
-		}
+            if (vida == 0) {
 
-		Textura[] texturas2 = new Textura[] { recurso.getTextura("balaSaltador1.png"),
-				recurso.getTextura("balaSaltador2.png") };
+                explosion();
+                remover = true;
+            }
 
-		BalaEnemigoDestruible bala2 = new BalaEnemigoDestruible(pantalla, texturas2, x, y + 128, 32, 32, 20);
-
-		if (bala2.getX() <= Juego.ANCHO_PANTALLA) {
-
-			actores.add(bala2);
-		}
-
-	}
-
-	@Override
-	public void colision(Actor actor) {
-
-		if (actor instanceof Bala || actor instanceof Jugador || actor instanceof BalaEspecial
-				|| actor instanceof ExplosionB || actor instanceof BalaInteligente) {
-
-			recurso.getSonido("explosion.wav").reproducir(1);
-
-			if (vida == 0) {
-
-				explosion();
-				remover = true;
-
-			}
-
-			choque = true;
-
-		}
-
-	}
+            choque = true;
+        }
+    }
 }

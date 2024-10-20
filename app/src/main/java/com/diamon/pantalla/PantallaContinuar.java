@@ -1,177 +1,143 @@
 package com.diamon.pantalla;
 
+import android.view.KeyEvent;
+
 import com.diamon.graficos.Pantalla2D;
 import com.diamon.graficos.Textura2D;
 import com.diamon.nucleo.Graficos;
 import com.diamon.nucleo.Juego;
 import com.diamon.nucleo.Textura;
 
-import android.view.KeyEvent;
-
 public class PantallaContinuar extends Pantalla2D {
 
-	private Textura fondo;
+    private Textura fondo;
 
-	private Textura selector;
+    private Textura selector;
 
-	private float posicionY;
+    private float posicionY;
 
-	private boolean toque;
+    private boolean toque;
 
-	public PantallaContinuar(Juego juego) {
-		super(juego);
+    public PantallaContinuar(Juego juego) {
+        super(juego);
 
-		fondo = new Textura2D(juego.getRecurso().getTextura("continuar.png").getBipmap(), Juego.ANCHO_PANTALLA,
-				Juego.ALTO_PANTALLA);
+        fondo =
+                new Textura2D(
+                        juego.getRecurso().getTextura("continuar.png").getBipmap(),
+                        Juego.ANCHO_PANTALLA,
+                        Juego.ALTO_PANTALLA);
 
-		selector = new Textura2D(juego.getRecurso().getTextura("selector2.png").getBipmap(), 16, 16);
+        selector =
+                new Textura2D(juego.getRecurso().getTextura("selector2.png").getBipmap(), 16, 16);
 
-		posicionY = 288;
+        posicionY = 288;
 
-		toque = false;
-	}
+        toque = false;
+    }
 
-	@Override
-	public void mostrar() {
+    @Override
+    public void mostrar() {}
 
-	}
+    @Override
+    public void resume() {}
 
-	@Override
-	public void resume() {
+    @Override
+    public void colisiones() {}
 
-	}
+    @Override
+    public void actualizar(float delta) {}
 
-	@Override
-	public void colisiones() {
+    @Override
+    public void dibujar(Graficos pincel, float delta) {
 
-	}
+        pincel.dibujarTextura(fondo, 0, 0);
 
-	@Override
-	public void actualizar(float delta) {
+        pincel.dibujarTextura(selector, 202, posicionY);
+    }
 
-	}
+    @Override
+    public void reajustarPantalla(int ancho, int alto) {}
 
-	@Override
-	public void dibujar(Graficos pincel, float delta) {
+    @Override
+    public void pausa() {}
 
-		pincel.dibujarTextura(fondo, 0, 0);
+    @Override
+    public void ocultar() {}
 
-		pincel.dibujarTextura(selector, 202, posicionY);
+    @Override
+    public void liberarRecursos() {}
 
-	}
+    @Override
+    public void teclaPresionada(int codigoDeTecla) {
 
-	@Override
-	public void reajustarPantalla(int ancho, int alto) {
+        switch (codigoDeTecla) {
+            case KeyEvent.KEYCODE_0:
+                if (posicionY == 288) {
 
-	}
+                    juego.setPantalla(new PantallaNivel(juego));
+                }
 
-	@Override
-	public void pausa() {
+                if (posicionY == 322) {
 
-	}
+                    juego.setPantalla(new PantallaMenu(juego));
+                }
 
-	@Override
-	public void ocultar() {
+                break;
 
-	}
+            case KeyEvent.KEYCODE_1:
+                posicionY = 288;
 
-	@Override
-	public void liberarRecursos() {
+                break;
+            case KeyEvent.KEYCODE_2:
+                posicionY = 322;
 
-	}
+                break;
 
-	@Override
-	public void teclaPresionada(int codigoDeTecla) {
+            default:
+                break;
+        }
+    }
 
-		switch (codigoDeTecla) {
+    @Override
+    public void teclaLevantada(int codigoDeTecla) {}
 
-		case KeyEvent.KEYCODE_0:
+    @Override
+    public void toquePresionado(float x, float y, int puntero) {
 
-			if (posicionY == 288) {
+        if (puntero == 1) {
 
-				juego.setPantalla(new PantallaNivel(juego));
-			}
+            if (posicionY == 288) {
+                juego.setPantalla(new PantallaNivel(juego));
+            }
+        }
+    }
 
-			if (posicionY == 322) {
+    @Override
+    public void toqueLevantado(float x, float y, int puntero) {
 
-				juego.setPantalla(new PantallaMenu(juego));
-			}
+        if (puntero == 0) {
 
-			break;
+            toque = !toque;
+            if (toque) {
+                posicionY = 288;
 
-		case KeyEvent.KEYCODE_1:
+            } else {
 
-			posicionY = 288;
+                posicionY = 322;
+            }
+        }
+        if (puntero == 1) {
 
-			break;
-		case KeyEvent.KEYCODE_2:
+            if (posicionY == 322) {
 
-			posicionY = 322;
+                juego.setPantalla(new PantallaMenu(juego));
+            }
+        }
+    }
 
-			break;
+    @Override
+    public void toqueDeslizando(float x, float y, int puntero) {}
 
-		default:
-
-			break;
-
-		}
-
-	}
-
-	@Override
-	public void teclaLevantada(int codigoDeTecla) {
-
-	}
-
-@Override
-	public void toquePresionado(float x, float y, int puntero) {
-
-		if (puntero == 1)
-		{
-		
-		if (posicionY == 288) {
-			juego.setPantalla(new PantallaNivel(juego));
-		}
-		}
-
-	}
-
-	@Override
-	public void toqueLevantado(float x, float y, int puntero) {
-
-		if (puntero == 0)
-		{
-		
-		toque = !toque;
-		if (toque) {
-			posicionY = 288;
-
-		} else {
-
-			posicionY = 322;
-		}
-		
-		}
-		if (puntero == 1)
-		{
-		
-		if (posicionY == 322) {
-
-			juego.setPantalla(new PantallaMenu(juego));
-		}
-		}
-
-	}
-
-
-	@Override
-	public void toqueDeslizando(float x, float y, int puntero) {
-
-	}
-
-	@Override
-	public void acelerometro(float x, float y, float z) {
-
-	}
-
+    @Override
+    public void acelerometro(float x, float y, float z) {}
 }

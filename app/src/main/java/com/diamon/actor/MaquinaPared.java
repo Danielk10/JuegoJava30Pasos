@@ -1,404 +1,346 @@
 package com.diamon.actor;
 
+import com.diamon.graficos.Animacion2D;
+import com.diamon.graficos.Textura2D;
 import com.diamon.nucleo.Actor;
 import com.diamon.nucleo.Graficos;
 import com.diamon.nucleo.Juego;
 import com.diamon.nucleo.Pantalla;
 import com.diamon.nucleo.Textura;
-import com.diamon.graficos.Animacion2D;
-import com.diamon.graficos.Textura2D;
 
-public class MaquinaPared extends Actor
-{
+public class MaquinaPared extends Actor {
 
-	private float tiempoDisparo;
+    private float tiempoDisparo;
 
-	private float tiempoChoque;
+    private float tiempoChoque;
 
-	private boolean disparar;
+    private boolean disparar;
 
-	private boolean disparando;
+    private boolean disparando;
 
-	private float velocidadY;
+    private float velocidadY;
 
-	private float mover;
+    private float mover;
 
-	public final static int MOVER_ARRIBA = 1;
+    public static final int MOVER_ARRIBA = 1;
 
-	public final static int MOVER_ABAJO = 2;
+    public static final int MOVER_ABAJO = 2;
 
-	public final static int LADO_IZQUIERDO = 3;
+    public static final int LADO_IZQUIERDO = 3;
 
-	public final static int LADO_DERECHO = 4;
+    public static final int LADO_DERECHO = 4;
 
-	private int vida;
+    private int vida;
 
-	private boolean choque;
+    private boolean choque;
 
-	private int lado;
+    private int lado;
 
-	private Jugador jugador;
+    private Jugador jugador;
 
-	public MaquinaPared(Pantalla pantalla, Textura textura, float x, float y, float ancho, float alto)
-	{
-		super(pantalla, textura, x, y, ancho, alto);
+    public MaquinaPared(
+            Pantalla pantalla, Textura textura, float x, float y, float ancho, float alto) {
+        super(pantalla, textura, x, y, ancho, alto);
 
-		mover = 0;
+        mover = 0;
 
-		velocidadY = 0;
+        velocidadY = 0;
 
-		disparar = false;
+        disparar = false;
 
-		disparando = true;
+        disparando = true;
 
-		choque = false;
+        choque = false;
 
-		vida = 4; 
+        vida = 4;
+    }
 
-	}
+    public MaquinaPared(Pantalla pantalla, Textura textura, float x, float y) {
+        super(pantalla, textura, x, y);
 
-	public MaquinaPared(Pantalla pantalla, Textura textura, float x, float y)
-	{
-		super(pantalla, textura, x, y);
+        mover = 0;
 
-		mover = 0;
+        velocidadY = 0;
 
-		velocidadY = 0;
+        disparar = false;
 
-		disparar = false;
+        disparando = true;
 
-		disparando = true;
+        choque = false;
 
-		choque = false;
+        vida = 4;
+    }
 
-		vida = 4;
+    public MaquinaPared(
+            Pantalla pantalla,
+            Textura[] texturas,
+            float x,
+            float y,
+            float ancho,
+            float alto,
+            float tiempoAnimacion) {
+        super(pantalla, texturas, x, y, ancho, alto, tiempoAnimacion);
 
-	}
+        mover = 0;
 
-	public MaquinaPared(Pantalla pantalla, Textura[] texturas, float x, float y, float ancho, float alto,
-						float tiempoAnimacion)
-	{
-		super(pantalla, texturas, x, y, ancho, alto, tiempoAnimacion);
+        velocidadY = 0;
 
-		mover = 0;
+        disparar = false;
 
-		velocidadY = 0;
+        disparando = true;
 
-		disparar = false;
+        choque = false;
 
-		disparando = true;
+        vida = 4;
+    }
 
-		choque = false;
+    @Override
+    public void obtenerActores() {
+        for (int i = 0; i < actores.size(); i++) {
 
-		vida = 4;
+            if (actores.get(i) instanceof Jugador) {
 
-	}
+                jugador = (Jugador) actores.get(i);
+            }
+        }
+    }
 
-	@Override
-	public void obtenerActores()
-	{
-		for (int i = 0; i < actores.size(); i++)
-		{
+    @Override
+    public void actualizar(float delta) {
 
-			if (actores.get(i) instanceof Jugador)
-			{
+        super.actualizar(delta);
 
-				jugador = (Jugador) actores.get(i);
+        for (int i = 0; i < actores.size(); i++) {
 
-			}
+            if (actores.get(i) instanceof Jugador) {
 
-		}
+                jugador = (Jugador) actores.get(i);
+            }
+        }
 
-	}
+        if (disparando) {
 
+            if (jugador.getY() <= y + alto
+                    && jugador.getY() + jugador.getAlto() >= y
+                    && jugador.getX() <= x + ancho) {
 
-	@Override
-	public void actualizar(float delta)
-	{
+                disparando = false;
 
-		super.actualizar(delta);
+                disparar = true;
+            }
+        }
 
-		for (int i = 0; i < actores.size(); i++)
-		{
+        if (disparar) {
 
-			if (actores.get(i) instanceof Jugador)
-			{
+            tiempoDisparo += delta;
 
-				jugador = (Jugador) actores.get(i);
+            if (tiempoDisparo / 1f >= 1) {
 
+                disparar();
+                disparar = false;
+                disparando = true;
 
+                tiempoDisparo = 0;
+            }
+        }
 
-			}
+        if (mover == MaquinaPared.MOVER_ABAJO) {
 
-		}
+            y += velocidadY / Juego.DELTA_A_PIXEL * delta;
 
-		if (disparando)
-		{
+            if (y >= Juego.ALTO_PANTALLA) {
 
-			if (jugador.getY() <= y + alto && jugador.getY() + jugador.getAlto() >= y
-				&& jugador.getX() <= x + ancho)
+                remover = true;
+            }
+        }
 
+        if (mover == MaquinaPared.MOVER_ARRIBA) {
 
-			{
+            y -= velocidadY / Juego.DELTA_A_PIXEL * delta;
 
-				disparando = false;
+            if (y <= -alto) {
 
-				disparar = true;
+                remover = true;
+            }
+        }
 
-			}
+        tiempoChoque += delta;
 
-		}
+        if (choque) {
 
-		if (disparar)
-		{
+            if (tiempoChoque / 1f >= 1) {
 
-			tiempoDisparo += delta;
+                vida--;
 
-			if (tiempoDisparo / 1f >= 1)
-			{
+                tiempoChoque = 0;
 
-				disparar();
-				disparar = false;
-				disparando = true;
+                choque = false;
+            }
+        }
+    }
 
-				tiempoDisparo = 0;
-			}
+    public float getVelocidadY() {
+        return velocidadY;
+    }
 
-		}
+    public void setVelocidadY(float velocidadY) {
+        this.velocidadY = velocidadY;
+    }
 
-		if (mover == MaquinaPared.MOVER_ABAJO)
-		{
+    public float getMover() {
+        return mover;
+    }
 
-			y += velocidadY / Juego.DELTA_A_PIXEL * delta;
+    public void setMover(float mover) {
+        this.mover = mover;
+    }
 
-			if (y >= Juego.ALTO_PANTALLA)
-			{
+    public int getLado() {
+        return lado;
+    }
 
-				remover = true;
-			}
+    public void setLado(int lado) {
+        this.lado = lado;
+    }
 
-		}
+    @Override
+    public void dibujar(Graficos pincel, float delta) {
 
-		if (mover == MaquinaPared.MOVER_ARRIBA)
-		{
+        if (lado == MaquinaPared.LADO_IZQUIERDO) {
 
-			y -= velocidadY / Juego.DELTA_A_PIXEL * delta;
+            if (disparar) {
 
-			if (y <= -alto)
-			{
+                texturas =
+                        new Textura[] {
+                            new Textura2D(
+                                    recurso.getTextura("maquinaParedI2.png").getBipmap(), 32, 32)
+                        };
 
-				remover = true;
-			}
+                animacion.setTexturas(texturas);
 
-		}
-		
-		tiempoChoque += delta;
+            } else {
 
-		if (choque)
-		{
+                texturas =
+                        new Textura[] {
+                            new Textura2D(
+                                    recurso.getTextura("maquinaParedI1.png").getBipmap(), 32, 32)
+                        };
 
-			if (tiempoChoque / 1f >= 1)
-			{
+                animacion.setTexturas(texturas);
+            }
+        }
 
-				vida--;
+        if (lado == MaquinaPared.LADO_DERECHO) {
 
-				tiempoChoque = 0;
+            if (disparar) {
 
-				choque = false;
+                texturas =
+                        new Textura[] {
+                            new Textura2D(
+                                    recurso.getTextura("maquinaParedD2.png").getBipmap(), 32, 32)
+                        };
 
-			}
+                animacion.setTexturas(texturas);
 
-		}
+            } else {
 
-	}
+                texturas =
+                        new Textura[] {
+                            new Textura2D(
+                                    recurso.getTextura("maquinaParedD1.png").getBipmap(), 32, 32)
+                        };
 
-	public float getVelocidadY()
-	{
-		return velocidadY;
-	}
+                animacion.setTexturas(texturas);
+            }
+        }
 
-	public void setVelocidadY(float velocidadY)
-	{
-		this.velocidadY = velocidadY;
-	}
+        super.dibujar(pincel, delta);
+    }
 
-	public float getMover()
-	{
-		return mover;
-	}
+    public void explosion() {
 
-	public void setMover(float mover)
-	{
-		this.mover = mover;
-	}
+        Textura[] texturas =
+                new Textura[] {
+                    recurso.getTextura("explosion1.png"),
+                    recurso.getTextura("explosion2.png"),
+                    recurso.getTextura("explosion3.png"),
+                    recurso.getTextura("explosion4.png")
+                };
 
-	public int getLado()
-	{
-		return lado;
-	}
+        Explosion explosion = new Explosion(pantalla, texturas, x - 32, y - 32, 64, 64, 4);
 
-	public void setLado(int lado)
-	{
-		this.lado = lado;
-	}
-	
-	@Override
-		public void dibujar(Graficos pincel, float delta)
-		{
-	
-			if (lado == MaquinaPared.LADO_IZQUIERDO)
-			{
-	
-				if (disparar)
-	
-				{
-	
-					texturas = new Textura []{new Textura2D(recurso.getTextura("maquinaParedI2.png")
-					.getBipmap(),32,32)};
-					
-					animacion.setTexturas(texturas);
-	
-				}
-				else
-				{
-	
-					texturas = new Textura []{new Textura2D(recurso.getTextura("maquinaParedI1.png")
-															.getBipmap(),32,32)};
-					
-					animacion.setTexturas(texturas);
-	
-				}
-	
-			}
-	
-			if (lado == MaquinaPared.LADO_DERECHO)
-			{
-	
-				if (disparar)
-	
-				{
-	
-	
-					texturas = new Textura []{new Textura2D(recurso.getTextura("maquinaParedD2.png")
-															.getBipmap(),32,32)};
-					
-	
-					animacion.setTexturas(texturas);
-	
-	
-	
-				}
-				else
-				{
-	
-					texturas = new Textura []{new Textura2D(recurso.getTextura("maquinaParedD1.png")
-															.getBipmap(),32,32)};
-					
-					animacion.setTexturas(texturas);
-	
-				}
-	
-			}
-	
-			super.dibujar(pincel, delta);
-		}
-	
-	
-	
-	
+        explosion.getAnimacion().setModo(Animacion2D.NORMAL);
 
-	public void explosion()
-	{
+        if (explosion.getX() <= Juego.ANCHO_PANTALLA) {
 
-		Textura[] texturas = new Textura[] { recurso.getTextura("explosion1.png"), recurso.getTextura("explosion2.png"),
-			recurso.getTextura("explosion3.png"), recurso.getTextura("explosion4.png") };
+            actores.add(explosion);
+        }
+    }
 
-		Explosion explosion = new Explosion(pantalla, texturas, x - 32, y - 32, 64, 64, 4);
+    public void disparar() {
 
-		explosion.getAnimacion().setModo(Animacion2D.NORMAL);
+        if (lado == MaquinaPared.LADO_IZQUIERDO) {
 
+            BalaEnemigo bala =
+                    new BalaEnemigo(
+                            pantalla, recurso.getTextura("balaParedI.png"), x, y + 12, 32, 12);
 
-		if (explosion.getX() <= Juego.ANCHO_PANTALLA)
-		{
+            bala.setModoClasico(true);
 
-			actores.add(explosion);
+            bala.setLado(BalaEnemigo.IZQUIERDO);
 
-		}
+            bala.setMover(BalaEnemigo.MOVER_ABAJO);
 
-	}
+            bala.setVelocidadY(1);
 
-	public void disparar()
-	{
+            if (bala.getX() <= Juego.ANCHO_PANTALLA) {
 
-		if (lado == MaquinaPared.LADO_IZQUIERDO)
-		{
+                actores.add(bala);
+            }
+        }
 
-			BalaEnemigo bala = new BalaEnemigo(pantalla, recurso.getTextura("balaParedI.png"), x, y + 12, 32, 12);
+        if (lado == MaquinaPared.LADO_DERECHO) {
 
-    bala.setModoClasico(true);
+            BalaEnemigo bala =
+                    new BalaEnemigo(
+                            pantalla, recurso.getTextura("balaParedD.png"), x + 32, y + 12, 32, 12);
 
-			bala.setLado(BalaEnemigo.IZQUIERDO);
+            bala.setModoClasico(true);
 
-			bala.setMover(BalaEnemigo.MOVER_ABAJO);
+            bala.setLado(BalaEnemigo.DERECHO);
 
-			bala.setVelocidadY(1);
+            bala.setMover(BalaEnemigo.MOVER_ARRIBA);
 
-			if (bala.getX() <= Juego.ANCHO_PANTALLA)
-			{
+            bala.setVelocidadY(1);
 
-				actores.add(bala);
-			}
+            if (bala.getX() <= Juego.ANCHO_PANTALLA) {
 
-		}
+                actores.add(bala);
+            }
+        }
+    }
 
-		if (lado == MaquinaPared.LADO_DERECHO)
-		{
+    @Override
+    public void colision(Actor actor) {
 
-			BalaEnemigo bala = new BalaEnemigo(pantalla, recurso.getTextura("balaParedD.png"), x + 32, y + 12, 32, 12);
+        if (actor instanceof Bala
+                || actor instanceof Jugador
+                || actor instanceof BalaEspecial
+                || actor instanceof ExplosionB
+                || actor instanceof BalaInteligente) {
 
-    bala.setModoClasico(true);
+            recurso.getSonido("explosion.wav").reproducir(1);
 
-			bala.setLado(BalaEnemigo.DERECHO);
+            choque = true;
 
-			bala.setMover(BalaEnemigo.MOVER_ARRIBA);
+            if (vida == 0) {
 
-			bala.setVelocidadY(1);
+                vida = 0;
 
-			if (bala.getX() <= Juego.ANCHO_PANTALLA)
-			{
+                explosion();
 
-				actores.add(bala);
-			}
-
-		}
-
-	}
-
-	@Override
-	public void colision(Actor actor)
-	{
-
-		if (actor instanceof Bala || actor instanceof Jugador || actor instanceof BalaEspecial
-			|| actor instanceof ExplosionB || actor instanceof BalaInteligente)
-		{
-
-			recurso.getSonido("explosion.wav").reproducir(1);
-
-			choque = true;
-
-			if (vida == 0)
-			{
-
-				vida = 0;
-
-				explosion();
-
-				remover = true;
-
-			}
-
-		}
-
-	}
-
+                remover = true;
+            }
+        }
+    }
 }

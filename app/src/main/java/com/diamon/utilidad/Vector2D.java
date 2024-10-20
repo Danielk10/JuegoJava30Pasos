@@ -2,15 +2,14 @@ package com.diamon.utilidad;
 
 public class Vector2D {
 
-	public float x;
+    public float x;
 
-	public float y;
+    public float y;
 
-	public Vector2D(float x, float y) {
+    public Vector2D(float x, float y) {
 
-		this.x = x;
+        this.x = x;
 
-		this.y = y;
-	}
-
+        this.y = y;
+    }
 }

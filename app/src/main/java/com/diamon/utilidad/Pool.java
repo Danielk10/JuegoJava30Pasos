@@ -5,40 +5,40 @@ import java.util.List;
 
 public class Pool<T> {
 
-	public interface PoolObjectFactory<T> {
+    public interface PoolObjectFactory<T> {
 
-		T crearObjeto();
-	}
+        T crearObjeto();
+    }
 
-	private final PoolObjectFactory<T> factory;
+    private final PoolObjectFactory<T> factory;
 
-	private final List<T> objetosLibres;
+    private final List<T> objetosLibres;
 
-	private final int tamanoMaximoDePool;
+    private final int tamanoMaximoDePool;
 
-	public Pool(PoolObjectFactory<T> factory, int tamanoMaximo) {
+    public Pool(PoolObjectFactory<T> factory, int tamanoMaximo) {
 
-		this.factory = factory;
+        this.factory = factory;
 
-		this.tamanoMaximoDePool = tamanoMaximo;
+        this.tamanoMaximoDePool = tamanoMaximo;
 
-		this.objetosLibres = new ArrayList<T>(tamanoMaximo);
-	}
+        this.objetosLibres = new ArrayList<T>(tamanoMaximo);
+    }
 
-	public T nuevoObjeto() {
+    public T nuevoObjeto() {
 
-		if (this.objetosLibres.size() == 0) {
+        if (this.objetosLibres.size() == 0) {
 
-			return this.factory.crearObjeto();
-		}
-		return this.objetosLibres.remove(this.objetosLibres.size() - 1);
-	}
+            return this.factory.crearObjeto();
+        }
+        return this.objetosLibres.remove(this.objetosLibres.size() - 1);
+    }
 
-	public void objetoLibre(T objeto) {
+    public void objetoLibre(T objeto) {
 
-		if (this.objetosLibres.size() < this.tamanoMaximoDePool) {
+        if (this.objetosLibres.size() < this.tamanoMaximoDePool) {
 
-			this.objetosLibres.add(objeto);
-		}
-	}
+            this.objetosLibres.add(objeto);
+        }
+    }
 }

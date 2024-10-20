@@ -7,135 +7,133 @@ import com.diamon.nucleo.Textura;
 
 public class Caja extends Actor {
 
-	private final static int PODER_0 = 0;
+    private static final int PODER_0 = 0;
 
-	public final static byte AGILIDAD_S = 1;
+    public static final byte AGILIDAD_S = 1;
 
-	public final static byte PODER_W = 2;
+    public static final byte PODER_W = 2;
 
-	public final static byte PODER_L = 3;
+    public static final byte PODER_L = 3;
 
-	public final static byte PODER_B = 4;
+    public static final byte PODER_B = 4;
 
-	public byte poderBala;
+    public byte poderBala;
 
-	private byte agilidad;
+    private byte agilidad;
 
-	public Caja(Pantalla pantalla, Textura textura, float x, float y, float ancho, float alto) {
-		super(pantalla, textura, x, y, ancho, alto);
+    public Caja(Pantalla pantalla, Textura textura, float x, float y, float ancho, float alto) {
+        super(pantalla, textura, x, y, ancho, alto);
 
-		poderBala = Caja.PODER_0;
+        poderBala = Caja.PODER_0;
 
-		agilidad = 0;
+        agilidad = 0;
+    }
 
-	}
+    public Caja(Pantalla pantalla, Textura textura, float x, float y) {
+        super(pantalla, textura, x, y);
 
-	public Caja(Pantalla pantalla, Textura textura, float x, float y) {
-		super(pantalla, textura, x, y);
+        poderBala = Caja.PODER_0;
 
-		poderBala = Caja.PODER_0;
+        agilidad = 0;
+    }
 
-		agilidad = 0;
-	}
+    public Caja(
+            Pantalla pantalla,
+            Textura[] texturas,
+            float x,
+            float y,
+            float ancho,
+            float alto,
+            float tiempoAnimacion) {
+        super(pantalla, texturas, x, y, ancho, alto, tiempoAnimacion);
 
-	public Caja(Pantalla pantalla, Textura[] texturas, float x, float y, float ancho, float alto,
-			float tiempoAnimacion) {
-		super(pantalla, texturas, x, y, ancho, alto, tiempoAnimacion);
+        poderBala = Caja.PODER_0;
 
-		poderBala = Caja.PODER_0;
+        agilidad = 0;
+    }
 
-		agilidad = 0;
-	}
+    @Override
+    public void obtenerActores() {
+        // TODO: Implement this method
+    }
 
+    public void setAgilidad(byte agilidad) {
+        this.agilidad = agilidad;
+    }
 
-@Override
-	public void obtenerActores()
-	{
-		// TODO: Implement this method
-	}
-	
+    public byte getPoderBala() {
+        return poderBala;
+    }
 
-	public void setAgilidad(byte agilidad) {
-		this.agilidad = agilidad;
-	}
+    public void setPoderBala(byte poderBala) {
+        this.poderBala = poderBala;
+    }
 
-	public byte getPoderBala() {
-		return poderBala;
-	}
+    @Override
+    public void actualizar(float delta) {
 
-	public void setPoderBala(byte poderBala) {
-		this.poderBala = poderBala;
-	}
+        super.actualizar(delta);
 
-	@Override
-	public void actualizar(float delta) {
+        x -= 1 / Juego.DELTA_A_PIXEL * delta;
 
-		super.actualizar(delta);
+        if (x <= -ancho) {
 
-		x -= 1 / Juego.DELTA_A_PIXEL * delta;
+            remover = true;
+        }
+    }
 
-		if (x <= -ancho) {
+    private void poder() {
 
-			remover = true;
-		}
-	}
+        Poder poder = null;
 
-	private void poder() {
+        if (agilidad == Caja.AGILIDAD_S) {
 
-		Poder poder = null;
+            poder = new Poder(pantalla, recurso.getTextura("poderS.png"), x, y, 32, 32);
 
-		if (agilidad == Caja.AGILIDAD_S) {
+            poder.setPoder(AGILIDAD_S);
 
-			poder = new Poder(pantalla, recurso.getTextura("poderS.png"), x, y, 32, 32);
+            actores.add(poder);
+        }
 
-			poder.setPoder(AGILIDAD_S);
+        if (poderBala == Caja.PODER_W) {
 
-			actores.add(poder);
-		}
+            poder = new Poder(pantalla, recurso.getTextura("poderW.png"), x, y, 32, 32);
 
-		if (poderBala == Caja.PODER_W) {
+            poder.setPoder(PODER_W);
 
-			poder = new Poder(pantalla, recurso.getTextura("poderW.png"), x, y, 32, 32);
+            actores.add(poder);
+        }
 
-			poder.setPoder(PODER_W);
+        if (poderBala == Caja.PODER_L) {
 
-			actores.add(poder);
+            poder = new Poder(pantalla, recurso.getTextura("poderL.png"), x, y, 32, 32);
 
-		}
+            poder.setPoder(PODER_L);
 
-		if (poderBala == Caja.PODER_L) {
+            actores.add(poder);
+        }
 
-			poder = new Poder(pantalla, recurso.getTextura("poderL.png"), x, y, 32, 32);
+        if (poderBala == Caja.PODER_B) {
 
-			poder.setPoder(PODER_L);
+            poder = new Poder(pantalla, recurso.getTextura("poderB.png"), x, y, 32, 32);
 
-			actores.add(poder);
+            poder.setPoder(PODER_B);
 
-		}
+            actores.add(poder);
+        }
+    }
 
-		if (poderBala == Caja.PODER_B) {
+    @Override
+    public void colision(Actor actor) {
 
-			poder = new Poder(pantalla, recurso.getTextura("poderB.png"), x, y, 32, 32);
+        if (actor instanceof Bala
+                || actor instanceof Jugador
+                || actor instanceof BalaEspecial
+                || actor instanceof BalaInteligente) {
 
-			poder.setPoder(PODER_B);
+            poder();
 
-			actores.add(poder);
-
-		}
-
-	}
-
-	@Override
-	public void colision(Actor actor) {
-
-		if (actor instanceof Bala || actor instanceof Jugador || actor instanceof BalaEspecial || actor instanceof BalaInteligente) {
-
-			poder();
-
-			remover = true;
-
-		}
-
-	}
-
+            remover = true;
+        }
+    }
 }

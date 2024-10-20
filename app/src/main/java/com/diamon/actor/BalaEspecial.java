@@ -5,270 +5,232 @@ import com.diamon.nucleo.Juego;
 import com.diamon.nucleo.Pantalla;
 import com.diamon.nucleo.Textura;
 
-public class BalaEspecial extends Actor
-{
+public class BalaEspecial extends Actor {
 
-	public final static byte PODER_S = 1;
+    public static final byte PODER_S = 1;
 
-	public final static byte BALA_W = 2;
+    public static final byte BALA_W = 2;
 
-	public final static byte BALA_L = 3;
+    public static final byte BALA_L = 3;
 
-	public final static byte BALA_B = 4;
+    public static final byte BALA_B = 4;
 
-	public static final int DERECHO_ARRIBA = 0;
+    public static final int DERECHO_ARRIBA = 0;
 
-	public static final int DERECHO_ABAJO = 1;
+    public static final int DERECHO_ABAJO = 1;
 
-	public static final int DERECHO = 2;
+    public static final int DERECHO = 2;
 
-	public static final int IZQUIERDO_ARRIBA = 3;
+    public static final int IZQUIERDO_ARRIBA = 3;
 
-	public static final int IZQUIERDO_ABAJO = 4;
+    public static final int IZQUIERDO_ABAJO = 4;
 
-	public static final int IZQUIERDO = 5;
+    public static final int IZQUIERDO = 5;
 
-	public static final int ARRIBA = 6;
+    public static final int ARRIBA = 6;
 
-	public static final int ABAJO = 7;
+    public static final int ABAJO = 7;
 
-	public final static float VELOCIDAD_BALA = 10;
+    public static final float VELOCIDAD_BALA = 10;
 
-	private int lado;
+    private int lado;
 
-	private byte bala;
+    private byte bala;
 
-	private float velocidad;
+    private float velocidad;
 
-	public BalaEspecial(Pantalla pantalla, Textura textura, float x, float y, float ancho, float alto)
-	{
-		super(pantalla, textura, x, y, ancho, alto);
+    public BalaEspecial(
+            Pantalla pantalla, Textura textura, float x, float y, float ancho, float alto) {
+        super(pantalla, textura, x, y, ancho, alto);
 
-		lado = BalaEspecial.DERECHO;
+        lado = BalaEspecial.DERECHO;
 
-		bala = 0;
+        bala = 0;
 
-		velocidad = VELOCIDAD_BALA;
-	}
+        velocidad = VELOCIDAD_BALA;
+    }
 
-	public BalaEspecial(Pantalla pantalla, Textura textura, float x, float y)
-	{
-		super(pantalla, textura, x, y);
+    public BalaEspecial(Pantalla pantalla, Textura textura, float x, float y) {
+        super(pantalla, textura, x, y);
 
-		lado = BalaEspecial.DERECHO;
+        lado = BalaEspecial.DERECHO;
 
-		bala = 0;
+        bala = 0;
 
-		velocidad = VELOCIDAD_BALA;
-	}
+        velocidad = VELOCIDAD_BALA;
+    }
 
+    public BalaEspecial(
+            Pantalla pantalla,
+            Textura[] texturas,
+            float x,
+            float y,
+            float ancho,
+            float alto,
+            float tiempoAnimacion) {
+        super(pantalla, texturas, x, y, ancho, alto, tiempoAnimacion);
 
+        lado = BalaEspecial.DERECHO;
 
-	public BalaEspecial(Pantalla pantalla, Textura[] texturas, float x, float y, float ancho, float alto,
-						float tiempoAnimacion)
-	{
-		super(pantalla, texturas, x, y, ancho, alto, tiempoAnimacion);
+        bala = 0;
 
-		lado = BalaEspecial.DERECHO;
+        velocidad = VELOCIDAD_BALA;
+    }
 
-		bala = 0;
+    @Override
+    public void obtenerActores() {
+        // TODO: Implement this method
+    }
 
-		velocidad = VELOCIDAD_BALA;
-	}
+    public byte getBala() {
+        return bala;
+    }
 
-	@Override
-	public void obtenerActores()
-	{
-		// TODO: Implement this method
-	}
-	
+    public float getVelocidad() {
+        return velocidad;
+    }
 
-	public byte getBala()
-	{
-		return bala;
-	}
+    public void setVelocidad(float velocidad) {
+        this.velocidad = velocidad;
+    }
 
-	public float getVelocidad()
-	{
-		return velocidad;
-	}
+    public void setBala(byte bala) {
+        this.bala = bala;
+    }
 
-	public void setVelocidad(float velocidad)
-	{
-		this.velocidad = velocidad;
-	}
+    @Override
+    public void actualizar(float delta) {
 
-	public void setBala(byte bala)
-	{
-		this.bala = bala;
-	}
+        super.actualizar(delta);
 
-	@Override
-	public void actualizar(float delta)
-	{
+        if (lado == BalaEspecial.DERECHO) {
+            x += velocidad / Juego.DELTA_A_PIXEL * delta;
 
-		super.actualizar(delta);
+            if (x >= Juego.ANCHO_PANTALLA) {
 
-		if (lado == BalaEspecial.DERECHO)
-		{
-			x += velocidad / Juego.DELTA_A_PIXEL * delta;
+                remover = true;
+            }
+        }
 
-			if (x >= Juego.ANCHO_PANTALLA)
-			{
+        if (lado == BalaEspecial.IZQUIERDO) {
 
-				remover = true;
-			}
+            x -= velocidad / Juego.DELTA_A_PIXEL * delta;
 
-		}
+            if (x <= -ancho) {
 
-		if (lado == BalaEspecial.IZQUIERDO)
-		{
+                remover = true;
+            }
+        }
 
-			x -= velocidad / Juego.DELTA_A_PIXEL * delta;
+        if (lado == BalaEspecial.ARRIBA) {
 
-			if (x <= -ancho)
-			{
+            y -= velocidad / Juego.DELTA_A_PIXEL * delta;
 
-				remover = true;
-			}
+            if (y <= -alto) {
 
-		}
+                remover = true;
+            }
+        }
 
-		if (lado == BalaEspecial.ARRIBA)
-		{
+        if (lado == BalaEspecial.ABAJO) {
 
-			y -= velocidad / Juego.DELTA_A_PIXEL * delta;
+            y += velocidad / Juego.DELTA_A_PIXEL * delta;
 
-			if (y <= -alto)
-			{
+            if (y >= Juego.ALTO_PANTALLA) {
 
-				remover = true;
-			}
+                remover = true;
+            }
+        }
 
-		}
+        if (lado == BalaEspecial.IZQUIERDO_ABAJO) {
 
-		if (lado == BalaEspecial.ABAJO)
-		{
+            x -= velocidad / Juego.DELTA_A_PIXEL * delta;
 
-			y += velocidad / Juego.DELTA_A_PIXEL * delta;
+            y += velocidad / Juego.DELTA_A_PIXEL * delta;
 
-			if (y >= Juego.ALTO_PANTALLA)
-			{
+            if (y >= Juego.ALTO_PANTALLA && x <= -ancho) {
 
-				remover = true;
-			}
+                remover = true;
+            }
+        }
 
-		}
+        if (lado == BalaEspecial.IZQUIERDO_ARRIBA) {
 
-		if (lado == BalaEspecial.IZQUIERDO_ABAJO)
-		{
+            x -= velocidad / Juego.DELTA_A_PIXEL * delta;
 
-			x -= velocidad / Juego.DELTA_A_PIXEL * delta;
+            y -= velocidad / Juego.DELTA_A_PIXEL * delta;
 
-			y += velocidad / Juego.DELTA_A_PIXEL * delta;
+            if (y <= -alto && x <= -ancho) {
 
-			if (y >= Juego.ALTO_PANTALLA && x <= -ancho)
-			{
+                remover = true;
+            }
+        }
 
-				remover = true;
-			}
+        if (lado == BalaEspecial.DERECHO_ABAJO) {
 
-		}
+            x += velocidad / Juego.DELTA_A_PIXEL * delta;
 
-		if (lado == BalaEspecial.IZQUIERDO_ARRIBA)
-		{
+            y += velocidad / Juego.DELTA_A_PIXEL * delta;
 
-			x -= velocidad / Juego.DELTA_A_PIXEL * delta;
+            if (y >= Juego.ALTO_PANTALLA && x >= Juego.ANCHO_PANTALLA) {
 
-			y -= velocidad / Juego.DELTA_A_PIXEL * delta;
+                remover = true;
+            }
+        }
 
-			if (y <= -alto && x <= -ancho)
-			{
+        if (lado == BalaEspecial.DERECHO_ARRIBA) {
 
-				remover = true;
-			}
+            x += velocidad / Juego.DELTA_A_PIXEL * delta;
 
+            y -= velocidad / Juego.DELTA_A_PIXEL * delta;
 
+            if (y <= -alto && x >= Juego.ANCHO_PANTALLA) {
 
-		}
+                remover = true;
+            }
+        }
+    }
 
-		if (lado == BalaEspecial.DERECHO_ABAJO)
-		{
+    public void explosion() {
 
-			x += velocidad / Juego.DELTA_A_PIXEL * delta;
+        Textura[] texturas =
+                new Textura[] {
+                    recurso.getTextura("explosionB1.png"),
+                    recurso.getTextura("explosionB2.png"),
+                    recurso.getTextura("explosionB3.png"),
+                    recurso.getTextura("explosionB4.png"),
+                    recurso.getTextura("explosionB5.png")
+                };
 
-			y += velocidad / Juego.DELTA_A_PIXEL * delta;
+        ExplosionB explosion = new ExplosionB(pantalla, texturas, x - 32, y - 32, 64, 64, 2);
 
-			if (y >= Juego.ALTO_PANTALLA && x >= Juego.ANCHO_PANTALLA)
-			{
+        if (explosion.getX() <= Juego.ANCHO_PANTALLA) {
 
-				remover = true;
-			}
+            actores.add(explosion);
+        }
+    }
 
-		}
+    public void setLado(int lado) {
+        this.lado = lado;
+    }
 
-		if (lado == BalaEspecial.DERECHO_ARRIBA)
-		{
+    @Override
+    public void colision(Actor actor) {
 
-			x += velocidad / Juego.DELTA_A_PIXEL * delta;
-
-			y -= velocidad / Juego.DELTA_A_PIXEL * delta;
-
-
-			if (y <= -alto && x >= Juego.ANCHO_PANTALLA)
-			{
-
-				remover = true;
-			}
-
-
-
-		}
-
-
-
-	}
-
-	public void explosion()
-	{
-
-		Textura[] texturas = new Textura[] { recurso.getTextura("explosionB1.png"),
-			recurso.getTextura("explosionB2.png"), recurso.getTextura("explosionB3.png"),
-			recurso.getTextura("explosionB4.png"), recurso.getTextura("explosionB5.png") };
-
-		ExplosionB explosion = new ExplosionB(pantalla, texturas, x - 32, y - 32, 64, 64, 2);
-
-		if (explosion.getX() <= Juego.ANCHO_PANTALLA)
-		{
-
-			actores.add(explosion);
-
-		}
-
-	}
-
-	public void setLado(int lado)
-	{
-		this.lado = lado;
-	}
-
-	@Override
-	public void colision(Actor actor)
-	{
-
-		if (actor instanceof Volador || actor instanceof LanzaMisil || actor instanceof Caja
-			|| actor instanceof MaquinaFinal || actor instanceof MaquinaPared || actor instanceof Robot
-			|| actor instanceof Saltador || actor instanceof Misil || actor instanceof AntiAreo
-			|| actor instanceof BalaEnemigoDestruible)
-		{
-			if (bala == BalaEspecial.BALA_B)
-			{
-				explosion();
-			}
-			remover = true;
-
-		}
-
-	}
-
+        if (actor instanceof Volador
+                || actor instanceof LanzaMisil
+                || actor instanceof Caja
+                || actor instanceof MaquinaFinal
+                || actor instanceof MaquinaPared
+                || actor instanceof Robot
+                || actor instanceof Saltador
+                || actor instanceof Misil
+                || actor instanceof AntiAreo
+                || actor instanceof BalaEnemigoDestruible) {
+            if (bala == BalaEspecial.BALA_B) {
+                explosion();
+            }
+            remover = true;
+        }
+    }
 }
