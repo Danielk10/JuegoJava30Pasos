@@ -1,6 +1,8 @@
 package com.diamon.curso;
 
 import com.diamon.juego.Inicio;
+import com.diamon.tutorial.Tutorial;
+import com.diamon.terminos.Terminos;
 import com.diamon.publicidad.MostrarPublicidad;
 import com.diamon.utilidad.PantallaCompleta;
 
@@ -133,7 +135,7 @@ public class MainActivity extends AppCompatActivity {
 	}
 	 
 		public void accionBoton() {
-			Intent nuevaActividad = new Intent(MainActivity.this, Pagina.class);
+			Intent nuevaActividad = new Intent(MainActivity.this, Tutorial.class);
 			startActivity(nuevaActividad);
 	
 			publicidad.mostrarInterstitial();
