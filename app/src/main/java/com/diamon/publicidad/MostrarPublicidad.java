@@ -84,13 +84,16 @@ public class MostrarPublicidad implements Publicidad {
     	
     	
     	
-    	    	public AdRequest getAdReques() {
+    		public AdRequest getAdReques() {
     	            
+    	         
+    	         
+    	         
     	                      
-    	         return  this.adReques;
+    	 return  this.adRequest;
     	        		 
     	    
-    	    	}
+    	}
     	
     
     	
