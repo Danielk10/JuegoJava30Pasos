@@ -560,23 +560,34 @@ public class Tutorial extends AppCompatActivity {
                 });
 
         
-         if(publicidad.getBanner()!=null)
+      /*   if(publicidad.getBanner()!=null)
             {
          
              
                mainLayout.addView(publicidad.getBanner(), mrecParameters);
-            }
-       
+            }*/
+            
+            
+LinearLayout layout = new LinearLayout(this);
+                layout.setOrientation(LinearLayout.VERTICAL);
 
-        frame.addView(
+                LayoutParams parametros =
+                        new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
+
+               layout.addView(publicidad.getBanner(), parametros);
+        
+                layout.addView(listaExpandibleView, parametros);
+        
+
+       /* frame.addView(
                 listaExpandibleView,
                 new FrameLayout.LayoutParams(
                         FrameLayout.LayoutParams.MATCH_PARENT,
-                        FrameLayout.LayoutParams.MATCH_PARENT));
+                        FrameLayout.LayoutParams.MATCH_PARENT));*/
 
-        frame.addView(mainLayout);
+       // frame.addView(mainLayout);
 
-        setContentView(frame);
+        setContentView(layout);
     }
 
     private ViewGroup diseno(
