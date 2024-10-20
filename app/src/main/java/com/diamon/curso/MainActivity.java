@@ -67,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
 		
 				setContentView(R.layout.main);
 				
-		      InterstitialAd.load(this,"ca-app-pub-5141499161332805/8275351662", adRequest,
+		      InterstitialAd.load(this,"ca-app-pub-5141499161332805/8275351662", piblicidad.getAdReques(),
 		        new InterstitialAdLoadCallback() {
 		      @Override
 		      public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {

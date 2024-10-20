@@ -81,6 +81,18 @@ public class MostrarPublicidad implements Publicidad {
     
     
     	}
+    	
+    	
+    	
+    	
+    	    	public AdRequest getAdReques() {
+    	            
+    	                      
+    	         return  this.adReques;
+    	        		 
+    	    
+    	    	}
+    	
     
     	
     	public void resumenBanner() {
