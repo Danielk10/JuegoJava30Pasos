@@ -21,7 +21,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.diamon.curso1.R;
+import com.diamon.curso.R;
 import com.diamon.tutorial.archivo.basedatos.DatabaseHelper;
 import com.diamon.tutorial.base.Vista;
 import com.diamon.tutorial.capitulos.Capitulo;
