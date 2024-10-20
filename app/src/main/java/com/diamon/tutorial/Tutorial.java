@@ -970,4 +970,44 @@ public class Tutorial extends AppCompatActivity {
             listaInterna.put(listaExterna.get(i), contenido);
         }
     }
+    
+    
+    
+    @Override
+      public void onPause() {
+        
+        publicidad.pausarBanner();
+
+        
+        
+        super.onPause();
+      }
+    
+     
+      @Override
+      public void onResume() {
+        super.onResume();
+        
+       publicidad.resumenBanner();
+
+      }
+    
+     
+      @Override
+      public void onDestroy() {
+        
+        
+        
+      publicidad.disposeBanner();
+
+
+        super.onDestroy();
+      }
+    
+    
+    
+    
+    
+    
+    
 }

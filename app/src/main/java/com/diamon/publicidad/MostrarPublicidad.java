@@ -83,9 +83,13 @@ public class MostrarPublicidad implements Publicidad {
     	}
     
     	
-    	public void mostrarBanner() {
+    	public void resumenBanner() {
     
           if (adView != null) {
+            
+                      
+            adView.resume();
+
         		
     
         		 }  
@@ -94,9 +98,14 @@ public class MostrarPublicidad implements Publicidad {
     	}
     
     	
-    	public void ocultarBanner() {
+    	public void pausarBanner() {
     
         	  if (adView != null) {
+        	    
+        	       adView.pause();
+        	    
+
+
         	       
         	      }
        
@@ -104,6 +113,19 @@ public class MostrarPublicidad implements Publicidad {
     
     	}
     
-    
+        	public void disposeBanner() {
+        
+            	  if (adView != null) {
+            
+            	    
+            	  adView.destroy();
+
+            	       
+            	      }
+           
+        		
+        
+        	}
+        
     
 }
