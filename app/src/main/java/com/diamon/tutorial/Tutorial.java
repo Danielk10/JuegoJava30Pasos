@@ -15,6 +15,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.PopupWindow;
+import android.widget.RelativeLayout;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -25,6 +27,8 @@ import com.diamon.tutorial.base.Vista;
 import com.diamon.tutorial.capitulos.Capitulo;
 import com.diamon.tutorial.ui.ListaExpandibleModificadaAdapter;
 import com.diamon.utilidad.CodeFormatter;
+import com.diamon.publicidad.MostrarPublicidad;
+
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -44,6 +48,8 @@ public class Tutorial extends AppCompatActivity {
 
     private Capitulo capitulo;
 
+  	private MostrarPublicidad publicidad;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,6 +68,23 @@ public class Tutorial extends AppCompatActivity {
 
             clicks[i] = false;
         }
+
+        publicidad = new MostrarPublicidad(this); 
+        
+        
+        publicidad.cargarBanner();
+
+        RelativeLayout mainLayout = new RelativeLayout(this);
+
+        FrameLayout frame = new FrameLayout(this);
+
+        RelativeLayout.LayoutParams mrecParameters =
+                new RelativeLayout.LayoutParams(
+                        RelativeLayout.LayoutParams.WRAP_CONTENT,
+                        RelativeLayout.LayoutParams.WRAP_CONTENT);
+        mrecParameters.addRule(RelativeLayout.CENTER_HORIZONTAL);
+        mrecParameters.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+
 
         listaExpandibleView = new ExpandableListView(this);
 
@@ -536,15 +559,24 @@ public class Tutorial extends AppCompatActivity {
                     public void onGroupCollapse(int groupPosition) {}
                 });
 
-        LinearLayout layout = new LinearLayout(this);
-        layout.setOrientation(LinearLayout.VERTICAL);
+        
+         if(publicidad.getBanner()!=null)
+            {
+         
+             
+               mainLayout.addView(publicidad.getBanner(), mrecParameters);
+            }
+       
 
-        LayoutParams parametros =
-                new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
+        frame.addView(
+                listaExpandibleView,
+                new FrameLayout.LayoutParams(
+                        FrameLayout.LayoutParams.MATCH_PARENT,
+                        FrameLayout.LayoutParams.MATCH_PARENT));
 
-        layout.addView(listaExpandibleView, parametros);
+        frame.addView(mainLayout);
 
-        setContentView(layout);
+        setContentView(frame);
     }
 
     private ViewGroup diseno(
