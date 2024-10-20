@@ -67,15 +67,6 @@ public class MainActivity extends AppCompatActivity {
 		
 				setContentView(R.layout.main);
 				
-				MobileAds.initialize(this, new OnInitializationCompleteListener() {
-		            @Override
-		            public void onInitializationComplete(InitializationStatus initializationStatus) {
-		            }
-		        });
-				
-				
-				 AdRequest adRequest = new AdRequest.Builder().build();
-		
 		      InterstitialAd.load(this,"ca-app-pub-5141499161332805/8275351662", adRequest,
 		        new InterstitialAdLoadCallback() {
 		      @Override
