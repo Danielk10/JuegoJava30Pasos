@@ -3,8 +3,7 @@ package com.diamon.publicidad;
 import android.app.Activity;
 import android.content.Intent;
 
-import com.diamon.helicoptero.Publicidad;
-import com.diamon.terminos.Terminos;
+import com.diamon.publicidad.Publicidad;
 
 import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.ads.initialization.InitializationStatus;
