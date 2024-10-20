@@ -6,6 +6,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.os.Bundle;
 import android.webkit.WebView;
+import com.diamon.curso.R;
 
 public class Terminos extends Activity {
 

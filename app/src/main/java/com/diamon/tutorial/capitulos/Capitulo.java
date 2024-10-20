@@ -20,7 +20,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.diamon.curso1.R;
+import com.diamon.curso.R;
 import com.diamon.graficos.Textura2D;
 import com.diamon.tutorial.archivo.basedatos.DatabaseHelper;
 import com.diamon.tutorial.ejemplos.Paso10;
