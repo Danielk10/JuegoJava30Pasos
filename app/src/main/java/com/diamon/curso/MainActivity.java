@@ -179,26 +179,26 @@ public class MainActivity extends AppCompatActivity {
 				
 
 				
-		      InterstitialAd.load(this,"ca-app-pub-5141499161332805/8275351662", publicidad.getAdReques(),
-		        new InterstitialAdLoadCallback() {
-		      @Override
-		      public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
-		       
-		        mInterstitialAd = interstitialAd;
-		       
-		      }
-		
-		      @Override
-		      public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
-		      
-		        mInterstitialAd = null;
-		      }
-		    });
-				        // Establecer el layout principal como la vista de la actividad
+		        // Establecer el layout principal como la vista de la actividad
 				        setContentView(mainLayout);
 				
 				
-				
+						      InterstitialAd.load(this,"ca-app-pub-5141499161332805/8275351662", publicidad.getAdReques(),
+						        new InterstitialAdLoadCallback() {
+						      @Override
+						      public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
+						       
+						        mInterstitialAd = interstitialAd;
+						       
+						      }
+						
+						      @Override
+						      public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
+						      
+						        mInterstitialAd = null;
+						      }
+						    });
+						
 	
 	}
 	 
