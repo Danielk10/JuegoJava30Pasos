@@ -147,6 +147,9 @@ public class BalaEnemigo extends Actor {
             if (lado == BalaEnemigo.IZQUIERDO) {
 
                 x -= velocidad / Juego.DELTA_A_PIXEL * delta;
+                y += 1 / Juego.DELTA_A_PIXEL * delta;
+
+         
 
                 if (x <= -ancho) {
 

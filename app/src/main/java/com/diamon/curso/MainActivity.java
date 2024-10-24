@@ -11,6 +11,19 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
+import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
+import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.widget.Button;
+import android.widget.LinearLayout;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+
 
 import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.ads.initialization.InitializationStatus;
@@ -64,8 +77,107 @@ public class MainActivity extends AppCompatActivity {
 				pantallaCompleta.ocultarBotonesVirtuales();
 		
 				publicidad = new MostrarPublicidad(this);
-		
-				setContentView(R.layout.main);
+				
+				 // Crear background con bordes redondeados programáticamente
+				        GradientDrawable backgroundDrawable = new GradientDrawable();
+				        backgroundDrawable.setColor(Color.parseColor("#1E1E2C")); // Color de fondo de la tarjeta
+				        backgroundDrawable.setCornerRadius(30f); // Bordes redondeados
+				
+				        // Crear Layout principal de la actividad (LinearLayout vertical)
+				        LinearLayout mainLayout = new LinearLayout(this);
+				        mainLayout.setOrientation(LinearLayout.VERTICAL);
+				        mainLayout.setLayoutParams(
+				                new LinearLayout.LayoutParams(
+				                        LinearLayout.LayoutParams.MATCH_PARENT,
+				                        LinearLayout.LayoutParams.MATCH_PARENT));
+				        mainLayout.setPadding(32, 32, 32, 32);
+				
+				        GradientDrawable fondoDegradado =
+				                new GradientDrawable(
+				                        GradientDrawable.Orientation.TOP_BOTTOM,
+				                        new int[] {Color.parseColor("#2196F3"), Color.parseColor("#3F51B5")});
+				        fondoDegradado.setCornerRadius(0f); // Sin bordes redondeados
+				
+				        mainLayout.setBackground(fondoDegradado);
+				
+				        // Crear y configurar el Toolbar
+				        Toolbar toolbar = new Toolbar(this);
+				        toolbar.setLayoutParams(
+				                new Toolbar.LayoutParams(
+				                        Toolbar.LayoutParams.MATCH_PARENT, Toolbar.LayoutParams.WRAP_CONTENT));
+				        // toolbar.setBackground(backgroundDrawable );
+				        toolbar.setTitleTextColor(Color.WHITE);
+				        toolbar.setTitle("Juego Java 30 Pasos");
+				        setSupportActionBar(toolbar);
+				
+				        toolbar.setBackground(
+				                backgroundDrawable); // Agregar sombras en API 21 o superior (minSdkVersion >= 21)
+				        toolbar.setElevation(8);
+				
+				        // Añadir Toolbar al layout principal
+				        mainLayout.addView(toolbar);
+				
+				        // Crear Botón para la actividad "Tutorial"
+				        Button tutorialButton = new Button(this);
+				        tutorialButton.setText("Tutorial");
+				        tutorialButton.setTextSize(18);
+				
+				        tutorialButton.setTextColor(Color.BLACK);
+				        tutorialButton.setPadding(16, 16, 16, 16);
+				        tutorialButton.setLayoutParams(
+				                new LinearLayout.LayoutParams(
+				                        LinearLayout.LayoutParams.MATCH_PARENT,
+				                        LinearLayout.LayoutParams.WRAP_CONTENT));
+				        tutorialButton.setOnClickListener(
+				                view -> {
+				                  
+						Intent nuevaActividad = new Intent(MainActivity.this, Tutorial.class);
+			startActivity(nuevaActividad);
+	
+			publicidad.mostrarInterstitial();	            
+				                });
+				
+				        // Crear Botón para la actividad "Demo"
+				        Button demoButton = new Button(this);
+				        demoButton.setText("Demo");
+				        demoButton.setTextSize(18);
+				
+				        demoButton.setTextColor(Color.BLACK);
+				        demoButton.setPadding(16, 16, 16, 16);
+				        demoButton.setLayoutParams(
+				                new LinearLayout.LayoutParams(
+				                        LinearLayout.LayoutParams.MATCH_PARENT,
+				                        LinearLayout.LayoutParams.WRAP_CONTENT));
+				        demoButton.setOnClickListener(
+				                view -> {
+				                  
+			Intent nuevaActividad = new Intent(MainActivity.this, Inicio.class);
+			startActivity(nuevaActividad);                  
+				          
+				                });
+				
+				        // Crear Botón para la actividad "Políticas de Privacidad"
+				        Button politicasButton = new Button(this);
+				        politicasButton.setText("Políticas de Privacidad");
+				        politicasButton.setTextSize(18);
+				        politicasButton.setTextColor(Color.BLACK);
+				        politicasButton.setPadding(16, 16, 16, 16);
+				        politicasButton.setLayoutParams(
+				                new LinearLayout.LayoutParams(
+				                        LinearLayout.LayoutParams.MATCH_PARENT,
+				                        LinearLayout.LayoutParams.WRAP_CONTENT));
+				        politicasButton.setOnClickListener(
+				                view -> {
+				                   			Intent nuevaActividad = new Intent(MainActivity.this, Terminos.class);
+				                   			startActivity(nuevaActividad);
+				                });
+				
+				        // Añadir los botones al layout principal
+				        mainLayout.addView(tutorialButton);
+				        mainLayout.addView(demoButton);
+				        mainLayout.addView(politicasButton);
+				
+
 				
 		      InterstitialAd.load(this,"ca-app-pub-5141499161332805/8275351662", publicidad.getAdReques(),
 		        new InterstitialAdLoadCallback() {
@@ -82,66 +194,15 @@ public class MainActivity extends AppCompatActivity {
 		        mInterstitialAd = null;
 		      }
 		    });
-		
-		
-				botonTutorial = (ImageButton) findViewById(R.id.boton);
-		
-				botonDemo = (ImageButton) findViewById(R.id.boton1);
-		
-				botonTerminos = (ImageButton) findViewById(R.id.boton2);
-		
-				botonTutorial.setOnClickListener(new View.OnClickListener() {
-					@Override
-					public void onClick(View v) {
-						
-						
-						if (mInterstitialAd != null) {
-		  mInterstitialAd.show(MainActivity.this);
-		} else {
-		 
-		}
-						accionBoton();
-		
-					}
-				});
-		
-				botonDemo.setOnClickListener(new View.OnClickListener() {
-					@Override
-					public void onClick(View v) {
-		
-						accionBoton1();
-		
-					}
-				});
-		
-				botonTerminos.setOnClickListener(new View.OnClickListener() {
-					@Override
-					public void onClick(View v) {
-		
-						accionBoton2();
-		
-					}
-				});
+				        // Establecer el layout principal como la vista de la actividad
+				        setContentView(mainLayout);
+				
+				
+				
 	
 	}
 	 
-		public void accionBoton() {
-			Intent nuevaActividad = new Intent(MainActivity.this, Tutorial.class);
-			startActivity(nuevaActividad);
-	
-			publicidad.mostrarInterstitial();
-		}
-	
-		public void accionBoton1() {
-			Intent nuevaActividad = new Intent(MainActivity.this, Inicio.class);
-			startActivity(nuevaActividad);
-		}
-	
-		public void accionBoton2() {
-			Intent nuevaActividad = new Intent(MainActivity.this, Terminos.class);
-			startActivity(nuevaActividad);
-		}
-	
+
 		@Override
 		public void onBackPressed() {
 	
