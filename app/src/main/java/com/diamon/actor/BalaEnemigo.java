@@ -138,6 +138,16 @@ public class BalaEnemigo extends Actor {
             if (lado == BalaEnemigo.DERECHO) {
                 x += velocidad / Juego.DELTA_A_PIXEL * delta;
 
+                if (mover == BalaEnemigo.MOVER_ABAJO) {
+                    
+                    y += 1 / Juego.DELTA_A_PIXEL * delta;
+                }
+
+                if (mover == BalaEnemigo.MOVER_ARRIBA) {
+
+                    y -= 1 / Juego.DELTA_A_PIXEL * delta;
+                }
+
                 if (x >= Juego.ANCHO_PANTALLA) {
 
                     remover = true;
@@ -147,9 +157,16 @@ public class BalaEnemigo extends Actor {
             if (lado == BalaEnemigo.IZQUIERDO) {
 
                 x -= velocidad / Juego.DELTA_A_PIXEL * delta;
-                y += 1 / Juego.DELTA_A_PIXEL * delta;
 
-         
+                if (mover == BalaEnemigo.MOVER_ABAJO) {
+                    
+                    y += 1 / Juego.DELTA_A_PIXEL * delta;
+                }
+
+                if (mover == BalaEnemigo.MOVER_ARRIBA) {
+
+                    y -= 1 / Juego.DELTA_A_PIXEL * delta;
+                }
 
                 if (x <= -ancho) {
 

@@ -79,13 +79,10 @@ public class MainActivity extends AppCompatActivity {
         toolbar.setLayoutParams(
                 new Toolbar.LayoutParams(
                         Toolbar.LayoutParams.MATCH_PARENT, Toolbar.LayoutParams.WRAP_CONTENT));
-        // toolbar.setBackground(backgroundDrawable );
-        toolbar.setTitleTextColor(Color.WHITE);
+      toolbar.setTitleTextColor(Color.WHITE);
         toolbar.setTitle("Juego Java 30 Pasos");
         setSupportActionBar(toolbar);
-
-        toolbar.setBackground(
-                backgroundDrawable); // Agregar sombras en API 21 o superior (minSdkVersion >= 21)
+        toolbar.setBackground(backgroundDrawable); // Agregar sombras en API 21 o superior (minSdkVersion >= 21)
         toolbar.setElevation(8);
 
         // Añadir Toolbar al layout principal
@@ -158,4 +155,6 @@ public class MainActivity extends AppCompatActivity {
 
         super.onBackPressed();
     }
+    
+    
 }

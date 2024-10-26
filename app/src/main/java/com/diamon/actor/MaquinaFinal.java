@@ -153,7 +153,7 @@ public class MaquinaFinal extends Actor {
         bala.setModoClasico(true);
 
         bala.setLado(BalaEnemigo.IZQUIERDO);
-
+        
         bala.setVelocidadY(1);
 
         if (bala.getX() <= 640) {

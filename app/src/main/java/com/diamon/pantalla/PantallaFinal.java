@@ -161,7 +161,7 @@ public class PantallaFinal extends Pantalla2D {
 
             if (cambio2) {
                 if (posicionY == 288) {
-                    juego.setPantalla(new PantallaExtra(juego));
+                    juego.setPantalla(new PantallaMenu(juego));
                 }
             }
         }
@@ -183,7 +183,7 @@ public class PantallaFinal extends Pantalla2D {
         if (puntero == 1) {
             if (cambio2) {
                 if (posicionY == 322) {
-                    juego.setPantalla(new PantallaMenu(juego));
+                    juego.setPantalla(new PantallaExtra(juego));
                 }
             }
         }

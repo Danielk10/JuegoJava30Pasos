@@ -50,6 +50,9 @@ public class MostrarPublicidad implements Publicidad {
         if (mInterstitialAd != null) {
 
             mInterstitialAd.show(actividad);
+        }else
+        {
+            
         }
     }
 
