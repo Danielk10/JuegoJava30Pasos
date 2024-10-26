@@ -14,8 +14,8 @@ import com.diamon.nucleo.Juego;
 
 public class Paso11 extends Juego {
 
-    public Paso11(AppCompatActivity actividad) {
-        super(actividad);
+    public Paso11(AppCompatActivity actividad, int ancho,int alto) {
+        super(actividad,ancho,alto);
 
         actividad.setVolumeControlStream(AudioManager.STREAM_MUSIC);
 

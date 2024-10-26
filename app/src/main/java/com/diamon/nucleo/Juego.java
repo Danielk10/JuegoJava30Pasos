@@ -1,7 +1,6 @@
 package com.diamon.nucleo;
 
 import android.app.Activity;
-import android.content.res.Configuration;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Rect;
@@ -63,7 +62,7 @@ public abstract class Juego extends SurfaceView implements Runnable, SurfaceHold
     private boolean colorAzul;
 
     @SuppressWarnings("deprecation")
-    public Juego(Activity actividad) {
+    public Juego(Activity actividad, int ancho, int alto) {
 
         super(actividad);
 
@@ -71,36 +70,11 @@ public abstract class Juego extends SurfaceView implements Runnable, SurfaceHold
 
         colorAzul = false;
 
-        boolean isModoHorizontal =
-                getResources().getConfiguration().orientation
-                        == Configuration.ORIENTATION_LANDSCAPE;
+        bufer = new Textura2D(ancho, alto, FormatoTextura.ARGB8888);
 
-        int imagenBuferAncho = 0;
+        float escalaX = (float) ancho / actividad.getWindowManager().getDefaultDisplay().getWidth();
 
-        int imagenBuferAlto = 0;
-
-        if (isModoHorizontal) {
-
-            imagenBuferAncho = (int) Juego.ANCHO_PANTALLA;
-
-            imagenBuferAlto = (int) Juego.ALTO_PANTALLA;
-
-        } else {
-
-            imagenBuferAncho = (int) Juego.ALTO_PANTALLA;
-
-            imagenBuferAlto = (int) Juego.ANCHO_PANTALLA;
-        }
-
-        bufer = new Textura2D(imagenBuferAncho, imagenBuferAlto, FormatoTextura.ARGB8888);
-
-        float escalaX =
-                (float) imagenBuferAncho
-                        / actividad.getWindowManager().getDefaultDisplay().getWidth();
-
-        float escalaY =
-                (float) imagenBuferAlto
-                        / actividad.getWindowManager().getDefaultDisplay().getHeight();
+        float escalaY = (float) alto / actividad.getWindowManager().getDefaultDisplay().getHeight();
 
         configuracionesDeJuego =
                 new ConfiguracionesDeJuego(actividad, ConfiguracionesDeJuego.INTERNO);
@@ -199,7 +173,7 @@ public abstract class Juego extends SurfaceView implements Runnable, SurfaceHold
         }
 
         if (mostrarFPS) {
-            
+
             pincel.getLapiz().setTextSize(20);
 
             if (colorAzul) {

@@ -1202,13 +1202,13 @@ public class Capitulo {
 
                         diseno.setOrientation(LinearLayout.VERTICAL);
 
-                        final PopupWindow ventana =
-                                new PopupWindow(
-                                        diseno,
-                                        actividad.getWindowManager().getDefaultDisplay().getWidth(),
-                                        actividad.getWindowManager().getDefaultDisplay().getHeight()
-                                                / 2,
-                                        true);
+                        int ancho = actividad.getWindowManager().getDefaultDisplay().getWidth();
+
+                        int alto =
+                                (int) actividad.getWindowManager().getDefaultDisplay().getHeight()
+                                        / 2;
+
+                        final PopupWindow ventana = new PopupWindow(diseno, ancho, alto, true);
 
                         Button desplegar = new Button(contexto);
 
@@ -1229,7 +1229,7 @@ public class Capitulo {
 
                         final Paso4 paso4 = new Paso4(contexto);
 
-                        final VariosPasos pasos = new VariosPasos(actividad);
+                        final VariosPasos pasos = new VariosPasos(actividad, ancho, alto);
 
                         pasos.resumen();
 
@@ -1482,13 +1482,13 @@ public class Capitulo {
 
                         diseno.setOrientation(LinearLayout.VERTICAL);
 
-                        final PopupWindow ventana =
-                                new PopupWindow(
-                                        diseno,
-                                        actividad.getWindowManager().getDefaultDisplay().getWidth(),
-                                        actividad.getWindowManager().getDefaultDisplay().getHeight()
-                                                / 2,
-                                        true);
+                         int ancho = actividad.getWindowManager().getDefaultDisplay().getWidth();
+
+                        int alto =
+                                (int) actividad.getWindowManager().getDefaultDisplay().getHeight()
+                                        / 2;
+
+                        final PopupWindow ventana = new PopupWindow(diseno, ancho, alto, true);
 
                         Button desplegar = new Button(contexto);
 
@@ -1507,7 +1507,7 @@ public class Capitulo {
                         buttonParams.setMargins(0, 16, 0, 0);
                         desplegar.setLayoutParams(buttonParams);
 
-                        final Paso5 paso = new Paso5(actividad);
+                        final Paso5 paso = new Paso5(actividad,ancho,alto);
 
                         paso.resumen();
 
@@ -1756,13 +1756,13 @@ public class Capitulo {
 
                         diseno.setOrientation(LinearLayout.VERTICAL);
 
-                        final PopupWindow ventana =
-                                new PopupWindow(
-                                        diseno,
-                                        actividad.getWindowManager().getDefaultDisplay().getWidth(),
-                                        actividad.getWindowManager().getDefaultDisplay().getHeight()
-                                                / 2,
-                                        true);
+                        int ancho = actividad.getWindowManager().getDefaultDisplay().getWidth();
+
+                        int alto =
+                                (int) actividad.getWindowManager().getDefaultDisplay().getHeight()
+                                        / 2;
+
+                        final PopupWindow ventana = new PopupWindow(diseno, ancho, alto, true);
 
                         Button desplegar = new Button(contexto);
 
@@ -1781,7 +1781,7 @@ public class Capitulo {
                         buttonParams.setMargins(0, 16, 0, 0);
                         desplegar.setLayoutParams(buttonParams);
 
-                        final Paso6 paso = new Paso6(actividad);
+                        final Paso6 paso = new Paso6(actividad,ancho,alto);
 
                         paso.resumen();
 
@@ -2030,13 +2030,13 @@ public class Capitulo {
 
                         diseno.setOrientation(LinearLayout.VERTICAL);
 
-                        final PopupWindow ventana =
-                                new PopupWindow(
-                                        diseno,
-                                        actividad.getWindowManager().getDefaultDisplay().getWidth(),
-                                        actividad.getWindowManager().getDefaultDisplay().getHeight()
-                                                / 2,
-                                        true);
+                         int ancho = actividad.getWindowManager().getDefaultDisplay().getWidth();
+
+                        int alto =
+                                (int) actividad.getWindowManager().getDefaultDisplay().getHeight()
+                                        / 2;
+
+                        final PopupWindow ventana = new PopupWindow(diseno, ancho, alto, true);
 
                         Button desplegar = new Button(contexto);
 
@@ -2055,7 +2055,7 @@ public class Capitulo {
                         buttonParams.setMargins(0, 16, 0, 0);
                         desplegar.setLayoutParams(buttonParams);
 
-                        final Paso7 paso = new Paso7(actividad);
+                        final Paso7 paso = new Paso7(actividad,ancho,alto);
 
                         paso.resumen();
 
@@ -2333,13 +2333,13 @@ public class Capitulo {
 
                         diseno.setOrientation(LinearLayout.VERTICAL);
 
-                        final PopupWindow ventana =
-                                new PopupWindow(
-                                        diseno,
-                                        actividad.getWindowManager().getDefaultDisplay().getWidth(),
-                                        actividad.getWindowManager().getDefaultDisplay().getHeight()
-                                                / 2,
-                                        true);
+                        int ancho = actividad.getWindowManager().getDefaultDisplay().getWidth();
+
+                        int alto =
+                                (int) actividad.getWindowManager().getDefaultDisplay().getHeight()
+                                        / 2;
+
+                        final PopupWindow ventana = new PopupWindow(diseno, ancho, alto, true);
 
                         Button desplegar = new Button(contexto);
 
@@ -2358,7 +2358,7 @@ public class Capitulo {
                         buttonParams.setMargins(0, 16, 0, 0);
                         desplegar.setLayoutParams(buttonParams);
 
-                        Paso8 paso = new Paso8(actividad);
+                        Paso8 paso = new Paso8(actividad,ancho,alto);
 
                         paso.resumen();
 
@@ -2622,13 +2622,13 @@ public class Capitulo {
 
                         diseno.setOrientation(LinearLayout.VERTICAL);
 
-                        final PopupWindow ventana =
-                                new PopupWindow(
-                                        diseno,
-                                        actividad.getWindowManager().getDefaultDisplay().getWidth(),
-                                        actividad.getWindowManager().getDefaultDisplay().getHeight()
-                                                / 2,
-                                        true);
+                         int ancho = actividad.getWindowManager().getDefaultDisplay().getWidth();
+
+                        int alto =
+                                (int) actividad.getWindowManager().getDefaultDisplay().getHeight()
+                                        / 2;
+
+                        final PopupWindow ventana = new PopupWindow(diseno, ancho, alto, true);
 
                         Button desplegar = new Button(contexto);
 
@@ -2647,7 +2647,7 @@ public class Capitulo {
                         buttonParams.setMargins(0, 16, 0, 0);
                         desplegar.setLayoutParams(buttonParams);
 
-                        Paso9 paso = new Paso9(actividad);
+                        Paso9 paso = new Paso9(actividad,ancho,alto);
 
                         paso.resumen();
 
@@ -2912,13 +2912,13 @@ public class Capitulo {
 
                         diseno.setOrientation(LinearLayout.VERTICAL);
 
-                        final PopupWindow ventana =
-                                new PopupWindow(
-                                        diseno,
-                                        actividad.getWindowManager().getDefaultDisplay().getWidth(),
-                                        actividad.getWindowManager().getDefaultDisplay().getHeight()
-                                                / 2,
-                                        true);
+                         int ancho = actividad.getWindowManager().getDefaultDisplay().getWidth();
+
+                        int alto =
+                                (int) actividad.getWindowManager().getDefaultDisplay().getHeight()
+                                        / 2;
+
+                        final PopupWindow ventana = new PopupWindow(diseno, ancho, alto, true);
 
                         Button desplegar = new Button(contexto);
 
@@ -2937,7 +2937,7 @@ public class Capitulo {
                         buttonParams.setMargins(0, 16, 0, 0);
                         desplegar.setLayoutParams(buttonParams);
 
-                        Paso10 paso = new Paso10(actividad);
+                        Paso10 paso = new Paso10(actividad,ancho,alto);
 
                         paso.resumen();
 
@@ -3171,13 +3171,14 @@ public class Capitulo {
 
                         diseno.setOrientation(LinearLayout.VERTICAL);
 
-                        final PopupWindow ventana =
-                                new PopupWindow(
-                                        diseno,
-                                        actividad.getWindowManager().getDefaultDisplay().getWidth(),
-                                        actividad.getWindowManager().getDefaultDisplay().getHeight()
-                                                / 2,
-                                        true);
+                         int ancho = actividad.getWindowManager().getDefaultDisplay().getWidth();
+
+                        int alto =
+                                (int) actividad.getWindowManager().getDefaultDisplay().getHeight()
+                                        / 2;
+
+                        final PopupWindow ventana = new PopupWindow(diseno, ancho, alto, true);
+
 
                         Button desplegar = new Button(contexto);
 
@@ -3196,7 +3197,7 @@ public class Capitulo {
                         buttonParams.setMargins(0, 16, 0, 0);
                         desplegar.setLayoutParams(buttonParams);
 
-                        Paso11 paso = new Paso11(actividad);
+                        Paso11 paso = new Paso11(actividad,ancho,alto);
 
                         paso.resumen();
 

@@ -17,8 +17,8 @@ public class VariosPasos extends Juego {
 
     private PanatallaMuretra pantalla;
 
-    public VariosPasos(AppCompatActivity actividad) {
-        super(actividad);
+    public VariosPasos(AppCompatActivity actividad, int ancho,int alto) {
+        super(actividad,ancho,alto);
 
         actividad.setVolumeControlStream(AudioManager.STREAM_MUSIC);
 

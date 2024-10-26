@@ -2,6 +2,7 @@ package com.diamon.juego;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.PowerManager;
@@ -10,6 +11,7 @@ import android.view.KeyEvent;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 
+import com.diamon.nucleo.Juego;
 import com.diamon.utilidad.PantallaCompleta;
 
 public class Inicio extends Activity {
@@ -34,7 +36,28 @@ public class Inicio extends Activity {
 
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
-        juego = new FinalMision(this);
+        boolean isModoHorizontal =
+                getResources().getConfiguration().orientation
+                        == Configuration.ORIENTATION_LANDSCAPE;
+
+        int imagenBuferAncho = 0;
+
+        int imagenBuferAlto = 0;
+
+        if (isModoHorizontal) {
+
+            imagenBuferAncho = (int) Juego.ANCHO_PANTALLA;
+
+            imagenBuferAlto = (int) Juego.ALTO_PANTALLA;
+
+        } else {
+
+            imagenBuferAncho = (int) Juego.ALTO_PANTALLA;
+
+            imagenBuferAlto = (int) Juego.ANCHO_PANTALLA;
+        }
+
+        juego = new FinalMision(this, imagenBuferAncho, imagenBuferAlto);
 
         RelativeLayout mainLayout = new RelativeLayout(this);
 

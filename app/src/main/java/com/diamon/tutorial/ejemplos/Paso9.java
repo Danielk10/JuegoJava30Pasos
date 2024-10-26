@@ -16,8 +16,8 @@ import com.diamon.nucleo.Textura;
 
 public class Paso9 extends Juego {
 
-    public Paso9(AppCompatActivity actividad) {
-        super(actividad);
+    public Paso9(AppCompatActivity actividad, int ancho,int alto) {
+        super(actividad,ancho,alto);
 
         actividad.setVolumeControlStream(AudioManager.STREAM_MUSIC);
 

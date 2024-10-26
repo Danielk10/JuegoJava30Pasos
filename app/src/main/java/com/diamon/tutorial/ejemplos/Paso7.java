@@ -15,8 +15,8 @@ import com.diamon.tutorial.base.Vista;
 
 public class Paso7 extends Juego {
 
-    public Paso7(AppCompatActivity actividad) {
-        super(actividad);
+    public Paso7(AppCompatActivity actividad, int ancho,int alto) {
+        super(actividad,ancho,alto);
 
         actividad.setVolumeControlStream(AudioManager.STREAM_MUSIC);
 

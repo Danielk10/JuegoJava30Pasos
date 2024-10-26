@@ -17,8 +17,8 @@ public class Paso6 extends Juego {
 
     private PanatallaMuretra pantalla;
 
-    public Paso6(AppCompatActivity actividad) {
-        super(actividad);
+    public Paso6(AppCompatActivity actividad, int ancho,int alto) {
+        super(actividad,ancho,alto);
 
         actividad.setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
