@@ -10,59 +10,54 @@ import com.diamon.curso.R;
 
 public class Terminos extends Activity {
 
-	private WebView pagina;
+    private WebView pagina;
 
-	private PantallaCompleta pantallaCompleta;
+    private PantallaCompleta pantallaCompleta;
 
-	@SuppressLint("SetJavaScriptEnabled")
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+    @SuppressLint("SetJavaScriptEnabled")
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
 
-		pantallaCompleta = new PantallaCompleta(this);
+        pantallaCompleta = new PantallaCompleta(this);
 
-		pantallaCompleta.pantallaCompleta();
+        pantallaCompleta.pantallaCompleta();
 
-		pantallaCompleta.ocultarBotonesVirtuales();
+        pantallaCompleta.ocultarBotonesVirtuales();
 
-		setContentView(R.layout.terminos);
+        setContentView(R.layout.terminos);
 
-		pagina = (WebView) findViewById(R.id.terminos);
+        pagina = (WebView) findViewById(R.id.terminos);
 
-		pagina.getSettings().setJavaScriptEnabled(true);
+        pagina.getSettings().setJavaScriptEnabled(true);
 
-		pagina.loadUrl("http://www.e-droid.net/privacy.php?ida=1454194&idl=es");
+        pagina.loadUrl("https://www.e-droid.net/privacy.php?ida=1454194&idl=es");
+    }
 
-	}
+    @Override
+    public void onWindowFocusChanged(boolean focus) {
+        super.onWindowFocusChanged(focus);
+        if (focus) {
 
-	@Override
-	public void onWindowFocusChanged(boolean focus) {
-		super.onWindowFocusChanged(focus);
-		if (focus) {
+            pantallaCompleta.ocultarBotonesVirtuales();
+        }
+    }
 
-			pantallaCompleta.ocultarBotonesVirtuales();
-		}
-	}
+    @Override
+    public void onResume() {
 
-	@Override
-	public void onResume() {
+        super.onResume();
+    }
 
-		super.onResume();
+    @Override
+    public void onPause() {
 
-	}
+        super.onPause();
+    }
 
-	@Override
-	public void onPause() {
+    @Override
+    public void onBackPressed() {
 
-		super.onPause();
-
-	}
-
-	@Override
-	public void onBackPressed() {
-
-		super.onBackPressed();
-
-	}
-
+        super.onBackPressed();
+    }
 }
