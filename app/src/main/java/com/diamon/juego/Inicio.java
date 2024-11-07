@@ -130,7 +130,5 @@ public class Inicio extends Activity {
     public void onBackPressed() {
 
         super.onBackPressed();
-
-        System.exit(0);
     }
 }

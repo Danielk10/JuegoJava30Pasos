@@ -879,7 +879,10 @@ public class PantallaJuego extends Pantalla2D {
     }
 
     @Override
-    public void liberarRecursos() {}
+    public void liberarRecursos() {
+
+        recurso.getMusica("musica.wav").terminar();
+    }
 
     private void removerVida() {
 

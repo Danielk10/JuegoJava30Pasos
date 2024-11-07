@@ -174,11 +174,11 @@ public abstract class Juego extends SurfaceView implements Runnable, SurfaceHold
 
         if (mostrarFPS) {
 
-            pincel.getLapiz().setTextSize(20);
+            pincel.getLapiz().setTextSize(14);
 
             if (colorAzul) {
 
-                pincel.dibujarTexto((int) getFPS() + " FPS", 20, 20, Color.BLUE);
+                pincel.dibujarTexto((int) getFPS() + " FPS", 20, 20, Color.GREEN);
 
             } else {
                 pincel.dibujarTexto((int) getFPS() + " FPS", 20, 20, Color.GREEN);
@@ -211,7 +211,6 @@ public abstract class Juego extends SurfaceView implements Runnable, SurfaceHold
             iniciar = true;
             hilo = new Thread(this);
             hilo.start();
-            pantalla.mostrar();
             pantalla.resume();
         }
     }
@@ -235,9 +234,8 @@ public abstract class Juego extends SurfaceView implements Runnable, SurfaceHold
     }
 
     public void liberarRecursos() {
-        if (pantalla != null) {
 
-            pantalla.ocultar();
+        if (pantalla != null) {
 
             pantalla.liberarRecursos();
         }
@@ -253,9 +251,9 @@ public abstract class Juego extends SurfaceView implements Runnable, SurfaceHold
 
         if (this.pantalla != null) {
 
-            this.pantalla.mostrar();
-
             this.pantalla.reajustarPantalla(getWidth(), getHeight());
+
+            this.pantalla.mostrar();
         }
     }
 
@@ -266,7 +264,7 @@ public abstract class Juego extends SurfaceView implements Runnable, SurfaceHold
 
     public float getFPS() {
 
-        return (float) (1 / delta);
+        return Math.round(1 / delta);
     }
 
     public void teclaPresionada(int codigoDeTecla) {
