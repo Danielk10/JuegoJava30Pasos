@@ -61,12 +61,13 @@ public class Robot extends Actor {
 
         super.actualizar(delta);
 
+        tiempoDisparo += delta;
+
         if (lado == Robot.LADO_DERECHO) {
-            x += velocidad / Juego.DELTA_A_PIXEL * delta;
 
             if (!disparar) {
 
-                if (x <= 100) {
+                if (x <= 150) {
 
                     x += 2 / Juego.DELTA_A_PIXEL * delta;
                     y += 2 / Juego.DELTA_A_PIXEL * delta;
@@ -86,10 +87,9 @@ public class Robot extends Actor {
 
         if (lado == Robot.LADO_IZQUIERDO) {
 
-            x -= velocidad / Juego.DELTA_A_PIXEL * delta;
-
             if (!disparar) {
-                if (x >= 500) {
+
+                if (x >= 450) {
 
                     x -= 2 / Juego.DELTA_A_PIXEL * delta;
 
@@ -99,6 +99,7 @@ public class Robot extends Actor {
 
             if (disparar) {
                 x += 2 / Juego.DELTA_A_PIXEL * delta;
+
                 y -= 2 / Juego.DELTA_A_PIXEL * delta;
             }
             if (x <= -ancho) {
@@ -107,7 +108,7 @@ public class Robot extends Actor {
             }
         }
 
-        if (tiempoDisparo / 0.66f >= 1) {
+        if (tiempoDisparo / 1f >= 1) {
 
             if (Math.random() < 0.08f) {
                 disparar();

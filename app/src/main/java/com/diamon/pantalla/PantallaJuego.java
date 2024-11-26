@@ -611,6 +611,10 @@ public class PantallaJuego extends Pantalla2D {
     private void agregarRobot() {
 
         Robot robot1 = new Robot(this, recurso.getTextura("robotI.png"), 639, 0, 64, 64);
+        
+       robot1.setTamano(64, 64);
+
+        robot1.setPosicion(639, 0);
 
         robot1.setLado(Robot.LADO_IZQUIERDO);
 

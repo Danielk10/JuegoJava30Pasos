@@ -1,5 +1,6 @@
 package com.diamon.pantalla;
 
+import android.graphics.Color;
 import com.diamon.graficos.Pantalla2D;
 import com.diamon.graficos.Textura2D;
 import com.diamon.nucleo.Graficos;
@@ -56,9 +57,7 @@ public class PantallaIntroduccion extends Pantalla2D {
 
         tiempo += delta;
 
-        if (tiempo / 120f >= 1) {
-
-            musica.terminar();
+        if (tiempo / 108f >= 1) {
 
             juego.setPantalla(new PantallaMenu(juego));
 
@@ -79,6 +78,8 @@ public class PantallaIntroduccion extends Pantalla2D {
         pincel.dibujarTextura(textura1, x, 0);
 
         pincel.dibujarTextura(textura2, x + Juego.ANCHO_PANTALLA, 0);
+        
+        pincel.dibujarTexto("Para ver el cambio, esperar que termine la musica",(Juego.ANCHO_PANTALLA/2)/2, Juego.ALTO_PANTALLA-32,Color.BLUE);
     }
 
     @Override
@@ -91,10 +92,17 @@ public class PantallaIntroduccion extends Pantalla2D {
     public void ocultar() {
 
         musica.terminar();
+
+        
     }
 
     @Override
-    public void liberarRecursos() {}
+    public void liberarRecursos() {
+
+        musica.terminar();
+
+        musica.liberarRecurso();
+    }
 
     @Override
     public void teclaPresionada(int codigoDeTecla) {}
