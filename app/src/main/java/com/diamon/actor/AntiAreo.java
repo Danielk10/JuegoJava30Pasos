@@ -16,7 +16,7 @@ public class AntiAreo extends Actor {
 
     private Animacion2D animacion2;
 
-    private Animacion2D animacion3;
+    private Animacion2D animacion3; //Hola
 
     private Animacion2D animacion4;
 
