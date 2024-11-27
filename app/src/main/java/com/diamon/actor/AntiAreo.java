@@ -12,7 +12,7 @@ public class AntiAreo extends Actor {
 
     private Jugador jugador;
 
-    private Animacion2D animacion1;
+    private Animacion2D animacion1; //Hola
 
     private Animacion2D animacion2;
 
