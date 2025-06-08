@@ -5,10 +5,8 @@ import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
@@ -17,9 +15,7 @@ import com.diamon.publicidad.MostrarPublicidad;
 import com.diamon.terminos.Terminos;
 import com.diamon.tutorial.Tutorial;
 import com.diamon.utilidad.PantallaCompleta;
-import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.interstitial.InterstitialAd;
-import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
 import com.microsoft.appcenter.AppCenter;
 import com.microsoft.appcenter.analytics.Analytics;
 import com.microsoft.appcenter.crashes.Crashes;
@@ -79,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
         toolbar.setLayoutParams(
                 new Toolbar.LayoutParams(
                         Toolbar.LayoutParams.MATCH_PARENT, Toolbar.LayoutParams.WRAP_CONTENT));
-      toolbar.setTitleTextColor(Color.WHITE);
+        toolbar.setTitleTextColor(Color.WHITE);
         toolbar.setTitle("Juego Java 30 Pasos");
         setSupportActionBar(toolbar);
         toolbar.setBackground(backgroundDrawable); // Agregar sombras en API 21 o superior (minSdkVersion >= 21)
@@ -103,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
                     publicidad.mostrarInterstitial();
 
                     Intent nuevaActividad = new Intent(MainActivity.this, Tutorial.class);
-                
+
                     startActivity(nuevaActividad);
                 });
 
@@ -155,6 +151,6 @@ public class MainActivity extends AppCompatActivity {
 
         super.onBackPressed();
     }
-    
-    
+
+
 }

@@ -1,5 +1,6 @@
 package com.diamon.juego;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.Configuration;
@@ -22,6 +23,7 @@ public class Inicio extends Activity {
 
     private PantallaCompleta pantallaCompleta;
 
+    @SuppressLint("InvalidWakeLockTag")
     @SuppressWarnings({"deprecation", "unused"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
