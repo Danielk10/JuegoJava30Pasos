@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingBottom="16dp">
+
+    <!-- Titulo -->
+    <TextView
+        android:id="@+id/tvTitulo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="16dp"
+        android:shadowColor="#000000"
+        android:shadowDx="-1"
+        android:shadowDy="1"
+        android:shadowRadius="1.5"
+        android:textColor="#0000FF"
+        android:textSize="28sp"
+        android:visibility="gone" />
+
+    <!-- Parrafo -->
+    <TextView
+        android:id="@+id/tvParrafo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:shadowColor="#000000"
+        android:shadowDx="-1"
+        android:shadowDy="1"
+        android:shadowRadius="1.5"
+        android:textColor="#000000"
+        android:textSize="18sp"
+        android:visibility="gone" />
+
+    <!-- Imagen Texto -->
+    <TextView
+        android:id="@+id/tvImagenTexto"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:shadowColor="#000000"
+        android:shadowDx="-1"
+        android:shadowDy="1"
+        android:shadowRadius="1.5"
+        android:textColor="#00FF00"
+        android:textSize="28sp"
+        android:visibility="gone" />
+
+    <!-- Imagen View -->
+    <ImageView
+        android:id="@+id/ivImagen"
+        android:layout_width="match_parent"
+        android:layout_height="640px"
+        android:scaleType="centerCrop"
+        android:visibility="gone" />
+
+    <!-- Codigo Container -->
+    <FrameLayout
+        android:id="@+id/containerCodigo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="24dp"
+        android:visibility="gone">
+        <!-- CodeFormatter TextView will be added here -->
+    </FrameLayout>
+
+    <!-- Ejemplo -->
+    <TextView
+        android:id="@+id/tvEjemplo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#FF0000"
+        android:textSize="18sp"
+        android:visibility="gone" />
+
+    <!-- Nota -->
+    <TextView
+        android:id="@+id/tvNota"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#00FF00"
+        android:textSize="18sp"
+        android:visibility="gone" />
+
+    <!-- Recurso -->
+    <TextView
+        android:id="@+id/tvRecurso"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#FF0000"
+        android:textSize="18sp"
+        android:visibility="gone" />
+
+    <!-- Vista -->
+    <TextView
+        android:id="@+id/tvVista"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#FF0000"
+        android:textSize="18sp"
+        android:visibility="gone" />
+
+</LinearLayout>
