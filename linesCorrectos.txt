@@ -1,0 +1,209 @@
+Parche:
+
+
+# 1. Asegúrate de tener acceso al almacenamiento
+termux-setup-storage
+
+# 2. Copia el archivo descargado a la carpeta del código
+# La ruta puede variar según el dispositivo, generalmente es ~/storage/downloads/
+cp ~/storage/downloads/patch_libusb.py ~/libusb/libusb/
+
+# 3. Entra en la carpeta y ejecuta el parche
+cd ~/libusb/libusb/
+python3 patch_libusb.py
+
+
+
+
+
+git clone https://github.com/libusb/libusb.git
+
+cd libusb
+
+./autogen.sh
+
+# Es necesario añadir --disable-udev para sistemas Android
+./configure --prefix=/data/data/com.diamon.curso/files/usr \
+            --disable-udev \
+            CFLAGS="-fPIC -fPIE" \
+            LDFLAGS="-pie -Wl,-z,max-page-size=16384"
+
+# Una vez que configure termine sin errores, compila e instala
+make -j$(nproc)
+
+make install DESTDIR=$HOME/fake_root
+
+
+
+
+
+
+
+
+pkg install zlib-static
+
+git clone https://github.com/pciutils/pciutils.git
+
+cd pciutils
+
+make clean
+sed -i 's/-lresolv//g' lib/configure
+
+make -j$(nproc) \
+     PREFIX=/data/data/com.diamon.curso/files/usr \
+     CC="clang" \
+     CFLAGS="-fPIC -Oz" \
+     LDFLAGS="-lz -Wl,-z,max-page-size=16384" \
+     ZLIB=yes \
+     DNS=yes \
+     LIBRESOLV="" \
+     SHARED=yes
+
+
+make install install-lib \
+     DESTDIR=$HOME/fake_root \
+     PREFIX=/data/data/com.diamon.curso/files/usr \
+     SHARED=yes
+
+
+
+
+
+
+
+
+
+pkg install libconfuse
+
+pkg install python swig
+
+pkg install doxygen
+
+pkg install gettext
+
+
+git clone git://developer.intra2net.com/libftdi
+
+cd libftdi
+mkdir build && cd build
+
+# 1. Asegúrate de que PKG_CONFIG_PATH incluya tu fake_root de libusb
+export PKG_CONFIG_PATH=$HOME/fake_root/data/data/com.diamon.curso/files/usr/lib/pkgconfig:$PKG_CONFIG_PATH
+
+
+cd ~/libftdi/build
+rm -rf * # Limpieza total obligatoria
+
+export PREFIX=/data/data/com.termux/files/usr
+
+cmake .. \
+  -DCMAKE_INSTALL_PREFIX=/data/data/com.diamon.curso/files/usr \
+  -DCMAKE_C_FLAGS="-fPIC -fPIE -Oz" \
+  -DCMAKE_CXX_FLAGS="-fPIC -fPIE -Oz" \
+  -DCMAKE_EXE_LINKER_FLAGS="-pie -Wl,-z,max-page-size=16384" \
+  -DCMAKE_PREFIX_PATH="$PREFIX" \
+  -DLIBUSB_INCLUDE_DIR=$HOME/fake_root/data/data/com.diamon.curso/files/usr/include/libusb-1.0 \
+  -DLIBUSB_LIBRARIES=$HOME/fake_root/data/data/com.diamon.curso/files/usr/lib/libusb-1.0.so \
+  -DFTDIPP=ON \
+  -DPYTHON_BINDINGS=ON \
+  -DDOCUMENTATION=ON \
+  -DFTDI_EEPROM=ON \
+  -DEXAMPLES=ON \
+  -DBUILD_TESTS=ON
+
+make -j$(nproc)
+make install DESTDIR=$HOME/fake_root
+
+
+
+
+
+
+
+git clone https://gitlab.zapb.de/libjaylink/libjaylink.git
+cd libjaylink
+./autogen.sh
+
+export FAKE_USR=$HOME/fake_root/data/data/com.diamon.curso/files/usr
+
+# Incluir cabeceras y libs de tu fake_root
+export CPPFLAGS="-I$FAKE_USR/include -I$FAKE_USR/include/libusb-1.0"
+export LDFLAGS="-L$FAKE_USR/lib"
+
+export PKG_CONFIG_PATH=$FAKE_USR/lib/pkgconfig:$PKG_CONFIG_PATH
+
+./configure --prefix=/data/data/com.diamon.curso/files/usr \
+            CFLAGS="-fPIC -fPIE -Oz" \
+            LDFLAGS="-pie -Wl,-z,max-page-size=16384 $LDFLAGS"
+
+make -j"$(nproc)"
+make install DESTDIR=$HOME/fake_root
+
+
+
+
+
+git clone https://github.com/flashrom/flashrom.git
+
+
+pkg install bash-completion
+
+pkg install python
+
+pip install sphinx
+
+
+# Definimos la ruta de inclusión de tu fake_root
+export FAKE_INC=$HOME/fake_root/data/data/com.diamon.curso/files/usr/include
+
+# Creamos el enlace simbólico para que Meson encuentre la ruta alternativa
+ln -sf $FAKE_INC/pci $FAKE_INC/pciutils
+
+cd ~/flashrom
+rm -rf builddir
+
+# Volver a configurar (ahora Sphinx aparecerá como YES)
+export FAKE_USR=$HOME/fake_root/data/data/com.diamon.curso/files/usr
+meson setup builddir \
+  --prefix=/data/data/com.diamon.curso/files/usr \
+  -Dtests=disabled \
+  -Dwerror=false \
+  -Dc_args="-fPIC -fPIE -Oz -I$FAKE_USR/include -I$FAKE_USR/include/libusb-1.0 -I$FAKE_USR/include/libftdi1" \
+  -Dc_link_args="-pie -Wl,-z,max-page-size=16384 -L$FAKE_USR/lib"
+
+# Compilar e instalar
+meson compile -C builddir
+DESTDIR=$HOME/fake_root meson install -C builddir
+
+
+
+
+#Probar
+
+
+# 1. Definir la ruta de las librerías para que el sistema las encuentre
+export FAKE_USR=$HOME/fake_root/data/data/com.diamon.curso/files/usr
+export LD_LIBRARY_PATH=$FAKE_USR/lib:$LD_LIBRARY_PATH
+
+# 2. Ejecutar flashrom para listar los programadores activos
+$FAKE_USR/sbin/flashrom --programmer ?
+
+
+
+grep "libusb_wrap_sys_device" $HOME/fake_root/data/data/com.diamon.curso/files/usr/include/libusb-1.0/libusb.h
+
+
+
+
+# Ir al directorio personal
+cd $HOME
+
+# Comprimir la carpeta fake_root en un archivo llamado flashrom_libs.zip
+# Usamos -r para que sea recursivo (incluya todas las subcarpetas)
+zip -r flashrom_libs.zip fake_root/
+
+# Mover el archivo a la carpeta de Descargas de Android
+# Nota: ~/storage/downloads es el enlace estándar creado por termux-setup-storage
+mv flashrom_libs.zip ~/storage/downloads/
+
+

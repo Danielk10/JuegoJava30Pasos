@@ -4,41 +4,76 @@ plugins {
 
 android {
     namespace 'com.diamon.curso'
-    compileSdk 36
+    compileSdk {
+        version = release(36)
+    }
 
     defaultConfig {
         applicationId "com.diamon.curso"
         minSdk 23
         targetSdk 36
-        versionCode 49
-        versionName "1.5.7"
+        versionCode 1
+        versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        ndk {
+            abiFilters "arm64-v8a"
+        }
     }
 
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            ndk {
+                debugSymbolLevel 'SYMBOL_TABLE'
+            }
         }
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
     }
+
+    buildToolsVersion '36.0.0'
+    ndkVersion '29.0.13599879 rc2'
+
+    buildFeatures {
+        resValues true
+    }
+
+
+    externalNativeBuild {
+        cmake {
+            path file('src/main/cpp/CMakeLists.txt')
+            version = '3.22.1'
+        }
+    }
+
+    buildFeatures {
+        viewBinding true
+    }
+
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
+        }
+        doNotStrip "**/*.so"
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs << "-Xlint:deprecation"
 }
 
 dependencies {
-
     implementation libs.appcompat
     implementation libs.material
-    implementation libs.activity
     implementation libs.constraintlayout
+    implementation(libs.usb.serial.for1.android)
+    implementation libs.documentfile
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
-    def appCenterSdkVersion = '5.0.6'
-    implementation libs.appcenter.analytics
-    implementation libs.appcenter.crashes
-    implementation libs.play.services.ads
 }
