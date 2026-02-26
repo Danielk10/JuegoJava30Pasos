@@ -15,12 +15,18 @@ public class AssetHelper {
         File filesDir = context.getFilesDir();
         File usrDir = new File(filesDir, "usr");
 
+        // Verificación rápida para optimización de arranque
+        File flashromBin = new File(usrDir, "sbin/flashrom");
+        if (flashromBin.exists()) {
+            Log.d(TAG, "Assets ya existen, saltando extracción.");
+            return;
+        }
+
         if (!usrDir.exists()) {
             boolean created = usrDir.mkdirs();
             Log.d(TAG, "usr directory created: " + created);
         }
 
-        // Always attempt copy to ensure any missing or updated files are written.
         copyAssetFolder(context, "usr", usrDir.getAbsolutePath());
     }
 
@@ -58,14 +64,11 @@ public class AssetHelper {
         try {
             File outFile = new File(dstName);
 
-            // For this basic copy, we won't overwrite existing files to save time on each
-            // startup,
-            // unless strictly needed. But executables must be marked +x
             if (!outFile.exists()) {
                 InputStream in = context.getAssets().open(srcName);
                 OutputStream out = new FileOutputStream(dstName);
 
-                byte[] buffer = new byte[1024];
+                byte[] buffer = new byte[8192];
                 int read;
                 while ((read = in.read(buffer)) != -1) {
                     out.write(buffer, 0, read);
