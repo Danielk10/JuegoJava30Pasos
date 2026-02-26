@@ -18,6 +18,8 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -45,8 +47,6 @@ public class MainActivity extends AppCompatActivity {
     private UsbDeviceConnection currentConnection;
     private int currentFd = -1;
 
-    private static final int REQUEST_CODE_IMPORT = 1001;
-
     private LinearLayout layoutLoading;
     private LinearLayout layoutMainUI;
     private ScrollView scrollLog;
@@ -54,6 +54,18 @@ public class MainActivity extends AppCompatActivity {
     private Button btnConnect, btnProbe, btnVerify, btnRead, btnWrite, btnImport, btnExport;
 
     private ExecutorService executor = Executors.newSingleThreadExecutor();
+
+    // Nueva API para seleccionar archivos (reemplaza startActivityForResult)
+    private final ActivityResultLauncher<Intent> filePickerLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    Uri uri = result.getData().getData();
+                    if (uri != null) {
+                        importRomFile(uri);
+                    }
+                }
+            });
 
     private final BroadcastReceiver usbReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
@@ -157,19 +169,8 @@ public class MainActivity extends AppCompatActivity {
         btnImport.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
             intent.setType("*/*");
-            startActivityForResult(intent, REQUEST_CODE_IMPORT);
+            filePickerLauncher.launch(intent);
         });
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_CODE_IMPORT && resultCode == RESULT_OK && data != null) {
-            Uri uri = data.getData();
-            if (uri != null) {
-                importRomFile(uri);
-            }
-        }
     }
 
     private void importRomFile(Uri uri) {
