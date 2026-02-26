@@ -8,6 +8,7 @@ import android.content.IntentFilter;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -17,6 +18,7 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
@@ -24,7 +26,10 @@ import com.hoho.android.usbserial.driver.UsbSerialProber;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -40,11 +45,13 @@ public class MainActivity extends AppCompatActivity {
     private UsbDeviceConnection currentConnection;
     private int currentFd = -1;
 
+    private static final int REQUEST_CODE_IMPORT = 1001;
+
     private LinearLayout layoutLoading;
     private LinearLayout layoutMainUI;
     private ScrollView scrollLog;
     private TextView tvStatus, tvLog, tvLoadingText;
-    private Button btnConnect, btnProbe, btnVerify, btnRead, btnWrite;
+    private Button btnConnect, btnProbe, btnVerify, btnRead, btnWrite, btnImport, btnExport;
 
     private ExecutorService executor = Executors.newSingleThreadExecutor();
 
@@ -92,6 +99,8 @@ public class MainActivity extends AppCompatActivity {
         btnVerify = findViewById(R.id.btnVerify);
         btnRead = findViewById(R.id.btnRead);
         btnWrite = findViewById(R.id.btnWrite);
+        btnImport = findViewById(R.id.btnImport);
+        btnExport = findViewById(R.id.btnExport);
 
         usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
 
@@ -135,6 +144,46 @@ public class MainActivity extends AppCompatActivity {
                                                                                                       // un bin anterior
         btnRead.setOnClickListener(v -> executeFlashromTask("-p", "ch341a_spi", "-r", "bios.bin"));
         btnWrite.setOnClickListener(v -> executeFlashromTask("-p", "ch341a_spi", "-w", "bios.bin"));
+
+        btnExport.setOnClickListener(v -> {
+            boolean success = FileManager.exportToDownloads(this, "bios.bin");
+            if (success) {
+                log("Éxito: Archivo bios.bin exportado a la carpeta pública 'Downloads/FlashromApp'.");
+            } else {
+                log("Error exportando bios.bin al teléfono. ¿Has leído el chip primero?");
+            }
+        });
+
+        btnImport.setOnClickListener(v -> {
+            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+            intent.setType("*/*");
+            startActivityForResult(intent, REQUEST_CODE_IMPORT);
+        });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE_IMPORT && resultCode == RESULT_OK && data != null) {
+            Uri uri = data.getData();
+            if (uri != null) {
+                importRomFile(uri);
+            }
+        }
+    }
+
+    private void importRomFile(Uri uri) {
+        try (InputStream in = getContentResolver().openInputStream(uri);
+                OutputStream out = new FileOutputStream(new File(getFilesDir(), "bios.bin"))) {
+            byte[] buffer = new byte[8192];
+            int read;
+            while ((read = in.read(buffer)) != -1) {
+                out.write(buffer, 0, read);
+            }
+            log("ROM importada exitosamente como 'bios.bin'. ¡Lista para Flashear!");
+        } catch (Exception e) {
+            log("Error copiando ROM desde almacenamiento: " + e.getMessage());
+        }
     }
 
     private void searchAndRequestProgrammer() {
