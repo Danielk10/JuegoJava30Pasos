@@ -1,92 +1,103 @@
 package com.diamon.curso;
 
 import android.content.Context;
+import android.content.res.AssetManager;
 import android.util.Log;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
 public class AssetHelper {
     private static final String TAG = "AssetHelper";
+    private static final int BUFFER_SIZE = 8192;
 
-    public static void copyAssets(Context context) {
-        File filesDir = context.getFilesDir();
-        File usrDir = new File(filesDir, "usr");
+    public static boolean extractAssets(Context context, String assetPath, File destDir) {
+        AssetManager assetManager = context.getAssets();
 
-        // Verificación rápida para optimización de arranque
-        File flashromBin = new File(usrDir, "sbin/flashrom");
-        if (flashromBin.exists()) {
-            Log.d(TAG, "Assets ya existen, saltando extracción.");
-            return;
-        }
-
-        if (!usrDir.exists()) {
-            boolean created = usrDir.mkdirs();
-            Log.d(TAG, "usr directory created: " + created);
-        }
-
-        copyAssetFolder(context, "usr", usrDir.getAbsolutePath());
-    }
-
-    private static boolean copyAssetFolder(Context context, String srcName, String dstName) {
         try {
-            boolean res = true;
-            String[] files = context.getAssets().list(srcName);
+            String[] files = assetManager.list(assetPath);
+
             if (files == null || files.length == 0) {
-                // If the array is empty, it's a file, not a directory.
-                return copyAssetFile(context, srcName, dstName);
+                // Es un archivo, copiarlo
+                return copyAssetFile(assetManager, assetPath, destDir);
             } else {
-                File dir = new File(dstName);
-                if (!dir.exists()) {
-                    res = dir.mkdirs();
-                    if (!res) {
-                        Log.e(TAG, "Failed to create directory: " + dstName);
-                        return false;
+                // Es un directorio, crearlo y procesar recursivamente
+                if (!destDir.exists() && !destDir.mkdirs()) {
+                    Log.e(TAG, "No se pudo crear directorio: " + destDir.getAbsolutePath());
+                    return false;
+                }
+
+                for (String fileName : files) {
+                    if (fileName == null || fileName.isEmpty())
+                        continue;
+
+                    String childAssetPath = assetPath + "/" + fileName;
+                    File childDestDir = new File(destDir, fileName);
+
+                    // Verificar si es un directorio o archivo
+                    String[] subFiles = assetManager.list(childAssetPath);
+                    if (subFiles != null && subFiles.length > 0) {
+                        // Es un subdirectorio
+                        if (!extractAssets(context, childAssetPath, childDestDir)) {
+                            return false;
+                        }
+                    } else {
+                        // Es un archivo
+                        if (!copyAssetFile(assetManager, childAssetPath, destDir)) {
+                            return false;
+                        }
                     }
                 }
-                for (String file : files) {
-                    // Skip any weird empty strings
-                    if (file == null || file.isEmpty())
-                        continue;
-                    res &= copyAssetFolder(context, srcName + "/" + file, dstName + "/" + file);
-                }
-                return res;
+                return true;
             }
-        } catch (Exception e) {
-            Log.e(TAG, "Error copying assets directory " + srcName, e);
+        } catch (IOException e) {
+            Log.e(TAG, "Error extrayendo assets: " + e.getMessage());
             return false;
         }
     }
 
-    private static boolean copyAssetFile(Context context, String srcName, String dstName) {
-        try {
-            File outFile = new File(dstName);
+    private static boolean copyAssetFile(AssetManager assetManager, String assetPath, File destDir) {
+        String fileName = assetPath.substring(assetPath.lastIndexOf('/') + 1);
+        File destFile = new File(destDir, fileName);
 
-            if (!outFile.exists()) {
-                InputStream in = context.getAssets().open(srcName);
-                OutputStream out = new FileOutputStream(dstName);
-
-                byte[] buffer = new byte[8192];
-                int read;
-                while ((read = in.read(buffer)) != -1) {
-                    out.write(buffer, 0, read);
-                }
-                in.close();
-                out.flush();
-                out.close();
-                Log.d(TAG, "Copied file: " + dstName);
-            }
-
-            // Mark bin/ and sbin/ files as executable
-            if (dstName.contains("/bin/") || dstName.contains("/sbin/")) {
-                outFile.setExecutable(true, false);
-            }
+        // Si el archivo ya existe, omitir
+        if (destFile.exists()) {
             return true;
-        } catch (Exception e) {
-            Log.e(TAG, "Error copying asset file " + srcName, e);
+        }
+
+        // Asegurar que el directorio padre existe
+        if (!destDir.exists() && !destDir.mkdirs()) {
+            Log.e(TAG, "No se pudo crear directorio: " + destDir.getAbsolutePath());
             return false;
         }
+
+        try (InputStream in = assetManager.open(assetPath);
+                OutputStream out = new FileOutputStream(destFile)) {
+
+            byte[] buffer = new byte[BUFFER_SIZE];
+            int read;
+            while ((read = in.read(buffer)) != -1) {
+                out.write(buffer, 0, read);
+            }
+            out.flush();
+            Log.d(TAG, "Copiado: " + destFile.getAbsolutePath());
+            return true;
+
+        } catch (IOException e) {
+            Log.e(TAG, "Error copiando " + assetPath + ": " + e.getMessage());
+            return false;
+        }
+    }
+
+    public static boolean areAssetsExtracted(Context context) {
+        // En flashrom el componente mas importante a nivel de lectura suele ser share o
+        // sbin
+        // Pero como los de sbin/bin los pasamos a jniLibs, revisaremos si se extrajo
+        // share
+        File shareDir = new File(context.getFilesDir(), "usr/share");
+        return shareDir.exists() && shareDir.isDirectory() && shareDir.list() != null && shareDir.list().length > 0;
     }
 }

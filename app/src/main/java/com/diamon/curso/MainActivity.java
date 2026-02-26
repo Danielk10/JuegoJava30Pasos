@@ -100,12 +100,13 @@ public class MainActivity extends AppCompatActivity {
         layoutLoading.setVisibility(View.VISIBLE);
 
         executor.execute(() -> {
-            boolean wasExtracted = new File(getFilesDir(), "usr/sbin/flashrom").exists();
+            boolean wasExtracted = AssetHelper.areAssetsExtracted(getApplicationContext());
             if (!wasExtracted) {
                 runOnUiThread(() -> tvLoadingText.setText("Extrayendo binarios nativos por primera vez..."));
             }
 
-            AssetHelper.copyAssets(getApplicationContext());
+            AssetHelper.extractAssets(getApplicationContext(), "data/data/com.diamon.curso/files/usr",
+                    new File(getFilesDir(), "usr"));
 
             runOnUiThread(() -> {
                 layoutLoading.setVisibility(View.GONE);
@@ -180,9 +181,9 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        File flashromBin = new File(getFilesDir(), "usr/sbin/flashrom");
+        File flashromBin = new File(getApplicationInfo().nativeLibraryDir, "libflashrom_bin.so");
         if (!flashromBin.exists()) {
-            log("Fallo crítico: Binario 'flashrom' no existe. Reinicie la aplicación para reextraerlo.");
+            log("Fallo crítico: Binario 'flashrom' no existe. (" + flashromBin.getAbsolutePath() + ")");
             return;
         }
 
@@ -213,7 +214,13 @@ public class MainActivity extends AppCompatActivity {
             // Inyectando entorno para las librerías fake_root
             Map<String, String> env = pb.environment();
             env.put("ANDROID_USB_FD", String.valueOf(currentFd));
-            env.put("LD_LIBRARY_PATH", getApplicationInfo().nativeLibraryDir);
+
+            // Recrear las variables de entorno de PTC que incluyen la ruta PATH necesaria
+            // si fuesemos a usar otras libs anidadas
+            String jniLibs = getApplicationInfo().nativeLibraryDir;
+            String fallbackPath = System.getenv("PATH");
+            env.put("LD_LIBRARY_PATH", jniLibs + ":" + new File(getFilesDir(), "usr/lib").getAbsolutePath());
+            env.put("PATH", jniLibs + (fallbackPath != null ? ":" + fallbackPath : ""));
 
             Process process = pb.start();
 
