@@ -55,14 +55,26 @@ public class MainActivity extends AppCompatActivity {
 
     private ExecutorService executor = Executors.newSingleThreadExecutor();
 
-    // Nueva API para seleccionar archivos (reemplaza startActivityForResult)
-    private final ActivityResultLauncher<Intent> filePickerLauncher = registerForActivityResult(
+    // API para importar (Cargar archivo de cualquier carpeta)
+    private final ActivityResultLauncher<Intent> fileOpenLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                     Uri uri = result.getData().getData();
                     if (uri != null) {
                         importRomFile(uri);
+                    }
+                }
+            });
+
+    // API para exportar (Guardar archivo en carpeta seleccionada por el usuario)
+    private final ActivityResultLauncher<Intent> fileSaveLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    Uri uri = result.getData().getData();
+                    if (uri != null) {
+                        exportRomFileToUri(uri);
                     }
                 }
             });
@@ -158,19 +170,44 @@ public class MainActivity extends AppCompatActivity {
         btnWrite.setOnClickListener(v -> executeFlashromTask("-p", "ch341a_spi", "-w", "bios.bin"));
 
         btnExport.setOnClickListener(v -> {
-            boolean success = FileManager.exportToDownloads(this, "bios.bin");
-            if (success) {
-                log("Éxito: Archivo bios.bin exportado a la carpeta pública 'Downloads/FlashromApp'.");
-            } else {
-                log("Error exportando bios.bin al teléfono. ¿Has leído el chip primero?");
+            File sourceFile = new File(getFilesDir(), "bios.bin");
+            if (!sourceFile.exists()) {
+                log("Error: No hay ningún 'bios.bin' leído internamente aún. ¡Léelo primero desde el chip!");
+                return;
             }
+
+            Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("application/octet-stream");
+            intent.putExtra(Intent.EXTRA_TITLE, "bios_backup.bin");
+            fileSaveLauncher.launch(intent);
         });
 
         btnImport.setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
             intent.setType("*/*");
-            filePickerLauncher.launch(intent);
+            fileOpenLauncher.launch(intent);
         });
+    }
+
+    private void exportRomFileToUri(Uri uri) {
+        File sourceFile = new File(getFilesDir(), "bios.bin");
+        try (InputStream in = new java.io.FileInputStream(sourceFile);
+                OutputStream out = getContentResolver().openOutputStream(uri)) {
+
+            if (out == null)
+                throw new Exception("No se pudo obtener acceso de escritura al archivo destino.");
+
+            byte[] buffer = new byte[8192];
+            int read;
+            while ((read = in.read(buffer)) != -1) {
+                out.write(buffer, 0, read);
+            }
+            log("Éxito: ROM respaldada correctamente en la carpeta seleccionada.");
+        } catch (Exception e) {
+            log("Error guardando el archivo: " + e.getMessage());
+        }
     }
 
     private void importRomFile(Uri uri) {
