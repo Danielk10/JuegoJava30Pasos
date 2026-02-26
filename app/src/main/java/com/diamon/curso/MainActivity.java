@@ -11,9 +11,11 @@ import android.hardware.usb.UsbManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -38,15 +40,14 @@ public class MainActivity extends AppCompatActivity {
     private UsbDeviceConnection currentConnection;
     private int currentFd = -1;
 
-    private TextView tvStatus;
-    private TextView tvLog;
-    private Button btnConnect;
-    private Button btnRead;
-    private Button btnWrite;
+    private LinearLayout layoutLoading;
+    private LinearLayout layoutMainUI;
+    private ScrollView scrollLog;
+    private TextView tvStatus, tvLog, tvLoadingText;
+    private Button btnConnect, btnProbe, btnVerify, btnRead, btnWrite;
 
     private ExecutorService executor = Executors.newSingleThreadExecutor();
 
-    // Broadcast receiver para manejar el resultado del permiso USB
     private final BroadcastReceiver usbReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
@@ -66,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
                             connectToDevice(device);
                         }
                     } else {
-                        log("Permiso USB denegado para el dispositivo " + device);
+                        log("Permiso USB denegado para " + device);
                     }
                 }
             }
@@ -78,24 +79,46 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        layoutLoading = findViewById(R.id.layoutLoading);
+        layoutMainUI = findViewById(R.id.layoutMainUI);
+        tvLoadingText = findViewById(R.id.tvLoadingText);
+
         tvStatus = findViewById(R.id.tvStatus);
         tvLog = findViewById(R.id.tvLog);
+        scrollLog = findViewById(R.id.scrollLog);
+
         btnConnect = findViewById(R.id.btnConnect);
+        btnProbe = findViewById(R.id.btnProbe);
+        btnVerify = findViewById(R.id.btnVerify);
         btnRead = findViewById(R.id.btnRead);
         btnWrite = findViewById(R.id.btnWrite);
 
         usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
 
-        // EXTRAER ASSETS AL INICIO
+        // Ocultar UI y mostrar ProgressBar mientras carga assets
+        layoutMainUI.setVisibility(View.GONE);
+        layoutLoading.setVisibility(View.VISIBLE);
+
         executor.execute(() -> {
             boolean wasExtracted = new File(getFilesDir(), "usr/sbin/flashrom").exists();
-            AssetHelper.copyAssets(getApplicationContext());
             if (!wasExtracted) {
-                runOnUiThread(() -> log("Assets iniciales copiados con éxito."));
+                runOnUiThread(() -> tvLoadingText.setText("Extrayendo binarios nativos por primera vez..."));
             }
+
+            AssetHelper.copyAssets(getApplicationContext());
+
+            runOnUiThread(() -> {
+                layoutLoading.setVisibility(View.GONE);
+                layoutMainUI.setVisibility(View.VISIBLE);
+                if (!wasExtracted) {
+                    log("Assets copiados correctamente al almacenamiento interno.");
+                } else {
+                    log("App iniciada. Dependencias locales en orden.");
+                }
+            });
         });
 
-        // Registrar receptor
+        // Setup Boradcast Receiver
         IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             registerReceiver(usbReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
@@ -103,8 +126,12 @@ public class MainActivity extends AppCompatActivity {
             registerReceiver(usbReceiver, filter);
         }
 
+        // Listener setup para todos los botones
         btnConnect.setOnClickListener(v -> searchAndRequestProgrammer());
 
+        btnProbe.setOnClickListener(v -> executeFlashromTask("-p", "ch341a_spi")); // Solo -p sonda el chip sin operar
+        btnVerify.setOnClickListener(v -> executeFlashromTask("-p", "ch341a_spi", "-v", "bios.bin")); // Validara contra
+                                                                                                      // un bin anterior
         btnRead.setOnClickListener(v -> executeFlashromTask("-p", "ch341a_spi", "-r", "bios.bin"));
         btnWrite.setOnClickListener(v -> executeFlashromTask("-p", "ch341a_spi", "-w", "bios.bin"));
     }
@@ -112,18 +139,17 @@ public class MainActivity extends AppCompatActivity {
     private void searchAndRequestProgrammer() {
         List<UsbSerialDriver> availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(usbManager);
         if (availableDrivers.isEmpty()) {
-            log("No se encontraron programadores soportados conectados.");
+            log("No se detectó ningún CH341A / programador conectado.");
             return;
         }
 
         UsbSerialDriver driver = availableDrivers.get(0);
         UsbDevice device = driver.getDevice();
-        log("Programador encontrado: " + device.getProductName() + " (VID: " + device.getVendorId() + ")");
+        log("Dispositivo detectado: " + device.getProductName() + " | Solicitando enlace...");
 
         if (usbManager.hasPermission(device)) {
             connectToDevice(device);
         } else {
-            log("Solicitando permiso USB...");
             int flags = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ? PendingIntent.FLAG_MUTABLE : 0;
             PendingIntent permissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION),
                     flags);
@@ -134,32 +160,42 @@ public class MainActivity extends AppCompatActivity {
     private void connectToDevice(UsbDevice device) {
         currentConnection = usbManager.openDevice(device);
         if (currentConnection == null) {
-            log("Error alojando la conexión USB (openDevice falló)");
+            log(device.getProductName() + " falló en enlazarse a la app (openDevice == null)");
             return;
         }
 
         currentFd = currentConnection.getFileDescriptor();
-        tvStatus.setText("Status: Conectado (FD: " + currentFd + ")");
-        log("Conexión exitosa. El Descriptor es: " + currentFd);
+        tvStatus.setText("Status: " + device.getProductName() + " Conectado");
+        log("¡Permiso otorgado! Token interno de USB: " + currentFd);
 
+        btnProbe.setEnabled(true);
+        btnVerify.setEnabled(true);
         btnRead.setEnabled(true);
         btnWrite.setEnabled(true);
     }
 
     private void executeFlashromTask(String... args) {
         if (currentFd == -1) {
-            log("No hay un programador conectado.");
+            log("Error lógico: El FD de USB se perdió.");
             return;
         }
 
         File flashromBin = new File(getFilesDir(), "usr/sbin/flashrom");
         if (!flashromBin.exists()) {
-            log("CRÍTICO: El ejecutable no existe: " + flashromBin.getAbsolutePath());
+            log("Fallo crítico: Binario 'flashrom' no existe. Reinicie la aplicación para reextraerlo.");
             return;
         }
 
-        log("--- EJECUTANDO FLASHROM ---");
-        executor.execute(() -> runFlashromProcess(flashromBin, args));
+        log("------------\n[INICIANDO OPERACIÓN] flashrom " + String.join(" ", args));
+
+        // Deshabilitar botones mientras trabaja para evitar crasheos por hilos
+        // paralelos
+        setButtonsEnabled(false);
+
+        executor.execute(() -> {
+            runFlashromProcess(flashromBin, args);
+            runOnUiThread(() -> setButtonsEnabled(true));
+        });
     }
 
     private void runFlashromProcess(File flashromBin, String[] args) {
@@ -171,37 +207,30 @@ public class MainActivity extends AppCompatActivity {
 
         try {
             ProcessBuilder pb = new ProcessBuilder(command);
-            pb.directory(getFilesDir());
-            pb.redirectErrorStream(true);
+            pb.directory(getFilesDir()); // Corriendo desde la raid de Archivos
+            pb.redirectErrorStream(true); // Redirige System.err a System.out
 
-            // Inyectar entorno:
+            // Inyectando entorno para las librerías fake_root
             Map<String, String> env = pb.environment();
-
-            // 1. EL PARCHE MAESTRO: pasar el FD en texto plano
             env.put("ANDROID_USB_FD", String.valueOf(currentFd));
-
-            // 2. Ruta a las librerías dinámicas precompiladas (.so en jniLibs se copian acá
-            // por Android)
-            String jniLibs = getApplicationInfo().nativeLibraryDir;
-            env.put("LD_LIBRARY_PATH", jniLibs);
+            env.put("LD_LIBRARY_PATH", getApplicationInfo().nativeLibraryDir);
 
             Process process = pb.start();
 
-            // Leer línea por línea la salida estándar y error en tiempo real
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     final String uiLine = line;
-                    runOnUiThread(() -> log("> " + uiLine));
+                    runOnUiThread(() -> log(" " + uiLine));
                 }
             }
 
             int exitCode = process.waitFor();
-            runOnUiThread(() -> log("--- PROCESO TERMINADO (CÓDIGO: " + exitCode + ") ---"));
+            runOnUiThread(() -> log("[PROCESO TERMINADO] Exit Code: " + exitCode + "\n"));
 
         } catch (Exception e) {
-            Log.e(TAG, "Error ejecutando flashrom", e);
-            runOnUiThread(() -> log("Error Fatal: " + e.getMessage()));
+            Log.e(TAG, "Error fatal de SO ejecutando: flashrom", e);
+            runOnUiThread(() -> log("[CRITICAL] ProcessBuilder falló: " + e.getMessage()));
         }
     }
 
@@ -210,7 +239,16 @@ public class MainActivity extends AppCompatActivity {
         String current = tvLog.getText().toString();
         tvLog.setText(current + "\n" + message);
 
-        // Auto-scroll could be added if you have a reference to the ScrollView
+        // Auto Scroll simple
+        scrollLog.post(() -> scrollLog.fullScroll(ScrollView.FOCUS_DOWN));
+    }
+
+    private void setButtonsEnabled(boolean enabled) {
+        btnProbe.setEnabled(enabled);
+        btnVerify.setEnabled(enabled);
+        btnRead.setEnabled(enabled);
+        btnWrite.setEnabled(enabled);
+        btnConnect.setEnabled(enabled);
     }
 
     @Override
@@ -219,11 +257,11 @@ public class MainActivity extends AppCompatActivity {
         try {
             unregisterReceiver(usbReceiver);
         } catch (Exception e) {
-            // Ignorar
         }
+
         if (currentConnection != null) {
             currentConnection.close();
         }
-        executor.shutdown();
+        executor.shutdownNow(); // Finalizar todos los hilos
     }
 }
