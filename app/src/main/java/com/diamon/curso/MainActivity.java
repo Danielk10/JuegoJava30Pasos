@@ -135,6 +135,13 @@ public class MainActivity extends AppCompatActivity {
         layoutLoading.setVisibility(View.VISIBLE);
 
         executor.execute(() -> {
+            // AutoLimpieza de directorios erróneos (para arreglar el error de usr/usr)
+            File buggedDir = new File(getFilesDir(), "usr/usr");
+            if (buggedDir.exists()) {
+                deleteRecursively(buggedDir);
+                Log.d("MainActivity", "Carpeta residual usr/usr eliminada automáticamente.");
+            }
+
             boolean wasExtracted = AssetHelper.areAssetsExtracted(getApplicationContext());
             if (!wasExtracted) {
                 runOnUiThread(() -> tvLoadingText.setText("Extrayendo binarios nativos por primera vez..."));
@@ -337,6 +344,20 @@ public class MainActivity extends AppCompatActivity {
 
         // Auto Scroll simple
         scrollLog.post(() -> scrollLog.fullScroll(ScrollView.FOCUS_DOWN));
+    }
+
+    // Función de soporte para limpiar directorios defectuosos guardados por el
+    // sistema
+    private void deleteRecursively(File fileOrDirectory) {
+        if (fileOrDirectory.isDirectory()) {
+            File[] children = fileOrDirectory.listFiles();
+            if (children != null) {
+                for (File child : children) {
+                    deleteRecursively(child);
+                }
+            }
+        }
+        fileOrDirectory.delete();
     }
 
     private void setButtonsEnabled(boolean enabled) {
