@@ -40,6 +40,14 @@
                 android:resource="@xml/device_filter" />
 
         </activity>
+
+        <activity android:name=".PolicyActivity"
+            android:theme="@style/Theme.AppCompat.Light.DarkActionBar"
+            android:label="Políticas" />
+
+        <activity android:name=".HexViewerActivity"
+            android:theme="@style/Theme.AppCompat.Light.DarkActionBar"
+            android:label="Visor Hexadecimal" />
     </application>
 
 </manifest>

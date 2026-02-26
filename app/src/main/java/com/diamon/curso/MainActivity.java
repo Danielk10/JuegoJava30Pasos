@@ -12,6 +12,8 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -343,6 +345,37 @@ public class MainActivity extends AppCompatActivity {
         btnRead.setEnabled(enabled);
         btnWrite.setEnabled(enabled);
         btnConnect.setEnabled(enabled);
+        btnImport.setEnabled(enabled);
+        btnExport.setEnabled(enabled);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.action_hex_viewer) {
+            startActivity(new Intent(this, HexViewerActivity.class));
+            return true;
+        } else if (id == R.id.action_about) {
+            new android.app.AlertDialog.Builder(this)
+                    .setTitle("Acerca de FlashromApp")
+                    .setMessage(
+                            "Herramienta Flashrom para Android usando CH341A.\nRefactorizado según arquitectura C-PIC (PTC)\n\nVersión 2.0")
+                    .setPositiveButton("Aceptar", null)
+                    .show();
+            return true;
+        } else if (id == R.id.action_policy) {
+            startActivity(new Intent(this, PolicyActivity.class));
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
