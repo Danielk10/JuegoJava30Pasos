@@ -11,7 +11,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 public class AssetHelper {
     private static final String TAG = "AssetHelper";
@@ -42,20 +44,10 @@ public class AssetHelper {
         }
 
         // Reparación mínima de recursos críticos del runtime compilado (no ejecutables).
-        String[] criticalAssets = new String[] {
-                runtimeRoot + "/share/pci.ids.gz"
-        };
-
         AssetManager assetManager = context.getAssets();
-        for (String criticalAsset : criticalAssets) {
-            String relative = criticalAsset.substring((runtimeRoot + "/").length());
-            File target = new File(usrDir, relative);
-            if (!target.exists()) {
-                File parent = target.getParentFile();
-                if (parent == null || !copyAssetFile(assetManager, criticalAsset, parent)) {
-                    return false;
-                }
-            }
+        File pciIdsTarget = new File(usrDir, "share/pci.ids.gz");
+        if (!pciIdsTarget.exists() && !copyCriticalPciIds(assetManager, runtimeRoot, pciIdsTarget)) {
+            return false;
         }
         return ensureNativeToolLinks(context);
     }
@@ -159,6 +151,11 @@ public class AssetHelper {
 
     private static boolean copyAssetFile(AssetManager assetManager, String assetPath, File destDir) {
         String fileName = assetPath.substring(assetPath.lastIndexOf('/') + 1);
+        if (assetPath.endsWith("/share/pci.ids")) {
+            // En algunos empaquetados Android, pci.ids.gz puede quedar listado como pci.ids.
+            // Conservamos el nombre runtime esperado por pciutils/flashrom.
+            fileName = "pci.ids.gz";
+        }
         File destFile = new File(destDir, fileName);
 
         // Si el archivo ya existe, omitir
@@ -203,6 +200,30 @@ public class AssetHelper {
         return shareDir.exists() && shareDir.isDirectory() && shareDir.list() != null && shareDir.list().length > 0;
     }
 
+    private static boolean copyCriticalPciIds(AssetManager assetManager, String runtimeRoot, File target) {
+        String[] candidates = new String[] {
+                runtimeRoot + "/share/pci.ids.gz",
+                runtimeRoot + "/share/pci.ids"
+        };
+
+        File parent = target.getParentFile();
+        if (parent == null) {
+            return false;
+        }
+
+        for (String candidate : candidates) {
+            try (InputStream ignored = assetManager.open(candidate)) {
+                Log.i(TAG, "Copiando pci.ids crítico desde asset: " + candidate);
+                return copyAssetFile(assetManager, candidate, parent);
+            } catch (IOException ignored) {
+                // Intentar siguiente candidato
+            }
+        }
+
+        Log.e(TAG, "No se encontró pci.ids(.gz) en assets para reconstruir runtime crítico.");
+        return false;
+    }
+
     private static boolean ensureNativeToolLinks(Context context) {
         File filesDir = context.getFilesDir();
         File nativeLibDir = new File(context.getApplicationInfo().nativeLibraryDir);
@@ -226,59 +247,75 @@ public class AssetHelper {
         ok &= linkTool(new File(usrBin, "ftdi_eeprom"), new File(nativeLibDir, "libftdi_eeprom.so"));
         ok &= linkTool(new File(usrBin, "libftdi1-config"), new File(nativeLibDir, "liblibftdi1-config.so"));
 
-        // Sonames esperados por binarios/nativas: apuntan a jniLibs cuando aplica (ruta exacta runtime).
-        linkTool(new File(usrLib, "libflashrom.so"), new File(nativeLibDir, "libflashrom.so"));
-        linkTool(new File(usrLib, "libflashrom.so.1"), new File(nativeLibDir, "libflashrom.so.1"));
-        linkTool(new File(usrLib, "libflashrom.so.1.0.0"), new File(nativeLibDir, "libflashrom.so.1.0.0"));
+        // Sonames esperados por binarios/nativas: apuntan al nombre Android copiable (.so).
+        ok &= linkRuntimeSoname(usrLib, nativeLibDir, "libflashrom.so");
+        ok &= linkRuntimeSoname(usrLib, nativeLibDir, "libflashrom.so.1");
+        ok &= linkRuntimeSoname(usrLib, nativeLibDir, "libflashrom.so.1.0.0");
 
-        linkTool(new File(usrLib, "libpci.so"), new File(nativeLibDir, "libpci.so"));
-        linkTool(new File(usrLib, "libpci.so.3"), new File(nativeLibDir, "libpci.so.3"));
-        linkTool(new File(usrLib, "libpci.so.3.14.0"), new File(nativeLibDir, "libpci.so.3.14.0"));
+        ok &= linkRuntimeSoname(usrLib, nativeLibDir, "libpci.so");
+        ok &= linkRuntimeSoname(usrLib, nativeLibDir, "libpci.so.3");
+        ok &= linkRuntimeSoname(usrLib, nativeLibDir, "libpci.so.3.14.0");
 
-        linkTool(new File(usrLib, "libftdi1.so"), new File(nativeLibDir, "libftdi1.so"));
-        linkTool(new File(usrLib, "libftdi1.so.2"), new File(nativeLibDir, "libftdi1.so.2"));
-        linkTool(new File(usrLib, "libftdi1.so.2.6.0"), new File(nativeLibDir, "libftdi1.so.2.6.0"));
+        ok &= linkRuntimeSoname(usrLib, nativeLibDir, "libftdi1.so");
+        ok &= linkRuntimeSoname(usrLib, nativeLibDir, "libftdi1.so.2");
+        ok &= linkRuntimeSoname(usrLib, nativeLibDir, "libftdi1.so.2.6.0");
 
-        linkTool(new File(usrLib, "libftdipp1.so"), new File(nativeLibDir, "libftdipp1.so"));
-        linkTool(new File(usrLib, "libftdipp1.so.3"), new File(nativeLibDir, "libftdipp1.so.3"));
-        linkTool(new File(usrLib, "libftdipp1.so.2.6.0"), new File(nativeLibDir, "libftdipp1.so.2.6.0"));
+        ok &= linkRuntimeSoname(usrLib, nativeLibDir, "libftdipp1.so");
+        ok &= linkRuntimeSoname(usrLib, nativeLibDir, "libftdipp1.so.3");
+        ok &= linkRuntimeSoname(usrLib, nativeLibDir, "libftdipp1.so.2.6.0");
 
-        linkTool(new File(usrLib, "libusb-1.0.so"), new File(nativeLibDir, "libusb-1.0.so"));
-        linkTool(new File(usrLib, "libjaylink.so"), new File(nativeLibDir, "libjaylink.so"));
-        linkTool(new File(usrLib, "libcrypto.so.3"), new File(nativeLibDir, "libcrypto.so.3"));
-        linkTool(new File(usrLib, "libssl.so.3"), new File(nativeLibDir, "libssl.so.3"));
-        ensureOptionalRuntimeLink(usrLib, nativeLibDir, "libz.so.1");
-        ensureOptionalRuntimeLink(usrLib, nativeLibDir, "libconfuse.so");
-        ensureOptionalRuntimeLink(usrLib, nativeLibDir, "libc++_shared.so");
+        ok &= linkRuntimeSoname(usrLib, nativeLibDir, "libusb-1.0.so");
+        ok &= linkRuntimeSoname(usrLib, nativeLibDir, "libjaylink.so");
+        ok &= linkRuntimeSoname(usrLib, nativeLibDir, "libcrypto.so.3");
+        ok &= linkRuntimeSoname(usrLib, nativeLibDir, "libssl.so.3");
+        ok &= linkRuntimeSoname(usrLib, nativeLibDir, "libz.so.1");
+        ok &= linkRuntimeSoname(usrLib, nativeLibDir, "libconfuse.so");
+        ok &= linkRuntimeSoname(usrLib, nativeLibDir, "libc++_shared.so");
         // Extensión Python: nombre Android en jniLibs y nombre original vía symlink en site-packages.
         linkTool(new File(pythonSitePackages, "_pyftdi1.so"), new File(nativeLibDir, "libpyftdi1.so"));
 
         // Validación mínima de dependencias críticas para herramientas principales.
         ok &= ensurePresent(new File(usrLib, "libcrypto.so.3"));
         ok &= ensurePresent(new File(usrLib, "libssl.so.3"));
-        ensureOptionalPresent(new File(usrLib, "libconfuse.so"), "ftdi_eeprom");
-        ensureOptionalPresent(new File(usrLib, "libz.so.1"), "pciutils (lspci/setpci/pcilmr)");
-        ensureOptionalPresent(new File(usrLib, "libc++_shared.so"), "libftdipp1");
+        ok &= ensurePresent(new File(usrLib, "libconfuse.so"));
+        ok &= ensurePresent(new File(usrLib, "libz.so.1"));
+        ok &= ensurePresent(new File(usrLib, "libc++_shared.so"));
 
         return ok;
     }
 
-    private static void ensureOptionalRuntimeLink(File usrLib, File nativeLibDir, String soname) {
-        File runtimeTarget = new File(usrLib, soname);
-        if (runtimeTarget.exists()) {
-            return;
+    private static boolean linkRuntimeSoname(File usrLib, File nativeLibDir, String runtimeSoname) {
+        File linkPath = new File(usrLib, runtimeSoname);
+        File source = resolveNativeLibrary(nativeLibDir, runtimeSoname);
+        if (source == null) {
+            Log.w(TAG, "No se encontró librería para soname runtime: " + runtimeSoname);
+            return false;
+        }
+        return linkTool(linkPath, source);
+    }
+
+    private static File resolveNativeLibrary(File nativeLibDir, String runtimeSoname) {
+        for (String candidate : getNativeCandidates(runtimeSoname)) {
+            File file = new File(nativeLibDir, candidate);
+            if (file.exists()) {
+                return file;
+            }
+        }
+        return null;
+    }
+
+    private static List<String> getNativeCandidates(String runtimeSoname) {
+        Set<String> candidates = new LinkedHashSet<>();
+        candidates.add(runtimeSoname);
+
+        int soMarker = runtimeSoname.indexOf(".so.");
+        if (soMarker > 0) {
+            String base = runtimeSoname.substring(0, soMarker);
+            String suffix = runtimeSoname.substring(soMarker + 4).replace('.', '_');
+            candidates.add(base + "_" + suffix + ".so");
         }
 
-        File jniTarget = new File(nativeLibDir, soname);
-        if (!jniTarget.exists()) {
-            Log.w(TAG, "Dependencia opcional aún no disponible en jniLibs: " + soname +
-                    ". Se enlazará automáticamente cuando sea agregada.");
-            return;
-        }
-
-        if (linkTool(runtimeTarget, jniTarget)) {
-            Log.i(TAG, "Dependencia opcional enlazada automáticamente: " + soname);
-        }
+        return new ArrayList<>(candidates);
     }
 
     private static boolean ensurePresent(File file) {
@@ -287,12 +324,6 @@ public class AssetHelper {
             return false;
         }
         return true;
-    }
-
-    private static void ensureOptionalPresent(File file, String consumer) {
-        if (!file.exists()) {
-            Log.w(TAG, "Dependencia opcional ausente " + file.getName() + " (consumidor: " + consumer + ")");
-        }
     }
 
     private static boolean linkTool(File linkPath, File target) {

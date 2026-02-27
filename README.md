@@ -29,8 +29,9 @@ Este proyecto empaqueta una cadena nativa completa (flashrom + dependencias) den
 
 ### Capa Java (Android)
 
-- Descubre dispositivos con `usb-serial-for-android` (`UsbSerialProber`).
-- Abre el dispositivo con `UsbManager.openDevice(...)`.
+- Enumera dispositivos USB con `UsbManager.getDeviceList()`.
+- Si hay múltiples dispositivos, muestra selector de dispositivo en UI (VID:PID + fabricante/producto).
+- Abre el dispositivo elegido con `UsbManager.openDevice(...)`.
 - Obtiene `fd = connection.getFileDescriptor()`.
 - Inyecta `ANDROID_USB_FD` al proceso nativo (`ProcessBuilder`), para que `libusb` parcheada lo use.
 
@@ -88,15 +89,15 @@ El código copia assets de datos (share/include/pkgconfig, etc.) al runtime y cr
 - `libcrypto.so.3`
 - `libssl.so.3`
 
-### Dependencias opcionales que quedan auto-listas
+### Resolución de nombres para Android (copia garantizada)
 
-Si agregas estas librerías a `app/src/main/jniLibs/arm64-v8a/`, el runtime las enlaza automáticamente en el siguiente arranque:
+Android solo garantiza la copia directa de nombres terminados en `.so`. Por eso el proyecto mantiene binarios renombrados en `jniLibs` y crea enlaces runtime con el soname esperado:
 
-- `libz.so.1`
-- `libconfuse.so`
-- `libc++_shared.so`
+- `libcrypto.so.3` runtime -> `libcrypto_3.so` en `jniLibs`
+- `libssl.so.3` runtime -> `libssl_3.so` en `jniLibs`
+- `libz.so.1` runtime -> `libz_1.so` en `jniLibs`
 
-Si no están, se informa en log como faltantes.
+Las variantes con versión original (`*.so.N`) se pueden conservar como respaldo, pero el flujo principal usa los nombres Android-compatibles.
 
 ---
 
@@ -119,14 +120,17 @@ Con esto, flashrom/libusb usan el descriptor otorgado por Android en Java, evita
 
 ## 6) Detección de dispositivos y soporte
 
-La app está orientada a trabajar con el ecosistema soportado por flashrom (programadores/chips según build y drivers disponibles), incluyendo flujos SPI/I2C cuando el hardware/driver de flashrom lo soporte; usa `usb-serial-for-android` para facilitar descubrimiento/permisos USB.
+La app está orientada a trabajar con el ecosistema soportado por flashrom (programadores/chips según build y drivers disponibles), incluyendo flujos SPI/I2C cuando el hardware/driver de flashrom lo soporte.
+
+La detección USB en Java usa la API nativa de Android (`UsbManager`) y permite elegir dispositivo cuando hay más de uno conectado. Además, desde el menú se puede cambiar el valor de programador `-p` para cualquier backend soportado por flashrom.
 
 Flujo recomendado:
 
-1. Prober Java encuentra dispositivo USB.
-2. Android concede permiso y se obtiene FD.
-3. Se exporta `ANDROID_USB_FD` al proceso nativo.
-4. flashrom opera con libusb parcheada.
+1. Java enumera dispositivos USB con `UsbManager`.
+2. Si hay varios, el usuario selecciona cuál usar.
+3. Android concede permiso y se obtiene FD.
+4. Se exporta `ANDROID_USB_FD` al proceso nativo.
+5. flashrom opera con libusb parcheada.
 
 ---
 
@@ -151,7 +155,7 @@ bash ./setup-sdk.sh
 ## 8) Uso básico de la app
 
 1. Conecta el programador USB OTG.
-2. Pulsa **Conectar Programador** y concede permiso.
+2. Pulsa **Conectar Programador**, elige dispositivo si aparece el selector, y concede permiso.
 3. Usa:
    - **Probar Conexión** (`flashrom -p <programador>`)
    - **Leer EEPROM** (`-r bios.bin`)
@@ -185,8 +189,6 @@ El panel de log muestra salida nativa real con prefijo `[native]` y estados de e
   https://gitlab.zapb.de/libjaylink/libjaylink
 - **OpenSSL (`libcrypto`/`libssl`)** — Apache License 2.0  
   https://www.openssl.org/
-- **usb-serial-for-android** — MIT  
-  https://github.com/mik3y/usb-serial-for-android
 
 > Revisa siempre obligaciones de distribución de binarios y código fuente según cada licencia.
 
@@ -195,7 +197,8 @@ El panel de log muestra salida nativa real con prefijo `[native]` y estados de e
 ## 10) Notas operativas importantes
 
 - La app y los binarios están preparados para **ARM64 (`arm64-v8a`)**.
-- Para evitar conflictos, Java se usa para prober/permisos/FD, y la operación del bus USB la realiza la capa nativa (flashrom/libusb parcheada).
+- Java usa `UsbManager` nativo para enumeración/selección/permisos/FD, y la operación del bus USB la realiza la capa nativa (flashrom/libusb parcheada).
+- La selección de backend de flashrom (`-p`) se configura en la app y puede adaptarse a distintos programadores soportados por flashrom.
 - Si agregas nuevos binarios/librerías en `jniLibs`, respeta sonames y rutas runtime esperadas para mantener compatibilidad.
 
 ---
