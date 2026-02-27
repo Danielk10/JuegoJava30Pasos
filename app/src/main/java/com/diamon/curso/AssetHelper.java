@@ -224,16 +224,32 @@ public class AssetHelper {
         ok &= linkTool(new File(usrSbin, "pcilmr"), new File(nativeLibDir, "libpcilmr.so"));
         ok &= linkTool(new File(usrSbin, "update-pciids"), new File(nativeLibDir, "libupdate-pciids.so"));
         ok &= linkTool(new File(usrBin, "ftdi_eeprom"), new File(nativeLibDir, "libftdi_eeprom.so"));
+        ok &= linkTool(new File(usrBin, "libftdi1-config"), new File(nativeLibDir, "liblibftdi1-config.so"));
 
-        // Sonames esperados por binarios/nativas: apuntan a jniLibs cuando aplica.
-        linkTool(new File(usrLib, "libflashrom.so.1"), new File(nativeLibDir, "libflashrom.so"));
-        linkTool(new File(usrLib, "libpci.so.3"), new File(nativeLibDir, "libpci.so"));
-        linkTool(new File(usrLib, "libftdi1.so.2"), new File(nativeLibDir, "libftdi1.so"));
-        linkTool(new File(usrLib, "libftdipp1.so.3"), new File(nativeLibDir, "libftdipp1.so"));
+        // Sonames esperados por binarios/nativas: apuntan a jniLibs cuando aplica (ruta exacta runtime).
+        linkTool(new File(usrLib, "libflashrom.so"), new File(nativeLibDir, "libflashrom.so"));
+        linkTool(new File(usrLib, "libflashrom.so.1"), new File(nativeLibDir, "libflashrom.so.1"));
+        linkTool(new File(usrLib, "libflashrom.so.1.0.0"), new File(nativeLibDir, "libflashrom.so.1.0.0"));
+
+        linkTool(new File(usrLib, "libpci.so"), new File(nativeLibDir, "libpci.so"));
+        linkTool(new File(usrLib, "libpci.so.3"), new File(nativeLibDir, "libpci.so.3"));
+        linkTool(new File(usrLib, "libpci.so.3.14.0"), new File(nativeLibDir, "libpci.so.3.14.0"));
+
+        linkTool(new File(usrLib, "libftdi1.so"), new File(nativeLibDir, "libftdi1.so"));
+        linkTool(new File(usrLib, "libftdi1.so.2"), new File(nativeLibDir, "libftdi1.so.2"));
+        linkTool(new File(usrLib, "libftdi1.so.2.6.0"), new File(nativeLibDir, "libftdi1.so.2.6.0"));
+
+        linkTool(new File(usrLib, "libftdipp1.so"), new File(nativeLibDir, "libftdipp1.so"));
+        linkTool(new File(usrLib, "libftdipp1.so.3"), new File(nativeLibDir, "libftdipp1.so.3"));
+        linkTool(new File(usrLib, "libftdipp1.so.2.6.0"), new File(nativeLibDir, "libftdipp1.so.2.6.0"));
+
         linkTool(new File(usrLib, "libusb-1.0.so"), new File(nativeLibDir, "libusb-1.0.so"));
         linkTool(new File(usrLib, "libjaylink.so"), new File(nativeLibDir, "libjaylink.so"));
         linkTool(new File(usrLib, "libcrypto.so.3"), new File(nativeLibDir, "libcrypto.so.3"));
         linkTool(new File(usrLib, "libssl.so.3"), new File(nativeLibDir, "libssl.so.3"));
+        ensureOptionalRuntimeLink(usrLib, nativeLibDir, "libz.so.1");
+        ensureOptionalRuntimeLink(usrLib, nativeLibDir, "libconfuse.so");
+        ensureOptionalRuntimeLink(usrLib, nativeLibDir, "libc++_shared.so");
         // Extensión Python: nombre Android en jniLibs y nombre original vía symlink en site-packages.
         linkTool(new File(pythonSitePackages, "_pyftdi1.so"), new File(nativeLibDir, "libpyftdi1.so"));
 
@@ -241,8 +257,28 @@ public class AssetHelper {
         ok &= ensurePresent(new File(usrLib, "libcrypto.so.3"));
         ok &= ensurePresent(new File(usrLib, "libssl.so.3"));
         ensureOptionalPresent(new File(usrLib, "libconfuse.so"), "ftdi_eeprom");
+        ensureOptionalPresent(new File(usrLib, "libz.so.1"), "pciutils (lspci/setpci/pcilmr)");
+        ensureOptionalPresent(new File(usrLib, "libc++_shared.so"), "libftdipp1");
 
         return ok;
+    }
+
+    private static void ensureOptionalRuntimeLink(File usrLib, File nativeLibDir, String soname) {
+        File runtimeTarget = new File(usrLib, soname);
+        if (runtimeTarget.exists()) {
+            return;
+        }
+
+        File jniTarget = new File(nativeLibDir, soname);
+        if (!jniTarget.exists()) {
+            Log.w(TAG, "Dependencia opcional aún no disponible en jniLibs: " + soname +
+                    ". Se enlazará automáticamente cuando sea agregada.");
+            return;
+        }
+
+        if (linkTool(runtimeTarget, jniTarget)) {
+            Log.i(TAG, "Dependencia opcional enlazada automáticamente: " + soname);
+        }
     }
 
     private static boolean ensurePresent(File file) {

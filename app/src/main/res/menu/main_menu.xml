@@ -8,11 +8,6 @@
         app:showAsAction="never" />
 
     <item
-        android:id="@+id/action_copy_logs"
-        android:title="Copiar logs"
-        app:showAsAction="never" />
-
-    <item
         android:id="@+id/action_clear_logs"
         android:title="Limpiar logs"
         app:showAsAction="never" />
