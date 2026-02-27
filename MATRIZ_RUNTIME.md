@@ -275,7 +275,7 @@ Esta matriz documenta **qué archivo base existe en `data/.../usr`**, si viene e
 | share/libftdi/examples/complete.py | SI | SI | - | NO | Copiado desde assets al primer arranque |
 | share/libftdi/examples/simple.py | SI | SI | - | NO | Copiado desde assets al primer arranque |
 | share/man/man8/flashrom.8 | SI | SI | - | NO | Copiado desde assets al primer arranque |
-| share/pci.ids.gz | SI | SI | - | NO | Copiado desde assets al primer arranque |
-| lib/libz.so.1 | NO (no viene en data base) | NO | libz.so.1 | NO | Opcional: auto-link si se agrega en jniLibs |
-| lib/libconfuse.so | NO (no viene en data base) | NO | libconfuse.so | NO | Opcional: auto-link si se agrega en jniLibs |
-| lib/libc++_shared.so | NO (no viene en data base) | NO | libc++_shared.so | NO | Opcional: auto-link si se agrega en jniLibs |
+| share/pci.ids.gz | SI | SI | - | NO | Copiado desde assets al primer arranque; si Android lo lista como `pci.ids`, se normaliza a `pci.ids.gz` en runtime |
+| lib/libz.so.1 | NO (no viene en data base) | SI | libz_1.so | SI | Enlace runtime a soname `libz.so.1` desde binario Android-compat (`libz_1.so`) |
+| lib/libconfuse.so | NO (no viene en data base) | SI | libconfuse.so | SI | Enlace runtime directo desde jniLibs |
+| lib/libc++_shared.so | NO (no viene en data base) | SI | libc++_shared.so | SI | Enlace runtime directo desde jniLibs |
