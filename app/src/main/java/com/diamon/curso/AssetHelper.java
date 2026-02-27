@@ -224,12 +224,25 @@ public class AssetHelper {
         ok &= linkTool(new File(usrSbin, "pcilmr"), new File(nativeLibDir, "libpcilmr.so"));
         ok &= linkTool(new File(usrSbin, "update-pciids"), new File(nativeLibDir, "libupdate-pciids.so"));
         ok &= linkTool(new File(usrBin, "ftdi_eeprom"), new File(nativeLibDir, "libftdi_eeprom.so"));
+        ok &= linkTool(new File(usrBin, "libftdi1-config"), new File(nativeLibDir, "liblibftdi1-config.so"));
 
-        // Sonames esperados por binarios/nativas: apuntan a jniLibs cuando aplica.
-        linkTool(new File(usrLib, "libflashrom.so.1"), new File(nativeLibDir, "libflashrom.so"));
-        linkTool(new File(usrLib, "libpci.so.3"), new File(nativeLibDir, "libpci.so"));
-        linkTool(new File(usrLib, "libftdi1.so.2"), new File(nativeLibDir, "libftdi1.so"));
-        linkTool(new File(usrLib, "libftdipp1.so.3"), new File(nativeLibDir, "libftdipp1.so"));
+        // Sonames esperados por binarios/nativas: apuntan a jniLibs cuando aplica (ruta exacta runtime).
+        linkTool(new File(usrLib, "libflashrom.so"), new File(nativeLibDir, "libflashrom.so"));
+        linkTool(new File(usrLib, "libflashrom.so.1"), new File(nativeLibDir, "libflashrom.so.1"));
+        linkTool(new File(usrLib, "libflashrom.so.1.0.0"), new File(nativeLibDir, "libflashrom.so.1.0.0"));
+
+        linkTool(new File(usrLib, "libpci.so"), new File(nativeLibDir, "libpci.so"));
+        linkTool(new File(usrLib, "libpci.so.3"), new File(nativeLibDir, "libpci.so.3"));
+        linkTool(new File(usrLib, "libpci.so.3.14.0"), new File(nativeLibDir, "libpci.so.3.14.0"));
+
+        linkTool(new File(usrLib, "libftdi1.so"), new File(nativeLibDir, "libftdi1.so"));
+        linkTool(new File(usrLib, "libftdi1.so.2"), new File(nativeLibDir, "libftdi1.so.2"));
+        linkTool(new File(usrLib, "libftdi1.so.2.6.0"), new File(nativeLibDir, "libftdi1.so.2.6.0"));
+
+        linkTool(new File(usrLib, "libftdipp1.so"), new File(nativeLibDir, "libftdipp1.so"));
+        linkTool(new File(usrLib, "libftdipp1.so.3"), new File(nativeLibDir, "libftdipp1.so.3"));
+        linkTool(new File(usrLib, "libftdipp1.so.2.6.0"), new File(nativeLibDir, "libftdipp1.so.2.6.0"));
+
         linkTool(new File(usrLib, "libusb-1.0.so"), new File(nativeLibDir, "libusb-1.0.so"));
         linkTool(new File(usrLib, "libjaylink.so"), new File(nativeLibDir, "libjaylink.so"));
         linkTool(new File(usrLib, "libcrypto.so.3"), new File(nativeLibDir, "libcrypto.so.3"));

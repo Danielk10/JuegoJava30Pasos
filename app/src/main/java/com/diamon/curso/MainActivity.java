@@ -14,6 +14,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
+import android.text.InputType;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.util.Log;
@@ -54,6 +55,8 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "FlashromApp";
     private static final String ACTION_USB_PERMISSION = "com.diamon.curso.USB_PERMISSION";
+    private static final String PREFS = "flashrom_prefs";
+    private static final String KEY_PROGRAMMER = "selected_programmer";
 
     private UsbManager usbManager;
     private UsbDeviceConnection currentConnection;
@@ -66,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
     private Button btnConnect, btnProbe, btnVerify, btnRead, btnWrite, btnImport, btnExport;
 
     private ExecutorService executor = Executors.newSingleThreadExecutor();
+    private String selectedProgrammer = "ch341a_spi";
 
     // API para importar (Cargar archivo de cualquier carpeta)
     private final ActivityResultLauncher<Intent> fileOpenLauncher = registerForActivityResult(
@@ -139,6 +143,7 @@ public class MainActivity extends AppCompatActivity {
         btnExport = findViewById(R.id.btnExport);
 
         usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
+        selectedProgrammer = getSharedPreferences(PREFS, MODE_PRIVATE).getString(KEY_PROGRAMMER, "ch341a_spi");
         setupLogCopySupport();
 
         // Ocultar UI y mostrar ProgressBar mientras carga assets
@@ -188,11 +193,10 @@ public class MainActivity extends AppCompatActivity {
         // Listener setup para todos los botones
         btnConnect.setOnClickListener(v -> searchAndRequestProgrammer());
 
-        btnProbe.setOnClickListener(v -> executeFlashromTask("-p", "ch341a_spi")); // Solo -p sonda el chip sin operar
-        btnVerify.setOnClickListener(v -> executeFlashromTask("-p", "ch341a_spi", "-v", "bios.bin")); // Validara contra
-                                                                                                      // un bin anterior
-        btnRead.setOnClickListener(v -> executeFlashromTask("-p", "ch341a_spi", "-r", "bios.bin"));
-        btnWrite.setOnClickListener(v -> executeFlashromTask("-p", "ch341a_spi", "-w", "bios.bin"));
+        btnProbe.setOnClickListener(v -> ensureProgrammerThenRun(() -> executeFlashromTask("-p", selectedProgrammer)));
+        btnVerify.setOnClickListener(v -> ensureProgrammerThenRun(() -> executeFlashromTask("-p", selectedProgrammer, "-v", "bios.bin")));
+        btnRead.setOnClickListener(v -> ensureProgrammerThenRun(() -> executeFlashromTask("-p", selectedProgrammer, "-r", "bios.bin")));
+        btnWrite.setOnClickListener(v -> ensureProgrammerThenRun(() -> executeFlashromTask("-p", selectedProgrammer, "-w", "bios.bin")));
 
         btnExport.setOnClickListener(v -> {
             File sourceFile = new File(getFilesDir(), "bios.bin");
@@ -252,7 +256,7 @@ public class MainActivity extends AppCompatActivity {
     private void searchAndRequestProgrammer() {
         List<UsbSerialDriver> availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(usbManager);
         if (availableDrivers.isEmpty()) {
-            log("No se detectó ningún CH341A / programador conectado.");
+            log("No se detectó ningún programador USB compatible conectado.");
             return;
         }
 
@@ -288,6 +292,45 @@ public class MainActivity extends AppCompatActivity {
         btnVerify.setEnabled(true);
         btnRead.setEnabled(true);
         btnWrite.setEnabled(true);
+
+        if (selectedProgrammer == null || selectedProgrammer.trim().isEmpty()) {
+            selectedProgrammer = "ch341a_spi";
+        }
+        log("Programador flashrom activo: " + selectedProgrammer);
+    }
+
+    private void ensureProgrammerThenRun(Runnable action) {
+        if (selectedProgrammer == null || selectedProgrammer.trim().isEmpty()) {
+            showProgrammerDialog(action);
+            return;
+        }
+        action.run();
+    }
+
+    private void showProgrammerDialog(Runnable action) {
+        android.widget.EditText input = new android.widget.EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        input.setHint("Ej: ch341a_spi, ft2232_spi:type=2232H, serprog:dev=/dev/ttyUSB0");
+        input.setText(selectedProgrammer == null ? "ch341a_spi" : selectedProgrammer);
+
+        new android.app.AlertDialog.Builder(this)
+                .setTitle("Programador flashrom")
+                .setMessage("Ingresa el parámetro de programador para -p (compatible con todos los drivers soportados por flashrom).")
+                .setView(input)
+                .setPositiveButton("Guardar", (dialog, which) -> {
+                    String value = input.getText() == null ? "" : input.getText().toString().trim();
+                    if (value.isEmpty()) {
+                        value = "ch341a_spi";
+                    }
+                    selectedProgrammer = value;
+                    getSharedPreferences(PREFS, MODE_PRIVATE).edit().putString(KEY_PROGRAMMER, value).apply();
+                    log("Programador flashrom actualizado: " + selectedProgrammer);
+                    if (action != null) {
+                        action.run();
+                    }
+                })
+                .setNegativeButton("Cancelar", null)
+                .show();
     }
 
     private void executeFlashromTask(String... args) {

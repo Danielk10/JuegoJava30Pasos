@@ -1,14 +1,16 @@
 # Flash EEPROM Tool (Android ARM64)
 
-[![Android](https://img.shields.io/badge/Android-12%2B-3DDC84?logo=android&logoColor=white)](https://developer.android.com/)
+[![Android](https://img.shields.io/badge/Android-6.0%20(API%2023)%20a%20Android%2016%20(API%2036)-3DDC84?logo=android&logoColor=white)](https://developer.android.com/)
 [![ABI](https://img.shields.io/badge/ABI-arm64--v8a-0091EA?logo=arm&logoColor=white)](https://developer.android.com/ndk/guides/abis)
 [![NDK](https://img.shields.io/badge/NDK-r29-4CAF50?logo=android&logoColor=white)](https://developer.android.com/ndk)
 [![Flashrom](https://img.shields.io/badge/flashrom-integrado-orange)](https://github.com/flashrom/flashrom)
 [![Licencia](https://img.shields.io/badge/Licencia-GPLv3-blue)](./LICENSE.txt)
 
-Aplicación Android para lectura/escritura/verificación de memorias SPI usando **flashrom** y librerías nativas compiladas para **ARM64**.
+Aplicación Android para lectura/escritura/verificación de memorias **SPI e I2C** usando **flashrom** y librerías nativas compiladas para **ARM64**.
 
 > Nombre visible de la app: **Flash EEPROM Tool**.
+
+> Rango de soporte Android: **API 23 a API 36** (Android 6.0 a Android 16).
 
 ---
 
@@ -16,7 +18,7 @@ Aplicación Android para lectura/escritura/verificación de memorias SPI usando 
 
 Este proyecto empaqueta una cadena nativa completa (flashrom + dependencias) dentro de una app Android y la conecta con la capa Java/Kotlin para:
 
-- Detectar programadores USB de forma práctica.
+- Detectar programadores USB de forma práctica (no limitado a un único modelo).
 - Solicitar permisos USB de Android correctamente.
 - Reutilizar un **File Descriptor (FD)** autorizado por Android dentro de una `libusb` parcheada.
 - Ejecutar binarios nativos en rutas de runtime equivalentes a las rutas de compilación.
@@ -117,7 +119,7 @@ Con esto, flashrom/libusb usan el descriptor otorgado por Android en Java, evita
 
 ## 6) Detección de dispositivos y soporte
 
-La app está orientada a trabajar con el ecosistema soportado por flashrom (programadores/chips según build y drivers disponibles), y usa `usb-serial-for-android` para facilitar descubrimiento/permisos USB.
+La app está orientada a trabajar con el ecosistema soportado por flashrom (programadores/chips según build y drivers disponibles), incluyendo flujos SPI/I2C cuando el hardware/driver de flashrom lo soporte; usa `usb-serial-for-android` para facilitar descubrimiento/permisos USB.
 
 Flujo recomendado:
 
@@ -151,7 +153,7 @@ bash ./setup-sdk.sh
 1. Conecta el programador USB OTG.
 2. Pulsa **Conectar Programador** y concede permiso.
 3. Usa:
-   - **Probar Conexión** (`flashrom -p ch341a_spi`)
+   - **Probar Conexión** (`flashrom -p <programador>`)
    - **Leer EEPROM** (`-r bios.bin`)
    - **Verificar BIOS** (`-v bios.bin`)
    - **Escribir EEPROM** (`-w bios.bin`)
