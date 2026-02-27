@@ -197,7 +197,8 @@ El panel de log muestra salida nativa real con prefijo `[native]` y estados de e
 ## 10) Notas operativas importantes
 
 - La app y los binarios están preparados para **ARM64 (`arm64-v8a`)**.
-- Para evitar conflictos, Java se usa para prober/permisos/FD, y la operación del bus USB la realiza la capa nativa (flashrom/libusb parcheada).
+- Java usa `UsbManager` nativo para enumeración/selección/permisos/FD, y la operación del bus USB la realiza la capa nativa (flashrom/libusb parcheada).
+- La selección de backend de flashrom (`-p`) se configura en la app y puede adaptarse a distintos programadores soportados por flashrom.
 - Si agregas nuevos binarios/librerías en `jniLibs`, respeta sonames y rutas runtime esperadas para mantener compatibilidad.
 
 ---
