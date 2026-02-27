@@ -5,10 +5,10 @@ Este reporte de `DT_NEEDED` se complementa con:
 - `MATRIZ_RUNTIME.mdo` (mapeo archivo por archivo a estrategia runtime)
 - `AUDITORIA_ANDROID_RUNTIME.md` (checklist operativo)
 
-## Resumen de dependencias críticas y opcionales
+## Resumen de dependencias críticas
 
-- Dependencias base presentes en `jniLibs` para flashrom y librerías principales: `libusb-1.0.so`, `libpci.so(.3/.3.14.0)`, `libftdi1.so(.2/.2.6.0)`, `libftdipp1.so(.3/.2.6.0)`, `libjaylink.so`, `libcrypto.so.3`, `libssl.so.3`, `libflashrom.so(.1/.1.0.0)`, `libflashrom_bin.so`, `libsetpci.so`, `libpcilmr.so`, `liblspci.so`, `libupdate-pciids.so`, `libftdi_eeprom.so`, `liblibftdi1-config.so`, `libpyftdi1.so`.
-- Dependencias opcionales reportadas por `DT_NEEDED` de algunos binarios que pueden no venir en el paquete inicial y se contemplan para auto-link cuando se agreguen en `jniLibs`: `libz.so.1`, `libconfuse.so`, `libc++_shared.so`.
+- Dependencias base presentes en `jniLibs` para flashrom y librerías principales: `libusb-1.0.so`, `libpci.so(.3/.3.14.0)`, `libftdi1.so(.2/.2.6.0)`, `libftdipp1.so(.3/.2.6.0)`, `libjaylink.so`, `libflashrom.so(.1/.1.0.0)`, `libflashrom_bin.so`, `libsetpci.so`, `libpcilmr.so`, `liblspci.so`, `libupdate-pciids.so`, `libftdi_eeprom.so`, `liblibftdi1-config.so`, `libpyftdi1.so`, `libconfuse.so`, `libc++_shared.so`.
+- Sonames versionados que en Android se resuelven usando binarios renombrados terminados en `.so`: `libcrypto.so.3` -> `libcrypto_3.so`, `libssl.so.3` -> `libssl_3.so`, `libz.so.1` -> `libz_1.so`.
 
 ---
 

@@ -22,13 +22,23 @@
 - lspci -> liblspci.so: OK
 - ftdi_eeprom -> libftdi_eeprom.so: OK
 
-## Dependencias reportadas faltantes en jniLibs
+## Dependencias críticas en jniLibs
 
-- libconfuse.so: FALTA
-- libc++_shared.so: FALTA
-- libz.so.1: FALTA
+- libconfuse.so: OK
+- libc++_shared.so: OK
+- libz_1.so (soname runtime: libz.so.1): OK
+- libcrypto_3.so (soname runtime: libcrypto.so.3): OK
+- libssl_3.so (soname runtime: libssl.so.3): OK
 
 ## Parche libusb
 
 - ANDROID_USB_FD en get_device_list: OK
 - libusb_wrap_sys_device en libusb_open: OK
+
+
+## Flujo USB en Java/UI
+
+- Enumeración USB con `UsbManager.getDeviceList()`: OK
+- Selector de dispositivo cuando hay múltiples USB conectados: OK
+- Configuración manual de `-p` desde menú (`Configurar programador flashrom`): OK
+- Ejecución nativa sigue usando `flashrom -p <valor_usuario>`: OK
