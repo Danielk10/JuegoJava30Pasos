@@ -1,6 +1,8 @@
 package com.diamon.curso;
 
 import android.app.PendingIntent;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -34,8 +36,11 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -129,6 +134,7 @@ public class MainActivity extends AppCompatActivity {
         btnExport = findViewById(R.id.btnExport);
 
         usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
+        setupLogCopySupport();
 
         // Ocultar UI y mostrar ProgressBar mientras carga assets
         layoutMainUI.setVisibility(View.GONE);
@@ -145,18 +151,22 @@ public class MainActivity extends AppCompatActivity {
             boolean wasExtracted = AssetHelper.areAssetsExtracted(getApplicationContext());
             if (!wasExtracted) {
                 runOnUiThread(() -> tvLoadingText.setText("Extrayendo binarios nativos por primera vez..."));
+            } else {
+                runOnUiThread(() -> tvLoadingText.setText("Verificando dependencias locales..."));
             }
 
-            AssetHelper.extractAssets(getApplicationContext(), "data/data/com.diamon.curso/files/usr",
-                    new File(getFilesDir(), "usr"));
+            boolean runtimeReady = AssetHelper.ensureRuntimeReady(getApplicationContext());
 
             runOnUiThread(() -> {
                 layoutLoading.setVisibility(View.GONE);
                 layoutMainUI.setVisibility(View.VISIBLE);
-                if (!wasExtracted) {
+                logRuntimeInfo();
+                if (!runtimeReady) {
+                    log("[WARN] No se pudieron preparar todas las dependencias locales.");
+                } else if (!wasExtracted) {
                     log("Assets copiados correctamente al almacenamiento interno.");
                 } else {
-                    log("App iniciada. Dependencias locales en orden.");
+                    log("App iniciada. Dependencias locales ya estaban listas (no se recargaron).");
                 }
             });
         });
@@ -243,6 +253,7 @@ public class MainActivity extends AppCompatActivity {
         UsbSerialDriver driver = availableDrivers.get(0);
         UsbDevice device = driver.getDevice();
         log("Dispositivo detectado: " + device.getProductName() + " | Solicitando enlace...");
+        log("VID:PID detectado => " + String.format(Locale.US, "%04x:%04x", device.getVendorId(), device.getProductId()));
 
         if (usbManager.hasPermission(device)) {
             connectToDevice(device);
@@ -264,6 +275,8 @@ public class MainActivity extends AppCompatActivity {
         currentFd = currentConnection.getFileDescriptor();
         tvStatus.setText("Status: " + device.getProductName() + " Conectado");
         log("¡Permiso otorgado! Token interno de USB: " + currentFd);
+        log("Conectado a USB VID:PID " + String.format(Locale.US, "%04x:%04x", device.getVendorId(), device.getProductId())
+                + " | DeviceId: " + device.getDeviceId());
 
         btnProbe.setEnabled(true);
         btnVerify.setEnabled(true);
@@ -277,13 +290,21 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        File flashromBin = new File(getApplicationInfo().nativeLibraryDir, "libflashrom_bin.so");
+        File preferredFlashromBin = new File(getFilesDir(), "usr/sbin/flashrom");
+        if (!preferredFlashromBin.exists()) {
+            // Fallback directo a jniLibs por si la creación de enlaces falló.
+            log("[WARN] flashrom en files/usr/sbin no encontrado; usando fallback jniLibs.");
+            preferredFlashromBin = new File(getApplicationInfo().nativeLibraryDir, "libflashrom_bin.so");
+        }
+        final File flashromBin = preferredFlashromBin;
         if (!flashromBin.exists()) {
             log("Fallo crítico: Binario 'flashrom' no existe. (" + flashromBin.getAbsolutePath() + ")");
             return;
         }
 
         log("------------\n[INICIANDO OPERACIÓN] flashrom " + String.join(" ", args));
+        log("Directorio de trabajo: " + getFilesDir().getAbsolutePath());
+        log("Binario objetivo: " + flashromBin.getAbsolutePath());
 
         // Deshabilitar botones mientras trabaja para evitar crasheos por hilos
         // paralelos
@@ -318,6 +339,10 @@ public class MainActivity extends AppCompatActivity {
             env.put("LD_LIBRARY_PATH", jniLibs + ":" + new File(getFilesDir(), "usr/lib").getAbsolutePath());
             env.put("PATH", jniLibs + (fallbackPath != null ? ":" + fallbackPath : ""));
 
+            log("Entorno flashrom => ANDROID_USB_FD=" + currentFd);
+            log("Entorno flashrom => LD_LIBRARY_PATH=" + env.get("LD_LIBRARY_PATH"));
+            log("Entorno flashrom => PATH=" + env.get("PATH"));
+
             Process process = pb.start();
 
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
@@ -329,7 +354,13 @@ public class MainActivity extends AppCompatActivity {
             }
 
             int exitCode = process.waitFor();
-            runOnUiThread(() -> log("[PROCESO TERMINADO] Exit Code: " + exitCode + "\n"));
+            runOnUiThread(() -> {
+                if (exitCode == 0) {
+                    log("[PROCESO TERMINADO] Exit Code: " + exitCode + " (OK)\n");
+                } else {
+                    log("[PROCESO TERMINADO] Exit Code: " + exitCode + " (ERROR)\n");
+                }
+            });
 
         } catch (Exception e) {
             Log.e(TAG, "Error fatal de SO ejecutando: flashrom", e);
@@ -340,10 +371,48 @@ public class MainActivity extends AppCompatActivity {
     private void log(String message) {
         Log.i(TAG, message);
         String current = tvLog.getText().toString();
-        tvLog.setText(current + "\n" + message);
+        String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+        tvLog.setText(current + "\n" + "[" + time + "] " + message);
 
         // Auto Scroll simple
         scrollLog.post(() -> scrollLog.fullScroll(ScrollView.FOCUS_DOWN));
+    }
+
+    private void setupLogCopySupport() {
+        tvLog.setTextIsSelectable(true);
+        tvLog.setLongClickable(true);
+        tvLog.setOnLongClickListener(v -> {
+            String logs = tvLog.getText() == null ? "" : tvLog.getText().toString();
+            if (logs.trim().isEmpty()) {
+                android.widget.Toast.makeText(this, "No hay texto en el log para copiar.", android.widget.Toast.LENGTH_SHORT).show();
+                return true;
+            }
+            ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+            if (clipboard == null) {
+                android.widget.Toast.makeText(this, "No se pudo acceder al portapapeles.", android.widget.Toast.LENGTH_SHORT).show();
+                return true;
+            }
+            clipboard.setPrimaryClip(ClipData.newPlainText("flash_eeprom_tool_logs", logs));
+            android.widget.Toast.makeText(this, "Logs copiados al portapapeles.", android.widget.Toast.LENGTH_SHORT).show();
+            return true;
+        });
+    }
+
+    private void logRuntimeInfo() {
+        File nativeDir = new File(getApplicationInfo().nativeLibraryDir);
+        File usrLibDir = new File(getFilesDir(), "usr/lib");
+        File usrShareDir = new File(getFilesDir(), "usr/share");
+        String assetRuntimeRoot = AssetHelper.getResolvedRuntimeRoot(getApplicationContext());
+        log("App iniciada. Dependencias locales en orden.");
+        log("Android " + Build.VERSION.RELEASE + " (SDK " + Build.VERSION.SDK_INT + ")");
+        log("Runtime root en assets: " + (assetRuntimeRoot == null ? "NO DETECTADO" : assetRuntimeRoot));
+        log("Ruta nativeLibraryDir: " + nativeDir.getAbsolutePath());
+        log("Ruta usr/lib runtime: " + usrLibDir.getAbsolutePath());
+        log("Ruta usr/share runtime: " + usrShareDir.getAbsolutePath());
+        log("libflashrom_bin.so presente: " + new File(nativeDir, "libflashrom_bin.so").exists());
+        log("libcrypto.so.3 en runtime: " + new File(usrLibDir, "libcrypto.so.3").exists());
+        log("libssl.so.3 en runtime: " + new File(usrLibDir, "libssl.so.3").exists());
+        log("pci.ids.gz en runtime: " + new File(usrShareDir, "pci.ids.gz").exists());
     }
 
     // Función de soporte para limpiar directorios defectuosos guardados por el
@@ -382,6 +451,18 @@ public class MainActivity extends AppCompatActivity {
 
         if (id == R.id.action_hex_viewer) {
             startActivity(new Intent(this, HexViewerActivity.class));
+            return true;
+        } else if (id == R.id.action_copy_logs) {
+            String logs = tvLog.getText() == null ? "" : tvLog.getText().toString();
+            ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+            if (clipboard != null) {
+                clipboard.setPrimaryClip(ClipData.newPlainText("flash_eeprom_tool_logs", logs));
+                android.widget.Toast.makeText(this, "Logs copiados al portapapeles.", android.widget.Toast.LENGTH_SHORT).show();
+            }
+            return true;
+        } else if (id == R.id.action_clear_logs) {
+            tvLog.setText("--- Log ---");
+            log("Terminal reiniciada.");
             return true;
         } else if (id == R.id.action_about) {
             new android.app.AlertDialog.Builder(this)
