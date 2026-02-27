@@ -67,6 +67,32 @@ tasks.withType(JavaCompile).configureEach {
     options.compilerArgs << "-Xlint:deprecation"
 }
 
+tasks.register("verifyNoExecutableAssets") {
+    group = "verification"
+    description = "Verifica que no existan binarios ejecutables en assets/usr/bin ni assets/usr/sbin"
+    doLast {
+        def roots = [
+                file("src/main/assets/data/data/com.diamon.curso/files/usr/bin"),
+                file("src/main/assets/data/data/com.diamon.curso/files/usr/sbin")
+        ]
+        def found = []
+        roots.each { dir ->
+            if (dir.exists()) {
+                dir.eachFileRecurse(groovy.io.FileType.FILES) { f ->
+                    found << project.relativePath(f)
+                }
+            }
+        }
+        if (!found.isEmpty()) {
+            throw new GradleException("No se permiten ejecutables en assets/usr/bin o assets/usr/sbin: ${found.join(', ')}")
+        }
+    }
+}
+
+tasks.matching { it.name == "preBuild" }.configureEach {
+    dependsOn("verifyNoExecutableAssets")
+}
+
 dependencies {
     implementation libs.appcompat
     implementation libs.material
