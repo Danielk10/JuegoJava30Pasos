@@ -211,7 +211,7 @@ El panel de log muestra salida nativa real con prefijo `[native]` y estados de e
 
 Para auditoría completa archivo-por-archivo (data vs assets vs jniLibs vs estrategia final), revisa:
 
-- `MATRIZ_RUNTIME.mdo`
+- `MATRIZ_RUNTIME.md`
 
 ### Aclaración clave sobre assets vs runtime
 
