@@ -45,6 +45,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -236,6 +238,9 @@ public class MainActivity extends AppCompatActivity {
     private void importRomFile(Uri uri) {
         try (InputStream in = getContentResolver().openInputStream(uri);
                 OutputStream out = new FileOutputStream(new File(getFilesDir(), "bios.bin"))) {
+            if (in == null) {
+                throw new IllegalStateException("No se pudo abrir el archivo seleccionado para lectura.");
+            }
             byte[] buffer = new byte[8192];
             int read;
             while ((read = in.read(buffer)) != -1) {
@@ -255,6 +260,16 @@ public class MainActivity extends AppCompatActivity {
         }
 
         List<UsbDevice> candidates = new ArrayList<>(devices.values());
+        Collections.sort(candidates, new Comparator<UsbDevice>() {
+            @Override
+            public int compare(UsbDevice a, UsbDevice b) {
+                int vid = Integer.compare(a.getVendorId(), b.getVendorId());
+                if (vid != 0) return vid;
+                int pid = Integer.compare(a.getProductId(), b.getProductId());
+                if (pid != 0) return pid;
+                return Integer.compare(a.getDeviceId(), b.getDeviceId());
+            }
+        });
         if (candidates.size() == 1) {
             requestUsbPermission(candidates.get(0));
             return;
@@ -273,7 +288,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void requestUsbPermission(UsbDevice device) {
-        log("Dispositivo detectado: " + device.getProductName() + " | Solicitando enlace...");
+        String deviceName = device.getProductName() == null ? "Dispositivo USB" : device.getProductName();
+        log("Dispositivo detectado: " + deviceName + " | Solicitando enlace...");
         log("VID:PID detectado => " + String.format(Locale.US, "%04x:%04x", device.getVendorId(), device.getProductId()));
 
         if (usbManager.hasPermission(device)) {
