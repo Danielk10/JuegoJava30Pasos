@@ -206,3 +206,20 @@ El panel de log muestra salida nativa real con prefijo `[native]` y estados de e
 - Verifica despliegue runtime con: `AUDITORIA_ANDROID_RUNTIME.md`.
 - Verifica coherencia de compilación histórica con: `linesCorrectos.txt`.
 
+
+## 12) Matriz detallada de archivos runtime
+
+Para auditoría completa archivo-por-archivo (data vs assets vs jniLibs vs estrategia final), revisa:
+
+- `MATRIZ_RUNTIME.mdo`
+
+### Aclaración clave sobre assets vs runtime
+
+- `assets/` **solo** se usa como origen de copia/siembra inicial.
+- Después del despliegue, el proceso nativo trabaja sobre `files/usr` (directorio interno de la app).
+- Cuando una ruta no viene en assets (por diseño), se crea un **enlace simbólico** desde `files/usr/...` hacia `nativeLibraryDir` (`jniLibs`).
+- Si el dispositivo/FS no permite symlink, el código aplica **fallback por copia**: copia el binario/librería al destino `files/usr/...` y, para `bin/sbin`, marca permiso de ejecución.
+
+En la práctica, esto garantiza que el binario siempre busque en el runtime interno con la ruta esperada, no en assets.
+
+---
