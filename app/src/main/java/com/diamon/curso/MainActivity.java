@@ -30,9 +30,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-
-import com.hoho.android.usbserial.driver.UsbSerialDriver;
-import com.hoho.android.usbserial.driver.UsbSerialProber;
+import androidx.core.content.ContextCompat;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -47,6 +45,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -184,11 +184,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Setup Boradcast Receiver
         IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(usbReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
-        } else {
-            registerReceiver(usbReceiver, filter);
-        }
+        ContextCompat.registerReceiver(this, usbReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED);
 
         // Listener setup para todos los botones
         btnConnect.setOnClickListener(v -> searchAndRequestProgrammer());
@@ -242,6 +238,9 @@ public class MainActivity extends AppCompatActivity {
     private void importRomFile(Uri uri) {
         try (InputStream in = getContentResolver().openInputStream(uri);
                 OutputStream out = new FileOutputStream(new File(getFilesDir(), "bios.bin"))) {
+            if (in == null) {
+                throw new IllegalStateException("No se pudo abrir el archivo seleccionado para lectura.");
+            }
             byte[] buffer = new byte[8192];
             int read;
             while ((read = in.read(buffer)) != -1) {
@@ -254,15 +253,43 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void searchAndRequestProgrammer() {
-        List<UsbSerialDriver> availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(usbManager);
-        if (availableDrivers.isEmpty()) {
-            log("No se detectó ningún programador USB compatible conectado.");
+        Map<String, UsbDevice> devices = usbManager.getDeviceList();
+        if (devices == null || devices.isEmpty()) {
+            log("No se detectó ningún dispositivo USB conectado.");
             return;
         }
 
-        UsbSerialDriver driver = availableDrivers.get(0);
-        UsbDevice device = driver.getDevice();
-        log("Dispositivo detectado: " + device.getProductName() + " | Solicitando enlace...");
+        List<UsbDevice> candidates = new ArrayList<>(devices.values());
+        Collections.sort(candidates, new Comparator<UsbDevice>() {
+            @Override
+            public int compare(UsbDevice a, UsbDevice b) {
+                int vid = Integer.compare(a.getVendorId(), b.getVendorId());
+                if (vid != 0) return vid;
+                int pid = Integer.compare(a.getProductId(), b.getProductId());
+                if (pid != 0) return pid;
+                return Integer.compare(a.getDeviceId(), b.getDeviceId());
+            }
+        });
+        if (candidates.size() == 1) {
+            requestUsbPermission(candidates.get(0));
+            return;
+        }
+
+        CharSequence[] labels = new CharSequence[candidates.size()];
+        for (int i = 0; i < candidates.size(); i++) {
+            labels[i] = formatUsbDeviceLabel(candidates.get(i));
+        }
+
+        new android.app.AlertDialog.Builder(this)
+                .setTitle("Selecciona dispositivo USB")
+                .setItems(labels, (dialog, which) -> requestUsbPermission(candidates.get(which)))
+                .setNegativeButton("Cancelar", null)
+                .show();
+    }
+
+    private void requestUsbPermission(UsbDevice device) {
+        String deviceName = device.getProductName() == null ? "Dispositivo USB" : device.getProductName();
+        log("Dispositivo detectado: " + deviceName + " | Solicitando enlace...");
         log("VID:PID detectado => " + String.format(Locale.US, "%04x:%04x", device.getVendorId(), device.getProductId()));
 
         if (usbManager.hasPermission(device)) {
@@ -273,6 +300,19 @@ public class MainActivity extends AppCompatActivity {
                     flags);
             usbManager.requestPermission(device, permissionIntent);
         }
+    }
+
+    private String formatUsbDeviceLabel(UsbDevice device) {
+        String productName = device.getProductName();
+        if (productName == null || productName.trim().isEmpty()) {
+            productName = "Dispositivo USB";
+        }
+        String manufacturer = device.getManufacturerName();
+        if (manufacturer == null || manufacturer.trim().isEmpty()) {
+            manufacturer = "Fabricante desconocido";
+        }
+        return productName + " (" + manufacturer + ")\nVID:PID "
+                + String.format(Locale.US, "%04x:%04x", device.getVendorId(), device.getProductId());
     }
 
     private void connectToDevice(UsbDevice device) {
@@ -470,8 +510,12 @@ public class MainActivity extends AppCompatActivity {
         log("Ruta usr/lib runtime: " + usrLibDir.getAbsolutePath());
         log("Ruta usr/share runtime: " + usrShareDir.getAbsolutePath());
         log("libflashrom_bin.so presente: " + new File(nativeDir, "libflashrom_bin.so").exists());
-        log("libcrypto.so.3 en runtime: " + new File(usrLibDir, "libcrypto.so.3").exists());
-        log("libssl.so.3 en runtime: " + new File(usrLibDir, "libssl.so.3").exists());
+        log("libcrypto.so.3 en runtime: " + new File(usrLibDir, "libcrypto.so.3").exists()
+                + " (jni origen: " + findNativeName(nativeDir, "libcrypto.so.3") + ")");
+        log("libssl.so.3 en runtime: " + new File(usrLibDir, "libssl.so.3").exists()
+                + " (jni origen: " + findNativeName(nativeDir, "libssl.so.3") + ")");
+        log("libz.so.1 en runtime: " + new File(usrLibDir, "libz.so.1").exists()
+                + " (jni origen: " + findNativeName(nativeDir, "libz.so.1") + ")");
         log("pci.ids.gz en runtime: " + new File(usrShareDir, "pci.ids.gz").exists());
     }
 
@@ -481,16 +525,28 @@ public class MainActivity extends AppCompatActivity {
         for (String name : requiredBins) {
             log("jniLibs binario " + name + ": " + new File(nativeDir, name).exists());
         }
-        String[] requiredLibs = {"libusb-1.0.so", "libflashrom.so", "libpci.so", "libftdi1.so", "libjaylink.so", "libcrypto.so.3", "libssl.so.3"};
+        String[] requiredLibs = {"libusb-1.0.so", "libflashrom.so", "libpci.so", "libftdi1.so", "libjaylink.so", "libcrypto.so.3", "libssl.so.3", "libz.so.1", "libconfuse.so", "libc++_shared.so"};
         for (String name : requiredLibs) {
-            log("jniLibs librería " + name + ": " + new File(nativeDir, name).exists());
+            String nativeName = findNativeName(nativeDir, name);
+            log("jniLibs librería " + name + ": " + !"NO".equals(nativeName)
+                    + " (archivo: " + nativeName + ")");
         }
-        String[] optionalMissing = {"libconfuse.so", "libc++_shared.so", "libz.so.1"};
-        for (String name : optionalMissing) {
-            boolean present = new File(nativeDir, name).exists();
-            log("jniLibs dependencia reportada " + name + ": " + present
-                    + (present ? "" : " (faltante, se enlazará automáticamente al agregarla)"));
+    }
+
+    private String findNativeName(File nativeDir, String runtimeSoname) {
+        File exact = new File(nativeDir, runtimeSoname);
+        if (exact.exists()) {
+            return runtimeSoname;
         }
+        int marker = runtimeSoname.indexOf(".so.");
+        if (marker > 0) {
+            String altName = runtimeSoname.substring(0, marker) + "_"
+                    + runtimeSoname.substring(marker + 4).replace('.', '_') + ".so";
+            if (new File(nativeDir, altName).exists()) {
+                return altName;
+            }
+        }
+        return "NO";
     }
 
     // Función de soporte para limpiar directorios defectuosos guardados por el
@@ -530,6 +586,9 @@ public class MainActivity extends AppCompatActivity {
         if (id == R.id.action_hex_viewer) {
             startActivity(new Intent(this, HexViewerActivity.class));
             return true;
+        } else if (id == R.id.action_programmer) {
+            showProgrammerDialog(null);
+            return true;
         } else if (id == R.id.action_clear_logs) {
             tvLog.setText("--- Log ---");
             log("Terminal reiniciada.");
@@ -553,19 +612,22 @@ public class MainActivity extends AppCompatActivity {
         aboutText.setTextColor(getResources().getColor(android.R.color.black, getTheme()));
         aboutText.setLinkTextColor(getResources().getColor(android.R.color.holo_blue_dark, getTheme()));
         aboutText.setMovementMethod(LinkMovementMethod.getInstance());
-        aboutText.setText(Html.fromHtml(
-                "<b>Quemador EEPROM</b><br/>"
-                        + "Proyecto Android para lectura/escritura SPI con flashrom en NDK.<br/><br/>"
-                        + "<b>Licencia del proyecto:</b> GPLv3 (LICENSE.txt).<br/><br/>"
-                        + "<b>Dependencias principales y licencias:</b><br/>"
-                        + "• <a href='https://github.com/libusb/libusb'>libusb</a> (LGPL-2.1+)<br/>"
-                        + "• <a href='https://github.com/pciutils/pciutils'>pciutils</a> (GPL-2.0+)<br/>"
-                        + "• <a href='https://developer.intra2net.com/git/libftdi'>libftdi</a> (LGPL-2.1+)<br/>"
-                        + "• <a href='https://gitlab.zapb.de/libjaylink/libjaylink'>libjaylink</a> (GPL-2.0+)<br/>"
-                        + "• <a href='https://github.com/flashrom/flashrom'>flashrom</a> (GPL-2.0+)<br/>"
-                        + "• <a href='https://github.com/mik3y/usb-serial-for-android'>usb-serial-for-android</a> (MIT)<br/><br/>"
-                        + "Compilación y rutas basadas en linesCorrectos.txt y assets/data.",
-                Html.FROM_HTML_MODE_LEGACY));
+        String aboutHtml = "<b>Flash EEPROM Tool</b><br/>"
+                + "Aplicación Android para lectura, verificación y escritura SPI/I2C con flashrom.<br/><br/>"
+                + "<b>Licencia del proyecto:</b> GPLv3.<br/><br/>"
+                + "<b>Dependencias principales y licencias:</b><br/>"
+                + "• <a href='https://github.com/libusb/libusb'>libusb</a> (LGPL-2.1+)<br/>"
+                + "• <a href='https://github.com/pciutils/pciutils'>pciutils</a> (GPL-2.0+)<br/>"
+                + "• <a href='https://developer.intra2net.com/git/libftdi'>libftdi</a> (LGPL-2.1+)<br/>"
+                + "• <a href='https://gitlab.zapb.de/libjaylink/libjaylink'>libjaylink</a> (GPL-2.0+)<br/>"
+                + "• <a href='https://github.com/flashrom/flashrom'>flashrom</a> (GPL-2.0+)";
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            aboutText.setText(Html.fromHtml(aboutHtml, Html.FROM_HTML_MODE_LEGACY));
+        } else {
+            @SuppressWarnings("deprecation")
+            android.text.Spanned legacyHtml = Html.fromHtml(aboutHtml);
+            aboutText.setText(legacyHtml);
+        }
 
         new android.app.AlertDialog.Builder(this)
                 .setTitle("Acerca de")
