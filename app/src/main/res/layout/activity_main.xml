@@ -164,6 +164,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:fontFamily="monospace"
+                android:textIsSelectable="true"
+                android:longClickable="true"
                 android:textColor="#00FF00"
                 android:textSize="12sp"
                 android:text="--- Log ---" />
