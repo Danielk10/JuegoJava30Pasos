@@ -13,6 +13,9 @@ import android.hardware.usb.UsbManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Looper;
+import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -36,6 +39,8 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -161,6 +166,7 @@ public class MainActivity extends AppCompatActivity {
                 layoutLoading.setVisibility(View.GONE);
                 layoutMainUI.setVisibility(View.VISIBLE);
                 logRuntimeInfo();
+                logDependencyChecklist();
                 if (!runtimeReady) {
                     log("[WARN] No se pudieron preparar todas las dependencias locales.");
                 } else if (!wasExtracted) {
@@ -348,34 +354,45 @@ public class MainActivity extends AppCompatActivity {
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    final String uiLine = line;
-                    runOnUiThread(() -> log(" " + uiLine));
+                    log("[native] " + line);
                 }
             }
 
             int exitCode = process.waitFor();
-            runOnUiThread(() -> {
-                if (exitCode == 0) {
-                    log("[PROCESO TERMINADO] Exit Code: " + exitCode + " (OK)\n");
-                } else {
-                    log("[PROCESO TERMINADO] Exit Code: " + exitCode + " (ERROR)\n");
-                }
-            });
+            if (exitCode == 0) {
+                log("[PROCESO TERMINADO] Exit Code: " + exitCode + " (OK)\n");
+            } else {
+                log("[PROCESO TERMINADO] Exit Code: " + exitCode + " (ERROR)\n");
+            }
 
         } catch (Exception e) {
             Log.e(TAG, "Error fatal de SO ejecutando: flashrom", e);
-            runOnUiThread(() -> log("[CRITICAL] ProcessBuilder falló: " + e.getMessage()));
+            log("[CRITICAL] ProcessBuilder falló: " + e.getMessage());
+            log(stackTrace(e));
         }
     }
 
     private void log(String message) {
         Log.i(TAG, message);
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            appendLogOnUi(message);
+        } else {
+            runOnUiThread(() -> appendLogOnUi(message));
+        }
+    }
+
+    private void appendLogOnUi(String message) {
         String current = tvLog.getText().toString();
         String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
         tvLog.setText(current + "\n" + "[" + time + "] " + message);
-
-        // Auto Scroll simple
         scrollLog.post(() -> scrollLog.fullScroll(ScrollView.FOCUS_DOWN));
+    }
+
+    private String stackTrace(Throwable error) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        error.printStackTrace(pw);
+        return sw.toString();
     }
 
     private void setupLogCopySupport() {
@@ -415,6 +432,24 @@ public class MainActivity extends AppCompatActivity {
         log("pci.ids.gz en runtime: " + new File(usrShareDir, "pci.ids.gz").exists());
     }
 
+    private void logDependencyChecklist() {
+        File nativeDir = new File(getApplicationInfo().nativeLibraryDir);
+        String[] requiredBins = {"libflashrom_bin.so", "libsetpci.so", "libpcilmr.so", "liblspci.so", "libupdate-pciids.so", "libftdi_eeprom.so"};
+        for (String name : requiredBins) {
+            log("jniLibs binario " + name + ": " + new File(nativeDir, name).exists());
+        }
+        String[] requiredLibs = {"libusb-1.0.so", "libflashrom.so", "libpci.so", "libftdi1.so", "libjaylink.so", "libcrypto.so.3", "libssl.so.3"};
+        for (String name : requiredLibs) {
+            log("jniLibs librería " + name + ": " + new File(nativeDir, name).exists());
+        }
+        String[] optionalMissing = {"libconfuse.so", "libc++_shared.so", "libz.so.1"};
+        for (String name : optionalMissing) {
+            boolean present = new File(nativeDir, name).exists();
+            log("jniLibs dependencia reportada " + name + ": " + present
+                    + (present ? "" : " (faltante, se enlazará automáticamente al agregarla)"));
+        }
+    }
+
     // Función de soporte para limpiar directorios defectuosos guardados por el
     // sistema
     private void deleteRecursively(File fileOrDirectory) {
@@ -452,25 +487,12 @@ public class MainActivity extends AppCompatActivity {
         if (id == R.id.action_hex_viewer) {
             startActivity(new Intent(this, HexViewerActivity.class));
             return true;
-        } else if (id == R.id.action_copy_logs) {
-            String logs = tvLog.getText() == null ? "" : tvLog.getText().toString();
-            ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-            if (clipboard != null) {
-                clipboard.setPrimaryClip(ClipData.newPlainText("flash_eeprom_tool_logs", logs));
-                android.widget.Toast.makeText(this, "Logs copiados al portapapeles.", android.widget.Toast.LENGTH_SHORT).show();
-            }
-            return true;
         } else if (id == R.id.action_clear_logs) {
             tvLog.setText("--- Log ---");
             log("Terminal reiniciada.");
             return true;
         } else if (id == R.id.action_about) {
-            new android.app.AlertDialog.Builder(this)
-                    .setTitle("Acerca de FlashromApp")
-                    .setMessage(
-                            "Herramienta Flashrom para Android usando CH341A.\nRefactorizado según arquitectura C-PIC (PTC)\n\nVersión 2.0")
-                    .setPositiveButton("Aceptar", null)
-                    .show();
+            showAboutDialog();
             return true;
         } else if (id == R.id.action_policy) {
             startActivity(new Intent(this, PolicyActivity.class));
@@ -478,6 +500,35 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+
+    private void showAboutDialog() {
+        TextView aboutText = new TextView(this);
+        int padding = (int) (24 * getResources().getDisplayMetrics().density);
+        aboutText.setPadding(padding, padding, padding, padding / 2);
+        aboutText.setTextColor(getResources().getColor(android.R.color.black, getTheme()));
+        aboutText.setLinkTextColor(getResources().getColor(android.R.color.holo_blue_dark, getTheme()));
+        aboutText.setMovementMethod(LinkMovementMethod.getInstance());
+        aboutText.setText(Html.fromHtml(
+                "<b>Quemador EEPROM</b><br/>"
+                        + "Proyecto Android para lectura/escritura SPI con flashrom en NDK.<br/><br/>"
+                        + "<b>Licencia del proyecto:</b> GPLv3 (LICENSE.txt).<br/><br/>"
+                        + "<b>Dependencias principales y licencias:</b><br/>"
+                        + "• <a href='https://github.com/libusb/libusb'>libusb</a> (LGPL-2.1+)<br/>"
+                        + "• <a href='https://github.com/pciutils/pciutils'>pciutils</a> (GPL-2.0+)<br/>"
+                        + "• <a href='https://developer.intra2net.com/git/libftdi'>libftdi</a> (LGPL-2.1+)<br/>"
+                        + "• <a href='https://gitlab.zapb.de/libjaylink/libjaylink'>libjaylink</a> (GPL-2.0+)<br/>"
+                        + "• <a href='https://github.com/flashrom/flashrom'>flashrom</a> (GPL-2.0+)<br/>"
+                        + "• <a href='https://github.com/mik3y/usb-serial-for-android'>usb-serial-for-android</a> (MIT)<br/><br/>"
+                        + "Compilación y rutas basadas en linesCorrectos.txt y assets/data.",
+                Html.FROM_HTML_MODE_LEGACY));
+
+        new android.app.AlertDialog.Builder(this)
+                .setTitle("Acerca de")
+                .setView(aboutText)
+                .setPositiveButton("Aceptar", null)
+                .show();
     }
 
     @Override
