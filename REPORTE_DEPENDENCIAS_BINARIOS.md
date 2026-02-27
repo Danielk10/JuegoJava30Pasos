@@ -168,6 +168,15 @@
   - libdl.so
   - libc.so
 
+## app/src/main/jniLibs/arm64-v8a/libpyftdi1.so
+- Tipo ELF: DYN (Shared object file)
+- Arquitectura: AArch64
+- Dependencias directas (DT_NEEDED):
+  - libftdi1.so.2
+  - libusb-1.0.so
+  - libdl.so
+  - libc.so
+
 ## app/src/main/jniLibs/arm64-v8a/libsetpci.so
 - Tipo ELF: DYN (Position-Independent Executable file)
 - Arquitectura: AArch64

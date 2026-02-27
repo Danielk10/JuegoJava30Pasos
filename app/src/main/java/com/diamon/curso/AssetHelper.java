@@ -209,10 +209,12 @@ public class AssetHelper {
         File usrBin = new File(filesDir, "usr/bin");
         File usrSbin = new File(filesDir, "usr/sbin");
         File usrLib = new File(filesDir, "usr/lib");
+        File pythonSitePackages = new File(usrLib, "python3.12/site-packages");
 
         if (!usrBin.exists()) usrBin.mkdirs();
         if (!usrSbin.exists()) usrSbin.mkdirs();
         if (!usrLib.exists()) usrLib.mkdirs();
+        if (!pythonSitePackages.exists()) pythonSitePackages.mkdirs();
 
         // Ejecutables/librerías principales se resuelven desde jniLibs con nombres clásicos vía symlink.
         boolean ok = true;
@@ -232,6 +234,8 @@ public class AssetHelper {
         linkTool(new File(usrLib, "libjaylink.so"), new File(nativeLibDir, "libjaylink.so"));
         linkTool(new File(usrLib, "libcrypto.so.3"), new File(nativeLibDir, "libcrypto.so.3"));
         linkTool(new File(usrLib, "libssl.so.3"), new File(nativeLibDir, "libssl.so.3"));
+        // Extensión Python: nombre Android en jniLibs y nombre original vía symlink en site-packages.
+        linkTool(new File(pythonSitePackages, "_pyftdi1.so"), new File(nativeLibDir, "libpyftdi1.so"));
 
         // Validación mínima de dependencias críticas para herramientas principales.
         ok &= ensurePresent(new File(usrLib, "libcrypto.so.3"));

@@ -89,8 +89,29 @@ tasks.register("verifyNoExecutableAssets") {
     }
 }
 
+tasks.register("verifyNoSharedObjectsInSitePackages") {
+    group = "verification"
+    description = "Verifica que no existan .so dentro de assets/usr/lib/python*/site-packages"
+    doLast {
+        def sitePkgsRoot = file("src/main/assets/data/data/com.diamon.curso/files/usr/lib")
+        def found = []
+        if (sitePkgsRoot.exists()) {
+            sitePkgsRoot.eachFileRecurse(groovy.io.FileType.FILES) { f ->
+                def rel = project.relativePath(f)
+                if (rel.contains("site-packages") && rel.endsWith(".so")) {
+                    found << rel
+                }
+            }
+        }
+        if (!found.isEmpty()) {
+            throw new GradleException("No se permiten .so en assets site-packages: ${found.join(', ')}")
+        }
+    }
+}
+
 tasks.matching { it.name == "preBuild" }.configureEach {
     dependsOn("verifyNoExecutableAssets")
+    dependsOn("verifyNoSharedObjectsInSitePackages")
 }
 
 dependencies {
