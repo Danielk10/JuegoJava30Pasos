@@ -17,6 +17,7 @@ public class AssetHelper {
     private static final String TAG = "AssetHelper";
     private static final int BUFFER_SIZE = 8192;
     private static volatile String cachedAssetRuntimeRoot;
+    private static final String COMPILED_RUNTIME_ROOT = "data/data/com.diamon.curso/files/usr";
 
     /**
      * Prepara runtime de assets una sola vez. Si ya existen, no vuelve a recorrer todo el árbol;
@@ -40,9 +41,8 @@ public class AssetHelper {
             return ensureNativeToolLinks(context);
         }
 
-        // Reparación mínima de binarios/librerías críticas si algo faltó o fue borrado.
+        // Reparación mínima de recursos críticos del runtime compilado (no ejecutables).
         String[] criticalAssets = new String[] {
-                runtimeRoot + "/sbin/flashrom",
                 runtimeRoot + "/share/pci.ids.gz"
         };
 
@@ -71,6 +71,14 @@ public class AssetHelper {
 
         AssetManager assetManager = context.getAssets();
         try {
+            // 1) Prioridad absoluta: ruta exacta de compilación documentada.
+            String[] exactChildren = assetManager.list(COMPILED_RUNTIME_ROOT);
+            if (exactChildren != null && exactChildren.length > 0) {
+                cachedAssetRuntimeRoot = COMPILED_RUNTIME_ROOT;
+                Log.i(TAG, "Runtime root de assets detectado (exacto): " + cachedAssetRuntimeRoot);
+                return cachedAssetRuntimeRoot;
+            }
+
             String[] pkgCandidates = assetManager.list("data/data");
             if (pkgCandidates == null || pkgCandidates.length == 0) {
                 return null;
@@ -173,6 +181,10 @@ public class AssetHelper {
                 out.write(buffer, 0, read);
             }
             out.flush();
+            if (assetPath.contains("/bin/") || assetPath.contains("/sbin/")) {
+                //noinspection ResultOfMethodCallIgnored
+                destFile.setExecutable(true, true);
+            }
             Log.d(TAG, "Copiado: " + destFile.getAbsolutePath());
             return true;
 
@@ -202,7 +214,7 @@ public class AssetHelper {
         if (!usrSbin.exists()) usrSbin.mkdirs();
         if (!usrLib.exists()) usrLib.mkdirs();
 
-        // Ejecutables preferidos desde jniLibs para formato nativo Android (lib*.so)
+        // Ejecutables/librerías principales se resuelven desde jniLibs con nombres clásicos vía symlink.
         boolean ok = true;
         ok &= linkTool(new File(usrSbin, "flashrom"), new File(nativeLibDir, "libflashrom_bin.so"));
         ok &= linkTool(new File(usrBin, "lspci"), new File(nativeLibDir, "liblspci.so"));

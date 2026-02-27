@@ -292,7 +292,8 @@ public class MainActivity extends AppCompatActivity {
 
         File preferredFlashromBin = new File(getFilesDir(), "usr/sbin/flashrom");
         if (!preferredFlashromBin.exists()) {
-            // Fallback directo a jniLibs
+            // Fallback directo a jniLibs por si la creación de enlaces falló.
+            log("[WARN] flashrom en files/usr/sbin no encontrado; usando fallback jniLibs.");
             preferredFlashromBin = new File(getApplicationInfo().nativeLibraryDir, "libflashrom_bin.so");
         }
         final File flashromBin = preferredFlashromBin;
