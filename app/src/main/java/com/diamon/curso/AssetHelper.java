@@ -304,14 +304,32 @@ public class AssetHelper {
         ok &= linkRuntimeSoname(usrLib, nativeLibDir, "libc++_shared.so");
         // Extensión Python: nombre Android en jniLibs y nombre original vía symlink en
         // site-packages.
-        linkTool(new File(pythonSitePackages, "_pyftdi1.so"), new File(nativeLibDir, "libpyftdi1.so"));
+        if (!linkTool(new File(pythonSitePackages, "_pyftdi1.so"), new File(nativeLibDir, "libpyftdi1.so"))) {
+            Log.e(TAG, "Fallo al enlazar extensión Python _pyftdi1.so");
+            ok = false;
+        }
 
         // Validación mínima de dependencias críticas para herramientas principales.
-        ok &= ensurePresent(new File(usrLib, "libcrypto.so.3"));
-        ok &= ensurePresent(new File(usrLib, "libssl.so.3"));
-        ok &= ensurePresent(new File(usrLib, "libconfuse.so"));
-        ok &= ensurePresent(new File(usrLib, "libz.so.1"));
-        ok &= ensurePresent(new File(usrLib, "libc++_shared.so"));
+        if (!ensurePresent(new File(usrLib, "libcrypto.so.3"))) {
+            Log.e(TAG, "Falta libcrypto.so.3 en runtime");
+            ok = false;
+        }
+        if (!ensurePresent(new File(usrLib, "libssl.so.3"))) {
+            Log.e(TAG, "Falta libssl.so.3 en runtime");
+            ok = false;
+        }
+        if (!ensurePresent(new File(usrLib, "libconfuse.so"))) {
+            Log.e(TAG, "Falta libconfuse.so en runtime");
+            ok = false;
+        }
+        if (!ensurePresent(new File(usrLib, "libz.so.1"))) {
+            Log.e(TAG, "Falta libz.so.1 en runtime");
+            ok = false;
+        }
+        if (!ensurePresent(new File(usrLib, "libc++_shared.so"))) {
+            Log.e(TAG, "Falta libc++_shared.so en runtime");
+            ok = false;
+        }
 
         return ok;
     }
@@ -323,7 +341,11 @@ public class AssetHelper {
             Log.w(TAG, "No se encontró librería para soname runtime: " + runtimeSoname);
             return false;
         }
-        return linkTool(linkPath, source);
+        boolean result = linkTool(linkPath, source);
+        if (!result) {
+            Log.e(TAG, "Fallo al enlazar soname runtime: " + runtimeSoname);
+        }
+        return result;
     }
 
     private static File resolveNativeLibrary(File nativeLibDir, String runtimeSoname) {

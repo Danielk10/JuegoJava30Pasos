@@ -906,7 +906,12 @@ public class MainActivity extends AppCompatActivity {
 
     private int getVersionCode() {
         try {
-            return getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
+            android.content.pm.PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+                return (int) pInfo.getLongVersionCode();
+            } else {
+                return pInfo.versionCode;
+            }
         } catch (Exception e) {
             return -1;
         }
