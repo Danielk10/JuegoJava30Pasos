@@ -61,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String PREFS = "flashrom_prefs";
     private static final String KEY_PROGRAMMER = "selected_programmer";
     private static final String KEY_EXPORT_URI = "export_uri";
+    private static final String KEY_LAST_VERSION = "last_version_code";
     private static final String[] SUPPORTED_PROGRAMMERS = {
             "asm106x",
             "atavia",
@@ -277,9 +278,20 @@ public class MainActivity extends AppCompatActivity {
             mostrarPublicidad.cargarInterstial();
         }
 
-        // Ocultar UI y mostrar ProgressBar mientras carga assets
-        layoutMainUI.setVisibility(View.GONE);
-        layoutLoading.setVisibility(View.VISIBLE);
+        // Lógica de inicio rápido: verificar si los assets ya están listos y la versión
+        // no ha cambiado
+        int currentVersion = getVersionCode();
+        int lastVersion = getSharedPreferences(PREFS, MODE_PRIVATE).getInt(KEY_LAST_VERSION, -1);
+        boolean assetsReady = AssetHelper.areAssetsExtracted(getApplicationContext());
+        boolean skipLoading = assetsReady && (currentVersion == lastVersion);
+
+        if (skipLoading) {
+            layoutMainUI.setVisibility(View.VISIBLE);
+            layoutLoading.setVisibility(View.GONE);
+        } else {
+            layoutMainUI.setVisibility(View.GONE);
+            layoutLoading.setVisibility(View.VISIBLE);
+        }
 
         executor.execute(() -> {
             // AutoLimpieza de directorios erróneos (para arreglar el error de usr/usr)
@@ -309,10 +321,14 @@ public class MainActivity extends AppCompatActivity {
 
                 if (!runtimeReady) {
                     log("[WARN] No se pudieron preparar todas las dependencias locales.");
-                } else if (!wasExtracted) {
-                    log("Assets copiados correctamente al almacenamiento interno.");
                 } else {
-                    log("Sistema flashrom y assets listos.");
+                    if (!wasExtracted) {
+                        log("Assets copiados correctamente al almacenamiento interno.");
+                    } else {
+                        log("Sistema flashrom y assets listos.");
+                    }
+                    // Guardar versión actual tras éxito
+                    getSharedPreferences(PREFS, MODE_PRIVATE).edit().putInt(KEY_LAST_VERSION, currentVersion).apply();
                 }
             });
         });
@@ -882,5 +898,13 @@ public class MainActivity extends AppCompatActivity {
             currentConnection.close();
         }
         executor.shutdownNow(); // Finalizar todos los hilos
+    }
+
+    private int getVersionCode() {
+        try {
+            return getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
+        } catch (Exception e) {
+            return -1;
+        }
     }
 }
