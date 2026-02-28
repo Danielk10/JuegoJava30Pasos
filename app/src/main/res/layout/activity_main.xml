@@ -55,7 +55,7 @@
             android:textColor="#4CAF50"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:layout_marginBottom="12dp" />
+            android:layout_marginBottom="4dp" />
 
         <Button
             android:id="@+id/btnConnect"
@@ -67,7 +67,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginTop="8dp">
+            android:layout_marginTop="4dp">
 
             <Button
                 android:id="@+id/btnProbe"
@@ -94,8 +94,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="12dp">
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="4dp">
 
             <Button
                 android:id="@+id/btnRead"
@@ -128,8 +128,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="12dp">
+            android:layout_marginTop="0dp"
+            android:layout_marginBottom="4dp">
 
             <Button
                 android:id="@+id/btnImport"
@@ -163,10 +163,10 @@
             android:maxLines="1"
             android:ellipsize="end"
             android:background="#1B1E2B"
-            android:padding="12dp"
+            android:padding="8dp"
             android:textColorHint="#757575"
             android:textColor="#4DB6AC"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginBottom="4dp" />
 
         <Button
             android:id="@+id/btnRunCustomCommand"
@@ -175,7 +175,7 @@
             android:text="Ejecutar Instrucción por Consola"
             android:backgroundTint="#1976D2"
             android:textColor="#FFFFFF"
-            android:layout_marginBottom="12dp" />
+            android:layout_marginBottom="4dp" />
 
         <LinearLayout
             android:layout_width="match_parent"
