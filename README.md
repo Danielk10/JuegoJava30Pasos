@@ -255,34 +255,20 @@ El panel de log muestra salida nativa real con prefijo `[native]`, comandos soli
 
 ---
 
-## 11) Estado de diagnóstico
+## 11) Características de Usuario
 
-- Verifica dependencias con: `REPORTE_DEPENDENCIAS_BINARIOS.md`.
-- Verifica despliegue runtime con: `AUDITORIA_ANDROID_RUNTIME.md`.
-- Verifica coherencia de compilación histórica con: `linesCorrectos.txt`.
+### Modo Dummy y Diagnóstico
+La app incluye soporte nativo y un flujo dedicado para el programador `dummy` de flashrom. 
+- Permite probar la interfaz y comandos sin hardware real conectado.
+- Cuenta con un menú **Modo Prueba (Dummy)** para generar chips vituales (SST25VF040, MX25L6436, etc.) en un archivo temporal.
+- Los botones principales adaptan su comando automáticamente si el programador dummy está seleccionado.
 
+### Visor Hexadecimal Integrado
+Cuenta con un visor hexadecimal profesional (`HexViewerActivity`) capaz de:
+- Mostrar volcados de datos leídos del chip.
+- Decodificar e inspeccionar archivos Intel HEX (analizando direcciones reales).
+- Mostrar siempre el *Origen* de los datos (ej: `Leído del chip (ch341a_spi)` o `Importado: firmware.hex`).
 
-## 12) Matriz detallada de archivos runtime
-
-Para auditoría completa archivo-por-archivo (data vs assets vs jniLibs vs estrategia final), revisa:
-
-- `MATRIZ_RUNTIME.md`
-
-### Aclaración clave sobre assets vs runtime
-
-- `assets/` **solo** se usa como origen de copia/siembra inicial.
-- Después del despliegue, el proceso nativo trabaja sobre `files/usr` (directorio interno de la app).
-- Cuando una ruta no viene en assets (por diseño), se crea un **enlace simbólico** desde `files/usr/...` hacia `nativeLibraryDir` (`jniLibs`).
-- Si el dispositivo/FS no permite symlink, el código aplica **fallback por copia**: copia el binario/librería al destino `files/usr/...` y, para `bin/sbin`, marca permiso de ejecución.
-
-En la práctica, esto garantiza que el binario siempre busque en el runtime interno con la ruta esperada, no en assets.
-
----
-
-
-## 13) Publicación y cumplimiento
-
-- Política pública (link en app): https://flasheepromtool.blogspot.com/
-- Política HTML para revisión/hosting: `POLITICA_PRIVACIDAD.html`
-- Descripción de tienda: `GOOGLE_PLAY_DESCRIPCION.md`
-- Guía de integración manual de binarios: `GUIA_INTEGRACION_BINARIOS.md`
+### Importación y Exportación Inteligente
+- **Cargar ROM**: usa el Android Storage Access Framework (SAF) para importar sin restricciones (`*/*`), detectando automáticamente el formato (binario crudo vs Intel HEX) y validando tamaños (hasta 128 MB).
+- **Guardar ROM**: solo permite respaldar volcados legítimos (datos comprobados mediante chip read), asegurando que los usuarios no exporten accidentalmente el mismo archivo que importaron. El nombre sugerido de salida coincide dinámicamente con el nombre del archivo de entrada.

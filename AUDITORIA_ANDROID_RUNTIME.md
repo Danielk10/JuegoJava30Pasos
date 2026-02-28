@@ -39,9 +39,13 @@
 
 - Enumeración USB con `UsbManager.getDeviceList()`: OK
 - Selector de dispositivo cuando hay múltiples USB conectados: OK
+- Advertencia amigable si el USB no es reconocido como programador (no bloqueante): OK
 - Menú **Agregar dispositivo/programador flashrom (lista)** con programadores soportados: OK
 - Menú **Configurar programador manual (anterior)** (texto libre legacy): OK
+- Menú **Modo Prueba (Dummy)** para pruebas locales de chip virtual: OK
+- Visor Hexadecimal avanzado (`HexViewerActivity`) con soporte Intel HEX y origen de datos: OK
 - Campo de comando manual para ejecutar parámetros flashrom y ver salida en consola: OK
+- Rastreo dinámico de archivos leídos (ej. usa `lastReadFile` en lugar de `bios.bin` rígido): OK
 - Comandos manuales sin USB conectado (ej. `--version`, `-L`, `--help`): OK
 - Ejecución nativa sigue usando `flashrom -p <valor_usuario>`: OK
 
