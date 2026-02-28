@@ -18,6 +18,11 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/action_dummy_test"
+        android:title="Modo Prueba (Dummy)"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_about"
         android:title="Acerca de"
         app:showAsAction="never" />

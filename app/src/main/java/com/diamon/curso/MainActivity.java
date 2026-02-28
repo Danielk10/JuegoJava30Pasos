@@ -911,6 +911,9 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
             directoryPickerLauncher.launch(intent);
             return true;
+        } else if (id == R.id.action_dummy_test) {
+            showDummyTestDialog();
+            return true;
         } else if (id == R.id.action_about) {
             showAboutDialog();
             return true;
@@ -953,6 +956,125 @@ public class MainActivity extends AppCompatActivity {
                 .setView(aboutText)
                 .setPositiveButton("Cerrar", null)
                 .show();
+    }
+
+    private void showDummyTestDialog() {
+        // Chips predefinidos que el programador dummy reconoce
+        final String[][] DUMMY_CHIPS = {
+                { "VARIABLE_SIZE (Tamaño libre)", "VARIABLE_SIZE", "16777216" }, // 16 MB
+                { "MX25L6436 (8 MB)", "MX25L6436", "8388608" },
+                { "SST25VF032B (4 MB)", "SST25VF032B", "4194304" },
+                { "SST25VF040.REMS (512 KB)", "SST25VF040.REMS", "524288" },
+                { "M25P10.RES (128 KB)", "M25P10.RES", "131072" }
+        };
+
+        String[] testOptions = {
+                "Leer chip emulado (-r)",
+                "Escribir y verificar (-w -v)",
+                "Identificar chip emulado (-p dummy)",
+                "Seleccionar chip predefinido",
+                "Info: Chips válidos para emulación"
+        };
+
+        new android.app.AlertDialog.Builder(this)
+                .setTitle("Modo Prueba (Programador Dummy)")
+                .setItems(testOptions, (dialog, which) -> {
+                    switch (which) {
+                        case 0: // Leer
+                            ensureDummyTestFile(16777216);
+                            executeCustomFlashromCommand(
+                                    "-p dummy:emulate=VARIABLE_SIZE,size=16777216,image=bios_test.bin -r read_test.bin");
+                            break;
+                        case 1: // Escribir + verificar
+                            ensureDummyTestFile(16777216);
+                            executeCustomFlashromCommand(
+                                    "-p dummy:emulate=VARIABLE_SIZE,size=16777216,image=bios_test.bin -w bios_test.bin -v");
+                            break;
+                        case 2: // Probe
+                            ensureDummyTestFile(16777216);
+                            executeCustomFlashromCommand(
+                                    "-p dummy:emulate=VARIABLE_SIZE,size=16777216,image=bios_test.bin");
+                            break;
+                        case 3: // Seleccionar chip
+                            showDummyChipSelector(DUMMY_CHIPS);
+                            break;
+                        case 4: // Info
+                            showDummyChipInfo();
+                            break;
+                    }
+                })
+                .setNegativeButton("Cancelar", null)
+                .show();
+    }
+
+    private void showDummyChipSelector(String[][] chips) {
+        String[] labels = new String[chips.length];
+        for (int i = 0; i < chips.length; i++) {
+            labels[i] = chips[i][0];
+        }
+
+        new android.app.AlertDialog.Builder(this)
+                .setTitle("Selecciona chip a emular")
+                .setItems(labels, (dialog, which) -> {
+                    String chipName = chips[which][1];
+                    int size = Integer.parseInt(chips[which][2]);
+                    ensureDummyTestFile(size);
+
+                    String cmd;
+                    if ("VARIABLE_SIZE".equals(chipName)) {
+                        cmd = "-p dummy:emulate=VARIABLE_SIZE,size=" + size + ",image=bios_test.bin -r read_test.bin";
+                    } else {
+                        cmd = "-p dummy:emulate=" + chipName + ",image=bios_test.bin -r read_test.bin";
+                    }
+                    log("Chip seleccionado para emulación: " + chips[which][0]);
+                    executeCustomFlashromCommand(cmd);
+                })
+                .setNegativeButton("Cancelar", null)
+                .show();
+    }
+
+    private void showDummyChipInfo() {
+        String info = "El programador 'dummy' de flashrom es un simulador virtual.\n\n"
+                + "NO usa hardware USB real. Ignora ANDROID_USB_FD.\n\n"
+                + "Chips válidos para emulación (v1.7.0):\n\n"
+                + "• VARIABLE_SIZE — Tamaño libre (usar con size=N)\n"
+                + "• MX25L6436 — 8 MB\n"
+                + "• SST25VF032B — 4 MB\n"
+                + "• SST25VF040.REMS — 512 KB\n"
+                + "• M25P10.RES — 128 KB\n\n"
+                + "Ejemplo de comando correcto:\n"
+                + "flashrom -p dummy:emulate=VARIABLE_SIZE,size=16777216,image=bios_test.bin -r read_test.bin\n\n"
+                + "⚠ NO uses nombres de chips reales (ej: W25Q128). Solo los listados arriba son válidos.\n\n"
+                + "Para hardware real, usa el programador correspondiente:\n"
+                + "• CH341A → ch341a_spi\n"
+                + "• FT2232H → ft2232_spi\n"
+                + "• ST-Link → stlinkv3_spi";
+
+        new android.app.AlertDialog.Builder(this)
+                .setTitle("Info: Programador Dummy")
+                .setMessage(info)
+                .setPositiveButton("Cerrar", null)
+                .show();
+    }
+
+    private void ensureDummyTestFile(int sizeBytes) {
+        File testFile = new File(getFilesDir(), "bios_test.bin");
+        if (testFile.exists() && testFile.length() == sizeBytes) {
+            return; // Ya existe con el tamaño correcto
+        }
+        try (FileOutputStream fos = new FileOutputStream(testFile)) {
+            byte[] buffer = new byte[8192];
+            java.util.Arrays.fill(buffer, (byte) 0xFF);
+            int remaining = sizeBytes;
+            while (remaining > 0) {
+                int toWrite = Math.min(buffer.length, remaining);
+                fos.write(buffer, 0, toWrite);
+                remaining -= toWrite;
+            }
+            log("Archivo de prueba creado: bios_test.bin (" + (sizeBytes / 1024) + " KB)");
+        } catch (Exception e) {
+            log("Error creando archivo de prueba: " + e.getMessage());
+        }
     }
 
     @Override
