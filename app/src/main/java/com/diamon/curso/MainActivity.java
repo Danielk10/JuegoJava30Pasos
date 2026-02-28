@@ -330,44 +330,54 @@ public class MainActivity extends AppCompatActivity {
 
         log("--- Aplicación Iniciada ---");
 
-        // Lógica de inicio rápido: verificar si los assets ya están listos y la versión
-        // no ha cambiado
+        // Lógica de inicio: primera instalación vs. aperturas posteriores
         int currentVersion = getVersionCode();
         int lastVersion = getSharedPreferences(PREFS, MODE_PRIVATE).getInt(KEY_LAST_VERSION, -1);
         boolean assetsReady = AssetHelper.areAssetsExtracted(getApplicationContext());
         boolean skipLoading = assetsReady && (currentVersion == lastVersion);
 
         if (skipLoading) {
+            // --- APERTURA POSTERIOR: UI inmediata, sin barra de progreso ---
             layoutMainUI.setVisibility(View.VISIBLE);
             layoutLoading.setVisibility(View.GONE);
+            log("Sistema flashrom y assets listos.");
+
+            // Verificación silenciosa en background (solo repara enlaces/pci.ids si faltan)
+            executor.execute(() -> {
+                // Limpieza de directorios erróneos
+                File buggedDir = new File(getFilesDir(), "usr/usr");
+                if (buggedDir.exists()) {
+                    deleteRecursively(buggedDir);
+                }
+                AssetHelper.ensureRuntimeReady(getApplicationContext());
+            });
         } else {
+            // --- PRIMERA INSTALACIÓN / ACTUALIZACIÓN / DATOS BORRADOS ---
             layoutMainUI.setVisibility(View.GONE);
             layoutLoading.setVisibility(View.VISIBLE);
-        }
 
-        executor.execute(() -> {
-            // AutoLimpieza de directorios erróneos (para arreglar el error de usr/usr)
-            File buggedDir = new File(getFilesDir(), "usr/usr");
-            if (buggedDir.exists()) {
-                deleteRecursively(buggedDir);
-                Log.d("MainActivity", "Carpeta residual usr/usr eliminada automáticamente.");
-            }
+            executor.execute(() -> {
+                // Limpieza de directorios erróneos
+                File buggedDir = new File(getFilesDir(), "usr/usr");
+                if (buggedDir.exists()) {
+                    deleteRecursively(buggedDir);
+                    Log.d("MainActivity", "Carpeta residual usr/usr eliminada automáticamente.");
+                }
 
-            boolean wasExtracted = AssetHelper.areAssetsExtracted(getApplicationContext());
-            if (!wasExtracted) {
-                runOnUiThread(() -> tvLoadingText.setText("Extrayendo binarios nativos por primera vez..."));
-            } else {
-                runOnUiThread(() -> tvLoadingText.setText("Verificando dependencias locales..."));
-            }
+                boolean wasExtracted = AssetHelper.areAssetsExtracted(getApplicationContext());
+                if (!wasExtracted) {
+                    runOnUiThread(() -> tvLoadingText.setText("Extrayendo binarios nativos por primera vez..."));
+                } else {
+                    runOnUiThread(() -> tvLoadingText.setText("Verificando dependencias locales..."));
+                }
 
-            boolean runtimeReady = AssetHelper.ensureRuntimeReady(getApplicationContext());
+                boolean runtimeReady = AssetHelper.ensureRuntimeReady(getApplicationContext());
 
-            runOnUiThread(() -> {
-                layoutLoading.setVisibility(View.GONE);
-                layoutMainUI.setVisibility(View.VISIBLE);
+                runOnUiThread(() -> {
+                    layoutLoading.setVisibility(View.GONE);
+                    layoutMainUI.setVisibility(View.VISIBLE);
 
-                boolean isUpdate = (lastVersion != -1 && currentVersion != lastVersion);
-                if (!wasExtracted || isUpdate || !runtimeReady) {
+                    boolean isUpdate = (lastVersion != -1 && currentVersion != lastVersion);
                     if (!wasExtracted) {
                         log("--- Nueva instalación detectada ---");
                         log("Preparando recursos locales en el almacenamiento interno...");
@@ -375,27 +385,30 @@ public class MainActivity extends AppCompatActivity {
                         log("--- Actualización detectada (v" + lastVersion + " -> v" + currentVersion + ") ---");
                         log("Verificando recursos locales para la nueva versión...");
                     }
+
+                    // Mostrar info completa solo en primera instalación/actualización
                     logRuntimeInfo();
                     logDependencyChecklist();
-                }
 
-                if (!runtimeReady) {
-                    log("[WARN] No se pudieron preparar todas las dependencias locales.");
-                } else {
-                    if (!wasExtracted) {
-                        log("Assets copiados correctamente al almacenamiento interno.");
+                    if (!runtimeReady) {
+                        log("[WARN] No se pudieron preparar todas las dependencias locales.");
                     } else {
-                        log("Sistema flashrom y assets listos.");
+                        if (!wasExtracted) {
+                            log("Assets copiados correctamente al almacenamiento interno.");
+                        } else {
+                            log("Recursos verificados y actualizados correctamente.");
+                        }
+                        // Guardar versión actual tras éxito
+                        getSharedPreferences(PREFS, MODE_PRIVATE).edit().putInt(KEY_LAST_VERSION, currentVersion)
+                                .apply();
                     }
-                    // Guardar versión actual tras éxito
-                    getSharedPreferences(PREFS, MODE_PRIVATE).edit().putInt(KEY_LAST_VERSION, currentVersion).apply();
-                }
 
-                // Forzar actualización inmediata del log tras la carga inicial
-                logHandler.removeCallbacks(logUpdater);
-                logUpdater.run();
+                    // Forzar actualización inmediata del log tras la carga
+                    logHandler.removeCallbacks(logUpdater);
+                    logUpdater.run();
+                });
             });
-        });
+        }
 
         // Setup Broadcast Receiver
         IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
