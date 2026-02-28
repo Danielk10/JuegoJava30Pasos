@@ -268,14 +268,18 @@ public class MainActivity extends AppCompatActivity {
             runOnUiThread(() -> {
                 layoutLoading.setVisibility(View.GONE);
                 layoutMainUI.setVisibility(View.VISIBLE);
-                logRuntimeInfo();
-                logDependencyChecklist();
+
+                if (!wasExtracted || !runtimeReady) {
+                    logRuntimeInfo();
+                    logDependencyChecklist();
+                }
+
                 if (!runtimeReady) {
                     log("[WARN] No se pudieron preparar todas las dependencias locales.");
                 } else if (!wasExtracted) {
                     log("Assets copiados correctamente al almacenamiento interno.");
                 } else {
-                    log("App iniciada. Dependencias locales ya estaban listas (no se recargaron).");
+                    log("Sistema flashrom y assets listos.");
                 }
             });
         });
