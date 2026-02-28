@@ -107,8 +107,27 @@ public class MainActivity extends AppCompatActivity {
     private ScrollView scrollLog;
     private TextView tvStatus, tvLog, tvLoadingText;
     private Button btnConnect, btnProbe, btnVerify, btnRead, btnWrite, btnImport, btnExport;
-    private Button btnRunCustomCommand;
+    private Button btnRunCustomCommand, btnClearLogs;
     private EditText etCustomCommand;
+
+    private final StringBuilder logBuffer = new StringBuilder();
+    private final android.os.Handler logHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+    private boolean isLogUpdatePending = false;
+    private final Runnable logUpdater = new Runnable() {
+        @Override
+        public void run() {
+            String newLogs;
+            synchronized (logBuffer) {
+                newLogs = logBuffer.toString();
+                logBuffer.setLength(0);
+                isLogUpdatePending = false;
+            }
+            if (!newLogs.isEmpty()) {
+                tvLog.append(newLogs);
+                scrollLog.post(() -> scrollLog.fullScroll(ScrollView.FOCUS_DOWN));
+            }
+        }
+    };
 
     private ExecutorService executor = Executors.newSingleThreadExecutor();
     private String selectedProgrammer = "ch341a_spi";
@@ -184,6 +203,7 @@ public class MainActivity extends AppCompatActivity {
         btnImport = findViewById(R.id.btnImport);
         btnExport = findViewById(R.id.btnExport);
         btnRunCustomCommand = findViewById(R.id.btnRunCustomCommand);
+        btnClearLogs = findViewById(R.id.btnClearLogs);
         etCustomCommand = findViewById(R.id.etCustomCommand);
 
         usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
@@ -269,6 +289,11 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
             executeCustomFlashromCommand(rawCommand);
+        });
+
+        btnClearLogs.setOnClickListener(v -> {
+            tvLog.setText("--- Log ---");
+            log("Terminal reiniciada.");
         });
     }
 
@@ -537,9 +562,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void appendLogOnUi(String message) {
-        String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
-        tvLog.append("\n[" + time + "] " + message);
-        scrollLog.post(() -> scrollLog.fullScroll(ScrollView.FOCUS_DOWN));
+        String time = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault())
+                .format(new java.util.Date());
+        synchronized (logBuffer) {
+            logBuffer.append("\n[").append(time).append("] ").append(message);
+            if (!isLogUpdatePending) {
+                isLogUpdatePending = true;
+                logHandler.postDelayed(logUpdater, 150);
+            }
+        }
     }
 
     private String stackTrace(Throwable error) {
@@ -668,10 +699,6 @@ public class MainActivity extends AppCompatActivity {
             return true;
         } else if (id == R.id.action_programmer_settings) {
             startActivity(new Intent(this, ProgrammerSettingsActivity.class));
-            return true;
-        } else if (id == R.id.action_clear_logs) {
-            tvLog.setText("--- Log ---");
-            log("Terminal reiniciada.");
             return true;
         } else if (id == R.id.action_about) {
             showAboutDialog();
