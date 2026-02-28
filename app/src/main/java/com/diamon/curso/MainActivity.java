@@ -65,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String PREFS = "flashrom_prefs";
     private static final String KEY_PROGRAMMER = "selected_programmer";
     private static final String KEY_EXPORT_URI = "export_uri";
+    private static final String KEY_BIOS_SOURCE = "bios_source";
     private static final String KEY_LAST_VERSION = "last_version_code";
     private static final String[] SUPPORTED_PROGRAMMERS = {
             "asm106x",
@@ -651,6 +652,10 @@ public class MainActivity extends AppCompatActivity {
             log("Archivo guardado como 'bios.bin' — listo para Flashear o Verificar.");
             log("(Para exportar, usa 'Leer Backup' para leer datos del chip primero.)");
 
+            // Guardar origen del archivo para el visor HEX
+            getSharedPreferences(PREFS, MODE_PRIVATE).edit()
+                    .putString(KEY_BIOS_SOURCE, "Importado: " + fileName + " (" + sizeStr + ")")
+                    .apply();
         } catch (Exception e) {
             log("Error copiando ROM desde almacenamiento: " + e.getMessage());
         }
@@ -911,6 +916,10 @@ public class MainActivity extends AppCompatActivity {
                 for (String arg : args) {
                     if ("-r".equals(arg)) {
                         hasReadData = true;
+                        // Guardar origen como lectura del chip para el visor HEX
+                        getSharedPreferences(PREFS, MODE_PRIVATE).edit()
+                                .putString(KEY_BIOS_SOURCE, "Leído del chip (" + selectedProgrammer + ")")
+                                .apply();
                         runOnUiThread(
                                 () -> log("Datos leídos correctamente. Puedes exportar la ROM con 'Guardar ROM'."));
                         break;

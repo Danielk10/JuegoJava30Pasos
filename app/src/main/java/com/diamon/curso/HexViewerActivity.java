@@ -45,11 +45,16 @@ public class HexViewerActivity extends AppCompatActivity {
         Uri fileUri = getIntent().getData();
         String fileName = "bios.bin";
 
+        // Leer el origen del archivo (importado vs leído del chip)
+        String biosSource = getSharedPreferences("flashrom_prefs", MODE_PRIVATE)
+                .getString("bios_source", null);
+
         byte[] data;
         try {
             if (fileUri != null) {
                 data = readUriToBytes(fileUri);
                 fileName = fileUri.getLastPathSegment();
+                biosSource = "Archivo externo: " + fileName;
             } else {
                 File biosFile = new File(getFilesDir(), "bios.bin");
                 if (!biosFile.exists()) {
@@ -60,9 +65,9 @@ public class HexViewerActivity extends AppCompatActivity {
             }
 
             if (fileName != null && fileName.toLowerCase().endsWith(".hex")) {
-                parseIntelHex(data);
+                parseIntelHex(data, biosSource);
             } else {
-                displayBinary(data, fileName);
+                displayBinary(data, fileName, biosSource);
             }
 
         } catch (Exception e) {
@@ -84,13 +89,17 @@ public class HexViewerActivity extends AppCompatActivity {
         }
     }
 
-    private void displayBinary(byte[] data, String name) {
-        tvHexSummary.setText(String.format("Archivo: %s | Tamaño: %d bytes", name, data.length));
+    private void displayBinary(byte[] data, String name, String biosSource) {
+        String summary = String.format("Archivo: %s | Tamaño: %d bytes", name, data.length);
+        if (biosSource != null) {
+            summary += "\nOrigen: " + biosSource;
+        }
+        tvHexSummary.setText(summary);
         hexAdapter = new HexAdapter(data, 0);
         recyclerHex.setAdapter(hexAdapter);
     }
 
-    private void parseIntelHex(byte[] hexData) {
+    private void parseIntelHex(byte[] hexData, String biosSource) {
         try {
             String content = new String(hexData);
             String[] lines = content.split("\\r?\\n");
@@ -135,7 +144,11 @@ public class HexViewerActivity extends AppCompatActivity {
                 }
             }
 
-            tvHexSummary.setText(String.format("Intel HEX detectado | Rango: 0x%04X - 0x%04X", minAddr, maxAddr - 1));
+            String summary = String.format("Intel HEX detectado | Rango: 0x%04X - 0x%04X", minAddr, maxAddr - 1);
+            if (biosSource != null) {
+                summary += "\nOrigen: " + biosSource;
+            }
+            tvHexSummary.setText(summary);
             hexAdapter = new HexAdapter(binBuffer, 0);
             recyclerHex.setAdapter(hexAdapter);
 
