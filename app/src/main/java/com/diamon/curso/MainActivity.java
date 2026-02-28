@@ -60,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String ACTION_USB_PERMISSION = "com.diamon.curso.USB_PERMISSION";
     private static final String PREFS = "flashrom_prefs";
     private static final String KEY_PROGRAMMER = "selected_programmer";
+    private static final String KEY_EXPORT_URI = "export_uri";
     private static final String[] SUPPORTED_PROGRAMMERS = {
             "asm106x",
             "atavia",
@@ -96,6 +97,19 @@ public class MainActivity extends AppCompatActivity {
             "spidriver",
             "stlinkv3_spi",
             "usbblaster_spi"
+    };
+
+    private static final Map<String, String> USB_AUTO_MAP = new java.util.HashMap<String, String>() {
+        {
+            put("1a86:5512", "ch341a_spi");
+            put("1a86:5523", "ch341a_spi");
+            put("0403:6010", "ft2232_spi");
+            put("0403:6011", "ft2232_spi");
+            put("0403:6014", "ft2232_spi");
+            put("0483:3748", "stlinkv3_spi");
+            put("0483:374b", "stlinkv3_spi");
+            put("1fc9:000c", "jlink_spi");
+        }
     };
 
     private UsbManager usbManager;
@@ -163,6 +177,15 @@ public class MainActivity extends AppCompatActivity {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                     Uri uri = result.getData().getData();
                     if (uri != null) {
+                        // Persistir permiso para el futuro si es posible
+                        try {
+                            getContentResolver().takePersistableUriPermission(uri,
+                                    Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                            getSharedPreferences(PREFS, MODE_PRIVATE).edit().putString(KEY_EXPORT_URI, uri.toString())
+                                    .apply();
+                        } catch (Exception e) {
+                            // Algunos URIs no soportan persistencia (SAF ciego), se ignora
+                        }
                         exportRomFileToUri(uri);
                     }
                 }
@@ -175,9 +198,19 @@ public class MainActivity extends AppCompatActivity {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                     Uri treeUri = result.getData().getData();
                     if (treeUri != null) {
-                        getSharedPreferences(PREFS, MODE_PRIVATE).edit().putString("working_dir", treeUri.toString())
-                                .apply();
-                        log("Directorio por defecto configurado. Las siguientes cargas/guardados iniciarán allí.");
+                        try {
+                            getContentResolver().takePersistableUriPermission(treeUri,
+                                    Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                            getSharedPreferences(PREFS, MODE_PRIVATE).edit()
+                                    .putString(KEY_EXPORT_URI, treeUri.toString())
+                                    .apply();
+                            log("Directorio de exportación configurado y guardado.");
+                        } catch (Exception e) {
+                            getSharedPreferences(PREFS, MODE_PRIVATE).edit()
+                                    .putString(KEY_EXPORT_URI, treeUri.toString())
+                                    .apply();
+                            log("Directorio configurado (sin persistencia extendida).");
+                        }
                     }
                 }
             });
@@ -284,9 +317,13 @@ public class MainActivity extends AppCompatActivity {
             });
         });
 
-        // Setup Boradcast Receiver
+        // Setup Broadcast Receiver
         IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
-        ContextCompat.registerReceiver(this, usbReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(usbReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            registerReceiver(usbReceiver, filter);
+        }
 
         // Listener setup para todos los botones
         btnConnect.setOnClickListener(v -> searchAndRequestProgrammer());
@@ -306,16 +343,23 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
+            String persistedUriStr = getSharedPreferences(PREFS, MODE_PRIVATE).getString(KEY_EXPORT_URI, null);
+            if (persistedUriStr != null) {
+                try {
+                    Uri uri = Uri.parse(persistedUriStr);
+                    // Validar acceso básico
+                    getContentResolver().query(uri, null, null, null, null).close();
+                    exportRomFileToUri(uri);
+                    return;
+                } catch (Exception e) {
+                    log("La ruta guardada no es accesible. Selecciona una nueva.");
+                }
+            }
+
             Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
             intent.setType("application/octet-stream");
             intent.putExtra(Intent.EXTRA_TITLE, "bios_backup.bin");
-
-            String savedDir = getSharedPreferences(PREFS, MODE_PRIVATE).getString("working_dir", null);
-            if (savedDir != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                intent.putExtra(android.provider.DocumentsContract.EXTRA_INITIAL_URI, Uri.parse(savedDir));
-            }
-
             fileSaveLauncher.launch(intent);
         });
 
@@ -391,6 +435,20 @@ public class MainActivity extends AppCompatActivity {
         }
 
         List<UsbDevice> candidates = new ArrayList<>(devices.values());
+
+        // Auto-selección lógica
+        for (UsbDevice device : candidates) {
+            String key = String.format(Locale.US, "%04x:%04x", device.getVendorId(), device.getProductId());
+            if (USB_AUTO_MAP.containsKey(key)) {
+                String autoProg = USB_AUTO_MAP.get(key);
+                selectedProgrammer = autoProg;
+                getSharedPreferences(PREFS, MODE_PRIVATE).edit().putString(KEY_PROGRAMMER, autoProg).apply();
+                log("Detección automática: Dispositivo " + key + " reconocido como " + autoProg);
+                requestUsbPermission(device);
+                return;
+            }
+        }
+
         Collections.sort(candidates, new Comparator<UsbDevice>() {
             @Override
             public int compare(UsbDevice a, UsbDevice b) {
@@ -429,7 +487,10 @@ public class MainActivity extends AppCompatActivity {
         if (usbManager.hasPermission(device)) {
             connectToDevice(device);
         } else {
-            int flags = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ? PendingIntent.FLAG_MUTABLE : 0;
+            int flags = PendingIntent.FLAG_UPDATE_CURRENT;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                flags |= PendingIntent.FLAG_MUTABLE;
+            }
             PendingIntent permissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION),
                     flags);
             usbManager.requestPermission(device, permissionIntent);

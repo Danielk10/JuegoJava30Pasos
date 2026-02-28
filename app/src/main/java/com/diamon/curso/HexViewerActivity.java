@@ -1,5 +1,6 @@
 package com.diamon.curso;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,10 +11,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.RandomAccessFile;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 public class HexViewerActivity extends AppCompatActivity {
 
@@ -27,7 +30,7 @@ public class HexViewerActivity extends AppCompatActivity {
         setContentView(R.layout.activity_hex_viewer);
 
         if (getSupportActionBar() != null) {
-            getSupportActionBar().setTitle("Visor Hexadecimal ROM");
+            getSupportActionBar().setTitle("Visor Hexadecimal Profesional");
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
@@ -35,22 +38,107 @@ public class HexViewerActivity extends AppCompatActivity {
         recyclerHex = findViewById(R.id.recyclerHex);
         recyclerHex.setLayoutManager(new LinearLayoutManager(this));
 
-        loadHexData();
+        loadDataFromIntent();
     }
 
-    private void loadHexData() {
-        File biosFile = new File(getFilesDir(), "bios.bin");
-        if (!biosFile.exists()) {
-            tvHexSummary.setText(
-                    "Error: No se encontró el archivo 'bios.bin'.\nDebes leer un chip o importar una ROM primero.");
-            return;
+    private void loadDataFromIntent() {
+        Uri fileUri = getIntent().getData();
+        String fileName = "bios.bin";
+
+        byte[] data;
+        try {
+            if (fileUri != null) {
+                data = readUriToBytes(fileUri);
+                fileName = fileUri.getLastPathSegment();
+            } else {
+                File biosFile = new File(getFilesDir(), "bios.bin");
+                if (!biosFile.exists()) {
+                    tvHexSummary.setText("Error: No hay datos para visualizar.\nLee un chip o importa un archivo.");
+                    return;
+                }
+                data = java.nio.file.Files.readAllBytes(biosFile.toPath());
+            }
+
+            if (fileName != null && fileName.toLowerCase().endsWith(".hex")) {
+                parseIntelHex(data);
+            } else {
+                displayBinary(data, fileName);
+            }
+
+        } catch (Exception e) {
+            tvHexSummary.setText("Error al cargar datos: " + e.getMessage());
         }
+    }
 
-        long totalSize = biosFile.length();
-        tvHexSummary.setText(String.format("Tamaño ROM: %d bytes (Mapeo directo)", totalSize));
+    private byte[] readUriToBytes(Uri uri) throws Exception {
+        InputStream is = getContentResolver().openInputStream(uri);
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        int nRead;
+        byte[] data = new byte[16384];
+        while ((nRead = is.read(data, 0, data.length)) != -1) {
+            buffer.write(data, 0, nRead);
+        }
+        return buffer.toByteArray();
+    }
 
-        hexAdapter = new HexAdapter(biosFile);
+    private void displayBinary(byte[] data, String name) {
+        tvHexSummary.setText(String.format("Archivo: %s | Tamaño: %d bytes", name, data.length));
+        hexAdapter = new HexAdapter(data, 0);
         recyclerHex.setAdapter(hexAdapter);
+    }
+
+    private void parseIntelHex(byte[] hexData) {
+        try {
+            String content = new String(hexData);
+            String[] lines = content.split("\\r?\\n");
+
+            // Intel HEX can be sparse, but for simplicity we'll find min/max and use a
+            // buffer
+            // or just show records. Let's show as a continuous buffer if possible.
+            int minAddr = Integer.MAX_VALUE;
+            int maxAddr = 0;
+
+            // Preliminary pass to find size
+            for (String line : lines) {
+                if (!line.startsWith(":") || line.length() < 11)
+                    continue;
+                int byteCount = Integer.parseInt(line.substring(1, 3), 16);
+                int address = Integer.parseInt(line.substring(3, 7), 16);
+                int type = Integer.parseInt(line.substring(7, 9), 16);
+                if (type == 0) { // Data record
+                    minAddr = Math.min(minAddr, address);
+                    maxAddr = Math.max(maxAddr, address + byteCount);
+                }
+            }
+
+            if (minAddr == Integer.MAX_VALUE) {
+                tvHexSummary.setText("Archivo HEX no contiene registros de datos válidos.");
+                return;
+            }
+
+            byte[] binBuffer = new byte[maxAddr]; // Simplifies to global address space
+            java.util.Arrays.fill(binBuffer, (byte) 0xFF);
+
+            for (String line : lines) {
+                if (!line.startsWith(":") || line.length() < 11)
+                    continue;
+                int byteCount = Integer.parseInt(line.substring(1, 3), 16);
+                int address = Integer.parseInt(line.substring(3, 7), 16);
+                int type = Integer.parseInt(line.substring(7, 9), 16);
+                if (type == 0) {
+                    for (int i = 0; i < byteCount; i++) {
+                        binBuffer[address + i] = (byte) Integer.parseInt(line.substring(9 + i * 2, 11 + i * 2), 16);
+                    }
+                }
+            }
+
+            tvHexSummary.setText(String.format("Intel HEX detectado | Rango: 0x%04X - 0x%04X", minAddr, maxAddr - 1));
+            hexAdapter = new HexAdapter(binBuffer, 0);
+            recyclerHex.setAdapter(hexAdapter);
+
+        } catch (Exception e) {
+            tvHexSummary.setText("Error parseando Intel HEX: " + e.getMessage());
+        }
     }
 
     @Override
@@ -60,18 +148,12 @@ public class HexViewerActivity extends AppCompatActivity {
     }
 
     static class HexAdapter extends RecyclerView.Adapter<HexAdapter.HexViewHolder> {
-        private MappedByteBuffer buffer;
-        private long fileSize = 0;
+        private final byte[] data;
+        private final int startAddress;
 
-        public HexAdapter(File file) {
-            try {
-                RandomAccessFile raf = new RandomAccessFile(file, "r");
-                FileChannel channel = raf.getChannel();
-                this.fileSize = channel.size();
-                this.buffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, fileSize);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        public HexAdapter(byte[] data, int startAddress) {
+            this.data = data;
+            this.startAddress = startAddress;
         }
 
         @NonNull
@@ -83,41 +165,36 @@ public class HexViewerActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(@NonNull HexViewHolder holder, int position) {
-            if (buffer == null)
-                return;
-
-            int address = position * 16;
-            int length = (int) Math.min(16, fileSize - address);
-            byte[] rowBytes = new byte[length];
-
-            buffer.position(address);
-            buffer.get(rowBytes, 0, length);
+            int rowStart = position * 16;
+            int currentAddr = startAddress + rowStart;
+            int length = Math.min(16, data.length - rowStart);
 
             StringBuilder hexBuilder = new StringBuilder(48);
             StringBuilder asciiBuilder = new StringBuilder(16);
 
             for (int i = 0; i < 16; i++) {
                 if (i < length) {
-                    hexBuilder.append(String.format("%02X ", rowBytes[i]));
-                    char c = (char) rowBytes[i];
-                    if (c >= 32 && c <= 126) {
-                        asciiBuilder.append(c);
+                    byte b = data[rowStart + i];
+                    hexBuilder.append(String.format("%02X ", b));
+                    if (b >= 32 && b <= 126) {
+                        asciiBuilder.append((char) b);
                     } else {
                         asciiBuilder.append(".");
                     }
                 } else {
                     hexBuilder.append("   ");
+                    asciiBuilder.append(" ");
                 }
             }
 
-            holder.tvAddress.setText(String.format("%08X", address));
+            holder.tvAddress.setText(String.format("%08X", currentAddr));
             holder.tvHex.setText(hexBuilder.toString());
             holder.tvAscii.setText(asciiBuilder.toString());
         }
 
         @Override
         public int getItemCount() {
-            return (int) Math.ceil((double) fileSize / 16.0);
+            return (int) Math.ceil((double) data.length / 16.0);
         }
 
         static class HexViewHolder extends RecyclerView.ViewHolder {
