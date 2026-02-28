@@ -535,6 +535,11 @@ public class MainActivity extends AppCompatActivity {
                 log("Escribe un comando para ejecutar. Ej: --version o -p ch341a_spi -r bios.bin");
                 return;
             }
+            // Validación básica de comandos
+            if (rawCommand.contains("-p") && !rawCommand.contains("dummy") && currentFd < 0) {
+                log("[AVISO] El comando usa '-p' pero no hay USB conectado.");
+                log("Si usas 'dummy', está bien. Para hardware real, conecta el programador primero.");
+            }
             executeCustomFlashromCommand(rawCommand);
         });
 
@@ -557,7 +562,7 @@ public class MainActivity extends AppCompatActivity {
             while ((read = in.read(buffer)) != -1) {
                 out.write(buffer, 0, read);
             }
-            log("Éxito: ROM respaldada correctamente en la carpeta seleccionada.");
+            log("Éxito: '" + lastReadFile + "' respaldado correctamente en la carpeta seleccionada.");
         } catch (Exception e) {
             log("Error guardando el archivo: " + e.getMessage());
         }
@@ -642,9 +647,10 @@ public class MainActivity extends AppCompatActivity {
             log("(Para exportar, usa 'Leer Backup' para leer datos del chip primero.)");
 
             // Guardar origen del archivo para el visor HEX
-            getSharedPreferences(PREFS, MODE_PRIVATE).edit()
-                    .putString(KEY_BIOS_SOURCE, "Importado: " + fileName + " (" + sizeStr + ")")
-                    .apply();
+            SharedPreferences.Editor editor = getSharedPreferences(PREFS, MODE_PRIVATE).edit();
+            editor.putString(KEY_BIOS_SOURCE, "Importado: " + fileName + " (" + sizeStr + ")");
+            editor.putString(KEY_LAST_READ_FILE, "bios.bin");
+            editor.apply();
         } catch (Exception e) {
             log("Error copiando ROM desde almacenamiento: " + e.getMessage());
         }
@@ -775,6 +781,11 @@ public class MainActivity extends AppCompatActivity {
             action.run();
             return;
         }
+        // Programador real: verificar que hay conexión USB
+        if (currentFd < 0) {
+            log("Error: No hay dispositivo USB conectado. Conecta tu programador primero.");
+            return;
+        }
         action.run();
     }
 
@@ -832,7 +843,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void executeFlashromTask(String... args) {
-        if (currentFd == -1) {
+        // Dummy no necesita FD de USB
+        if (currentFd == -1 && !isDummyProgrammer()) {
             log("Error lógico: El FD de USB se perdió.");
             return;
         }
