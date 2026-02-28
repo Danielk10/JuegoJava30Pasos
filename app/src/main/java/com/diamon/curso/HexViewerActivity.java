@@ -56,12 +56,20 @@ public class HexViewerActivity extends AppCompatActivity {
                 fileName = fileUri.getLastPathSegment();
                 biosSource = "Archivo externo: " + fileName;
             } else {
-                File biosFile = new File(getFilesDir(), "bios.bin");
-                if (!biosFile.exists()) {
+                // Cargar el archivo rastreado (último leído o importado)
+                String trackedFile = getSharedPreferences("flashrom_prefs", MODE_PRIVATE)
+                        .getString("last_read_file", "bios.bin");
+                File dataFile = new File(getFilesDir(), trackedFile);
+                // Fallback a bios.bin si el archivo rastreado no existe
+                if (!dataFile.exists()) {
+                    dataFile = new File(getFilesDir(), "bios.bin");
+                }
+                if (!dataFile.exists()) {
                     tvHexSummary.setText("Error: No hay datos para visualizar.\nLee un chip o importa un archivo.");
                     return;
                 }
-                data = java.nio.file.Files.readAllBytes(biosFile.toPath());
+                fileName = dataFile.getName();
+                data = java.nio.file.Files.readAllBytes(dataFile.toPath());
             }
 
             if (fileName != null && fileName.toLowerCase().endsWith(".hex")) {

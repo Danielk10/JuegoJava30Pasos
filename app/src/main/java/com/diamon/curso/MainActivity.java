@@ -66,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String KEY_PROGRAMMER = "selected_programmer";
     private static final String KEY_EXPORT_URI = "export_uri";
     private static final String KEY_BIOS_SOURCE = "bios_source";
+    private static final String KEY_LAST_READ_FILE = "last_read_file";
     private static final String KEY_LAST_VERSION = "last_version_code";
     private static final String[] SUPPORTED_PROGRAMMERS = {
             "asm106x",
@@ -186,6 +187,7 @@ public class MainActivity extends AppCompatActivity {
     private ExecutorService executor = Executors.newSingleThreadExecutor();
     private String selectedProgrammer = "ch341a_spi";
     private volatile boolean hasReadData = false; // true cuando hay datos LEÍDOS del chip
+    private volatile String lastReadFile = "bios.bin"; // archivo del último read exitoso
     private MostrarPublicidad mostrarPublicidad;
 
     // API para Visor Hexadecimal (Anuncio al regresar)
@@ -493,44 +495,31 @@ public class MainActivity extends AppCompatActivity {
                 log("(El botón 'Guardar ROM' exporta datos LEÍDOS, no archivos importados.)");
                 return;
             }
-            File sourceFile = new File(getFilesDir(), "bios.bin");
+            File sourceFile = new File(getFilesDir(), lastReadFile);
             if (!sourceFile.exists()) {
-                log("Error: El archivo 'bios.bin' no existe. Lee el chip primero.");
+                log("Error: El archivo '" + lastReadFile + "' no existe. Lee el chip primero.");
                 return;
             }
 
-            String persistedUriStr = getSharedPreferences(PREFS, MODE_PRIVATE).getString(KEY_EXPORT_URI, null);
-            if (persistedUriStr != null) {
-                try {
-                    Uri uri = Uri.parse(persistedUriStr);
-                    // Validar acceso básico
-                    getContentResolver().query(uri, null, null, null, null).close();
-                    exportRomFileToUri(uri);
-                    return;
-                } catch (Exception e) {
-                    log("La ruta guardada no es accesible. Selecciona una nueva.");
-                }
+            // Nombre de exportación basado en el archivo leído
+            String exportName = lastReadFile;
+            if ("bios.bin".equals(exportName)) {
+                exportName = "bios_backup.bin";
             }
 
             Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
             intent.setType("application/octet-stream");
-            intent.putExtra(Intent.EXTRA_TITLE, "bios_backup.bin");
+            intent.putExtra(Intent.EXTRA_TITLE, exportName);
             fileSaveLauncher.launch(intent);
         });
 
         btnImport.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
-            intent.setType("application/octet-stream");
-            // Filtros adicionales para formatos de firmware comunes
-            String[] mimeTypes = {
-                    "application/octet-stream",
-                    "application/x-binary",
-                    "application/macbinary",
-                    "text/plain" // Para .hex (Intel HEX es texto)
-            };
-            intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
+            intent.setType("*/*");
+            // flashrom acepta cualquier formato binario (.bin, .rom, .img, .hex, etc.)
+            // No restringir por MIME type — igual que en PC
 
             String savedDir = getSharedPreferences(PREFS, MODE_PRIVATE).getString("working_dir", null);
             if (savedDir != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -556,7 +545,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void exportRomFileToUri(Uri uri) {
-        File sourceFile = new File(getFilesDir(), "bios.bin");
+        File sourceFile = new File(getFilesDir(), lastReadFile);
         try (InputStream in = new java.io.FileInputStream(sourceFile);
                 OutputStream out = getContentResolver().openOutputStream(uri)) {
 
@@ -912,16 +901,22 @@ public class MainActivity extends AppCompatActivity {
             int exitCode = process.waitFor();
             if (exitCode == 0) {
                 log("[PROCESO TERMINADO] Exit Code: " + exitCode + " (OK)\n");
-                // Detectar si fue una operación de lectura exitosa
-                for (String arg : args) {
-                    if ("-r".equals(arg)) {
+                // Detectar si fue una operación de lectura exitosa y rastrear el archivo
+                for (int i = 0; i < args.length; i++) {
+                    if ("-r".equals(args[i]) && i + 1 < args.length) {
+                        String readFile = args[i + 1];
                         hasReadData = true;
-                        // Guardar origen como lectura del chip para el visor HEX
-                        getSharedPreferences(PREFS, MODE_PRIVATE).edit()
-                                .putString(KEY_BIOS_SOURCE, "Leído del chip (" + selectedProgrammer + ")")
-                                .apply();
-                        runOnUiThread(
-                                () -> log("Datos leídos correctamente. Puedes exportar la ROM con 'Guardar ROM'."));
+                        lastReadFile = readFile;
+                        // Guardar para visor HEX y exportación
+                        SharedPreferences.Editor editor = getSharedPreferences(PREFS, MODE_PRIVATE).edit();
+                        editor.putString(KEY_BIOS_SOURCE, "Leído del chip (" + selectedProgrammer + ")");
+                        editor.putString(KEY_LAST_READ_FILE, readFile);
+                        editor.apply();
+                        final String rf = readFile;
+                        runOnUiThread(() -> {
+                            log("Datos leídos en '" + rf + "'. Puedes exportar con 'Guardar ROM'.");
+                            log("Abre 'Ver Memoria HEX' para inspeccionar los datos.");
+                        });
                         break;
                     }
                 }
