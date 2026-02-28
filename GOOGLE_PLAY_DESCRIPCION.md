@@ -1,31 +1,88 @@
 # Descripción para Google Play
 
-## Descripción corta
+## Descripción corta (80 caracteres max)
 
-Herramienta Android para detectar programadores USB y leer, verificar, respaldar o escribir memoria EEPROM/flash con flujo técnico guiado.
+Programador USB de EEPROM/Flash desde Android con soporte profesional flashrom
 
 ## Descripción larga
 
-Flash EEPROM Tool te permite trabajar con chips de memoria desde Android usando un flujo práctico para laboratorio y reparación electrónica.
+🔧 **Flash EEPROM Tool** es la herramienta profesional para Android que te permite programar, respaldar y verificar chips de memoria flash y EEPROM directamente desde tu dispositivo móvil.
 
-Conecta tu programador por USB OTG, detecta el dispositivo, selecciona el modo de trabajo y ejecuta tareas de lectura, verificación, respaldo y escritura del archivo de firmware.
+Convierte tu smartphone o tablet Android en una estación de trabajo portátil para reparación, desarrollo y mantenimiento de firmware. Ideal para técnicos electrónicos, desarrolladores embedded, entusiastas de hardware y profesionales de reparación.
 
-### Qué puedes hacer
+### ⚡ Características principales
 
-- Detectar y conectar dispositivos USB compatibles.
-- Seleccionar programadores soportados por la versión integrada.
-- Identificar chip y revisar salida técnica en consola.
-- Leer y guardar respaldo (`backup`) de la memoria.
-- Importar un archivo binario para escribirlo en el chip.
-- Verificar contenido del chip contra un archivo.
-- Ejecutar comandos manuales para diagnóstico avanzado.
+✅ **Detección automática de programadores USB**
+   - Conexión OTG plug-and-play
+   - Selector inteligente cuando múltiples dispositivos están conectados
+   - Soporte nativo para más de 30 programadores
 
-### Dispositivos/programadores soportados por esta versión
+✅ **Operaciones completas de memoria**
+   - 📖 Lectura y respaldo automático (backup)
+   - ✏️ Escritura de firmware con verificación
+   - 🔍 Verificación contra archivo de referencia
+   - 🆔 Identificación automática de chip
 
-asm106x, atavia, buspirate_spi, ch341a_spi, ch347_spi, dediprog, developerbox_spi, digilent_spi, dirtyjtag_spi, drkaiser, dummy, ft2232_spi, gfxnvidia, internal, it8212, jlink_spi, linux_mtd, linux_spi, parade_lspcon, mediatek_i2c_spi, mstarddc_spi, nicintel, nicintel_eeprom, nicintel_spi, nv_sma_spi, ogp_spi, pickit2_spi, pony_spi, raiden_debug_spi, realtek_mst_i2c_spi, satasii, serprog, spidriver, stlinkv3_spi y usbblaster_spi.
+✅ **Interfaz técnica profesional**
+   - Consola de salida en tiempo real
+   - Modo comando manual para diagnóstico avanzado
+   - Importar/exportar archivos binarios vía SAF
+   - Selector de programador con presets y modo manual
 
-### No soportados en esta plataforma/build
+✅ **Motor flashrom nativo ARM64**
+   - Compilado nativamente para máximo rendimiento
+   - Integración completa con libusb parcheado para Android
+   - Soporte de buses SPI e I2C
 
-atahpt, atapromise, ni845x_spi, nic3com, nicnatsemi, nicrealtek, rayer_spi y satamv.
+### 🔌 Programadores soportados
 
-La aplicación está enfocada en usuarios técnicos y entusiastas que necesitan una herramienta portátil para diagnóstico y mantenimiento de firmware desde el teléfono.
+**Interfaces SPI:** ch341a_spi, ch347_spi, ft2232_spi, buspirate_spi, serprog, dediprog, digilent_spi, dirtyjtag_spi, jlink_spi, linux_spi, pickit2_spi, raiden_debug_spi, spidriver, stlinkv3_spi, usbblaster_spi
+
+**Interfaces I2C:** mediatek_i2c_spi, mstarddc_spi, realtek_mst_i2c_spi
+
+**Hardware especializado:** asm106x, atavia, developerbox_spi, drkaiser, gfxnvidia, internal, it8212, linux_mtd, nicintel, nicintel_eeprom, nicintel_spi, nv_sma_spi, ogp_spi, parade_lspcon, pony_spi, satasii
+
+**Modo testing:** dummy (simulación sin hardware)
+
+### 📋 Requisitos
+
+- Android 6.0 o superior (API 23-36)
+- Dispositivo ARM64 (arm64-v8a)
+- Cable USB OTG
+- Programador compatible con flashrom
+
+### 🎯 Casos de uso
+
+- Respaldo y restauración de BIOS
+- Programación de chips SPI Flash (W25Q, MX25L, AT25, etc.)
+- Lectura/escritura de EEPROM I2C
+- Desarrollo y testing de firmware
+- Reparación de equipos electrónicos
+- Modificación de firmware en placas base
+- Recuperación de dispositivos brick
+
+### 🔐 Privacidad y seguridad
+
+- Sin permisos invasivos
+- Sin recopilación de datos personales
+- Procesamiento local de todos los archivos
+- Código fuente disponible en GitHub
+- Licencia GNU GPL v3.0
+
+### 📚 Documentación completa
+
+Visita el repositorio oficial para:
+- Guías de compilación
+- Lista completa de dependencias
+- Documentación técnica detallada
+- Ejemplos de uso avanzado
+
+### ⚠️ Advertencia técnica
+
+Esta aplicación está diseñada para usuarios con conocimientos técnicos en electrónica y firmware. El mal uso puede resultar en daño permanente al hardware. Siempre realiza respaldos antes de escribir.
+
+---
+
+**Desarrollador:** Daniel Diamon  
+**Licencia:** GNU GPL v3.0  
+**Soporte:** danielpdiamon@gmail.com
