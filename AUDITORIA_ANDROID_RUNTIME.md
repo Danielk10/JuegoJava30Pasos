@@ -35,10 +35,20 @@
 - ANDROID_USB_FD en get_device_list: OK
 - libusb_wrap_sys_device en libusb_open: OK
 
-
 ## Flujo USB en Java/UI
 
 - Enumeración USB con `UsbManager.getDeviceList()`: OK
 - Selector de dispositivo cuando hay múltiples USB conectados: OK
-- Configuración manual de `-p` desde menú (`Configurar programador flashrom`): OK
+- Menú **Agregar dispositivo/programador flashrom (lista)** con programadores soportados: OK
+- Menú **Configurar programador manual (anterior)** (texto libre legacy): OK
+- Campo de comando manual para ejecutar parámetros flashrom y ver salida en consola: OK
+- Comandos manuales sin USB conectado (ej. `--version`, `-L`, `--help`): OK
 - Ejecución nativa sigue usando `flashrom -p <valor_usuario>`: OK
+
+## Programadores soportados por esta build (según logs)
+
+asm106x, atavia, buspirate_spi, ch341a_spi, ch347_spi, dediprog, developerbox_spi, digilent_spi, dirtyjtag_spi, drkaiser, dummy, ft2232_spi, gfxnvidia, internal, it8212, jlink_spi, linux_mtd, linux_spi, parade_lspcon, mediatek_i2c_spi, mstarddc_spi, nicintel, nicintel_eeprom, nicintel_spi, nv_sma_spi, ogp_spi, pickit2_spi, pony_spi, raiden_debug_spi, realtek_mst_i2c_spi, satasii, serprog, spidriver, stlinkv3_spi, usbblaster_spi.
+
+## Programadores no soportados en esta plataforma
+
+atahpt, atapromise, ni845x_spi, nic3com, nicnatsemi, nicrealtek, rayer_spi, satamv.

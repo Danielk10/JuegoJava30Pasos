@@ -1,3 +1,12 @@
+
+## Estado documental actual
+
+- README actualizado con programadores soportados/no soportados según logs de build.
+- Auditoría UI actualizada con selector por lista, modo manual legacy y comando manual en UI principal.
+- Guía de integración manual de 9 binarios disponible en `GUIA_INTEGRACION_BINARIOS.md` (sin borrado de binarios en PR).
+
+---
+
 # Matriz de Runtime (data → assets/jniLibs → files/usr)
 
 Esta matriz documenta **qué archivo base existe en `data/.../usr`**, si viene en assets, si se resuelve por `jniLibs`, y la estrategia final en runtime (`/data/user/0/com.diamon.curso/files/usr`).

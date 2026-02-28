@@ -31,7 +31,7 @@ public class PolicyActivity extends AppCompatActivity {
 
         webView.setWebViewClient(new WebViewClient());
         // URL base de PTC
-        webView.loadUrl("https://cpiccompiler.blogspot.com/");
+        webView.loadUrl("https://flasheepromtool.blogspot.com/");
     }
 
     @Override

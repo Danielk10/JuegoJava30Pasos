@@ -122,7 +122,58 @@ Con esto, flashrom/libusb usan el descriptor otorgado por Android en Java, evita
 
 La app está orientada a trabajar con el ecosistema soportado por flashrom (programadores/chips según build y drivers disponibles), incluyendo flujos SPI/I2C cuando el hardware/driver de flashrom lo soporte.
 
-La detección USB en Java usa la API nativa de Android (`UsbManager`) y permite elegir dispositivo cuando hay más de uno conectado. Además, desde el menú se puede cambiar el valor de programador `-p` para cualquier backend soportado por flashrom.
+La detección USB en Java usa la API nativa de Android (`UsbManager`) y permite elegir dispositivo cuando hay más de uno conectado. Además, desde el menú se puede configurar el valor de programador `-p` con dos modos: lista de soportados y modo manual legacy (texto libre). También existe una caja de comando manual en la UI principal para ejecutar parámetros directos de flashrom y ver resultados en el log.
+
+### Programadores soportados por esta build (logs Meson/flashrom)
+
+- asm106x
+- atavia
+- buspirate_spi
+- ch341a_spi
+- ch347_spi
+- dediprog
+- developerbox_spi
+- digilent_spi
+- dirtyjtag_spi
+- drkaiser
+- dummy
+- ft2232_spi
+- gfxnvidia
+- internal
+- it8212
+- jlink_spi
+- linux_mtd
+- linux_spi
+- parade_lspcon
+- mediatek_i2c_spi
+- mstarddc_spi
+- nicintel
+- nicintel_eeprom
+- nicintel_spi
+- nv_sma_spi
+- ogp_spi
+- pickit2_spi
+- pony_spi
+- raiden_debug_spi
+- realtek_mst_i2c_spi
+- satasii
+- serprog
+- spidriver
+- stlinkv3_spi
+- usbblaster_spi
+
+### Programadores no soportados en la plataforma reportada
+
+- atahpt
+- atapromise
+- ni845x_spi
+- nic3com
+- nicnatsemi
+- nicrealtek
+- rayer_spi
+- satamv
+
+> Nota: la app no bloquea programadores manuales. Si un comando falla, comparte el log para depuración.
 
 Flujo recomendado:
 
@@ -155,15 +206,16 @@ bash ./setup-sdk.sh
 ## 8) Uso básico de la app
 
 1. Conecta el programador USB OTG.
-2. Pulsa **Conectar Programador**, elige dispositivo si aparece el selector, y concede permiso.
-3. Usa:
-   - **Probar Conexión** (`flashrom -p <programador>`)
-   - **Leer EEPROM** (`-r bios.bin`)
-   - **Verificar BIOS** (`-v bios.bin`)
-   - **Escribir EEPROM** (`-w bios.bin`)
-4. Importa/exporta `bios.bin` desde/hacia almacenamiento usando SAF.
+2. Pulsa **Detectar y Conectar Automáticamente**, elige dispositivo si aparece el selector, y concede permiso.
+3. Usa los botones principales:
+   - **Identificar Chip** (`flashrom -p <programador>`)
+   - **Leer (Backup)** (`-r bios.bin`)
+   - **Verificar ROM** (`-v bios.bin`)
+   - **Flashear (bios.bin)** (`-w bios.bin`)
+4. Si necesitas diagnóstico avanzado, usa **Comando flashrom manual** (ej. `--version`, `-L`, `--help`, o parámetros `-p` completos).
+5. Importa/exporta `bios.bin` desde/hacia almacenamiento usando SAF.
 
-El panel de log muestra salida nativa real con prefijo `[native]` y estados de entorno/rutas.
+El panel de log muestra salida nativa real con prefijo `[native]`, comandos solicitados y estados de entorno/rutas.
 
 ---
 
@@ -226,3 +278,11 @@ Para auditoría completa archivo-por-archivo (data vs assets vs jniLibs vs estra
 En la práctica, esto garantiza que el binario siempre busque en el runtime interno con la ruta esperada, no en assets.
 
 ---
+
+
+## 13) Publicación y cumplimiento
+
+- Política pública (link en app): https://flasheepromtool.blogspot.com/
+- Política HTML para revisión/hosting: `POLITICA_PRIVACIDAD.html`
+- Descripción de tienda: `GOOGLE_PLAY_DESCRIPCION.md`
+- Guía de integración manual de binarios: `GUIA_INTEGRACION_BINARIOS.md`
