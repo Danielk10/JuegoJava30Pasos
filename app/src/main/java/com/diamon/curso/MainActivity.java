@@ -690,6 +690,12 @@ public class MainActivity extends AppCompatActivity {
                 return Integer.compare(a.getDeviceId(), b.getDeviceId());
             }
         });
+
+        // Ningún dispositivo fue auto-detectado — avisar pero no bloquear
+        log("[AVISO] Ningún dispositivo USB reconocido automáticamente como programador flashrom.");
+        log("Dispositivos conocidos: CH341A, FT2232, Bus Pirate, Dediprog, ST-LINK, etc.");
+        log("Puedes intentar conectarte manualmente — flashrom reportará si es compatible.");
+
         if (candidates.size() == 1) {
             requestUsbPermission(candidates.get(0));
             return;
@@ -747,13 +753,26 @@ public class MainActivity extends AppCompatActivity {
         }
 
         currentFd = currentConnection.getFileDescriptor();
-        tvStatus.setText("Status: " + device.getProductName() + " Conectado");
+        String deviceName = device.getProductName() == null ? "Dispositivo USB" : device.getProductName();
+        String vidPid = String.format(Locale.US, "%04x:%04x", device.getVendorId(), device.getProductId());
+
+        tvStatus.setText("Status: " + deviceName + " Conectado");
         log("¡Permiso otorgado! Token interno de USB: " + currentFd);
-        log("Conectado a USB VID:PID "
-                + String.format(Locale.US, "%04x:%04x", device.getVendorId(), device.getProductId())
-                + " | DeviceId: " + device.getDeviceId());
-        log("Detección automática: dispositivo marcado como potencialmente compatible con flashrom en esta versión.");
-        log("No se bloquea ningún programador desde la app. Si hay fallos, comparte el comando y el log para depuración.");
+        log("Conectado a USB VID:PID " + vidPid + " | DeviceId: " + device.getDeviceId());
+
+        // Verificar si es un dispositivo reconocido
+        boolean isRecognized = USB_AUTO_MAP.containsKey(vidPid);
+        if (isRecognized) {
+            String autoProg = USB_AUTO_MAP.get(vidPid);
+            log("[OK] Dispositivo reconocido: " + deviceName + " → programador '" + autoProg + "'");
+        } else {
+            log("════════════════════════════════════════");
+            log("[AVISO] Dispositivo NO reconocido como programador flashrom.");
+            log("VID:PID " + vidPid + " (" + deviceName + ") no está en la lista de dispositivos compatibles.");
+            log("Esto NO significa que no funcione — puedes intentar con los botones o la consola.");
+            log("Si falla, cambia el programador en 'Ajustes de Programador' o reporta el VID:PID.");
+            log("════════════════════════════════════════");
+        }
 
         btnProbe.setEnabled(true);
         btnVerify.setEnabled(true);
@@ -761,8 +780,8 @@ public class MainActivity extends AppCompatActivity {
         btnWrite.setEnabled(true);
 
         if (selectedProgrammer == null || selectedProgrammer.trim().isEmpty()) {
-            log("[AVISO] El dispositivo no se reconoció automáticamente. Se intentará con 'ch341a_spi' por defecto, pero si falla, por favor cámbialo en 'Ajustes de Programador'.");
             selectedProgrammer = "ch341a_spi";
+            log("Programador no configurado — usando 'ch341a_spi' por defecto. Cámbialo en 'Ajustes de Programador' si es necesario.");
         }
         log("Programador flashrom activo: " + selectedProgrammer);
     }
