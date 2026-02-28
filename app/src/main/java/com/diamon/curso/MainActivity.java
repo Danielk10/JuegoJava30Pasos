@@ -54,6 +54,10 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import com.microsoft.appcenter.AppCenter;
+import com.microsoft.appcenter.analytics.Analytics;
+import com.microsoft.appcenter.crashes.Crashes;
+
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "FlashromApp";
@@ -279,6 +283,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        AppCenter.start(
+                getApplication(),
+                "cf7ac082-49cd-4cef-bd2d-3f1a3377efa9",
+                Analytics.class,
+                Crashes.class);
 
         layoutLoading = findViewById(R.id.layoutLoading);
         layoutMainUI = findViewById(R.id.layoutMainUI);

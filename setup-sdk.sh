@@ -32,7 +32,7 @@ sdkmanager --sdk_root="${ANDROID_SDK_ROOT}" \
   "platforms;android-36" \
   "build-tools;36.0.0" \
   "cmake;3.22.1" \
-  "ndk;28.2.13676358"
+  "ndk;29.0.13599879"
 
 printf 'sdk.dir=%s\n' "${ANDROID_SDK_ROOT}" > "${PROJECT_ROOT}/local.properties"
 chmod +x "${PROJECT_ROOT}/gradlew"
