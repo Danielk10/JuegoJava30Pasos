@@ -204,13 +204,25 @@ public class AssetHelper {
 
     public static boolean areAssetsExtracted(Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        if (prefs.getBoolean(KEY_EXTRACTED, false)) {
-            return true;
+        boolean flagged = prefs.getBoolean(KEY_EXTRACTED, false);
+
+        // Verificamos de forma dura que la estructura fundamental exista.
+        // Android Auto-Backup puede restaurar SharedPreferences sin restaurar los
+        // archivos crudos (getFilesDir).
+        File shareDir = new File(context.getFilesDir(), "usr/share");
+        boolean shareExists = shareDir.exists() && shareDir.isDirectory();
+
+        if (flagged && shareExists) {
+            // Un check suave de que hay archivos extraídos internamente
+            String[] list = shareDir.list();
+            if (list != null && list.length > 0) {
+                return true; // OK!
+            }
         }
 
-        // Fallback por si acaso: revisión manual antigua
-        File shareDir = new File(context.getFilesDir(), "usr/share");
-        return shareDir.exists() && shareDir.isDirectory() && shareDir.list() != null && shareDir.list().length > 0;
+        Log.w(TAG,
+                "areAssetsExtracted: Hubo una inconsistencia de caché (posible reinstalación). Forzando re-extracción.");
+        return false;
     }
 
     private static boolean copyCriticalPciIds(AssetManager assetManager, String runtimeRoot, File target) {
