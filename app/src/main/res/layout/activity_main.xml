@@ -143,6 +143,21 @@
                 android:text="Guardar ROM leída" />
         </LinearLayout>
 
+        <EditText
+            android:id="@+id/etCustomCommand"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Comando flashrom manual (ej: --version o -p ch341a_spi -L)"
+            android:inputType="text"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnRunCustomCommand"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Ejecutar comando manual"
+            android:layout_marginBottom="12dp" />
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

@@ -22,8 +22,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -57,6 +59,43 @@ public class MainActivity extends AppCompatActivity {
     private static final String ACTION_USB_PERMISSION = "com.diamon.curso.USB_PERMISSION";
     private static final String PREFS = "flashrom_prefs";
     private static final String KEY_PROGRAMMER = "selected_programmer";
+    private static final String[] SUPPORTED_PROGRAMMERS = {
+            "asm106x",
+            "atavia",
+            "buspirate_spi",
+            "ch341a_spi",
+            "ch347_spi",
+            "dediprog",
+            "developerbox_spi",
+            "digilent_spi",
+            "dirtyjtag_spi",
+            "drkaiser",
+            "dummy",
+            "ft2232_spi",
+            "gfxnvidia",
+            "internal",
+            "it8212",
+            "jlink_spi",
+            "linux_mtd",
+            "linux_spi",
+            "parade_lspcon",
+            "mediatek_i2c_spi",
+            "mstarddc_spi",
+            "nicintel",
+            "nicintel_eeprom",
+            "nicintel_spi",
+            "nv_sma_spi",
+            "ogp_spi",
+            "pickit2_spi",
+            "pony_spi",
+            "raiden_debug_spi",
+            "realtek_mst_i2c_spi",
+            "satasii",
+            "serprog",
+            "spidriver",
+            "stlinkv3_spi",
+            "usbblaster_spi"
+    };
 
     private UsbManager usbManager;
     private UsbDeviceConnection currentConnection;
@@ -67,6 +106,8 @@ public class MainActivity extends AppCompatActivity {
     private ScrollView scrollLog;
     private TextView tvStatus, tvLog, tvLoadingText;
     private Button btnConnect, btnProbe, btnVerify, btnRead, btnWrite, btnImport, btnExport;
+    private Button btnRunCustomCommand;
+    private EditText etCustomCommand;
 
     private ExecutorService executor = Executors.newSingleThreadExecutor();
     private String selectedProgrammer = "ch341a_spi";
@@ -141,6 +182,8 @@ public class MainActivity extends AppCompatActivity {
         btnWrite = findViewById(R.id.btnWrite);
         btnImport = findViewById(R.id.btnImport);
         btnExport = findViewById(R.id.btnExport);
+        btnRunCustomCommand = findViewById(R.id.btnRunCustomCommand);
+        etCustomCommand = findViewById(R.id.etCustomCommand);
 
         usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
         selectedProgrammer = getSharedPreferences(PREFS, MODE_PRIVATE).getString(KEY_PROGRAMMER, "ch341a_spi");
@@ -213,6 +256,15 @@ public class MainActivity extends AppCompatActivity {
             intent.addCategory(Intent.CATEGORY_OPENABLE);
             intent.setType("*/*");
             fileOpenLauncher.launch(intent);
+        });
+
+        btnRunCustomCommand.setOnClickListener(v -> {
+            String rawCommand = etCustomCommand.getText() == null ? "" : etCustomCommand.getText().toString().trim();
+            if (rawCommand.isEmpty()) {
+                log("Escribe un comando para ejecutar. Ej: --version o -p ch341a_spi -r bios.bin");
+                return;
+            }
+            executeCustomFlashromCommand(rawCommand);
         });
     }
 
@@ -327,6 +379,8 @@ public class MainActivity extends AppCompatActivity {
         log("¡Permiso otorgado! Token interno de USB: " + currentFd);
         log("Conectado a USB VID:PID " + String.format(Locale.US, "%04x:%04x", device.getVendorId(), device.getProductId())
                 + " | DeviceId: " + device.getDeviceId());
+        log("Detección automática: dispositivo marcado como potencialmente compatible con flashrom en esta versión.");
+        log("No se bloquea ningún programador desde la app. Si hay fallos, comparte el comando y el log para depuración.");
 
         btnProbe.setEnabled(true);
         btnVerify.setEnabled(true);
@@ -348,17 +402,63 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showProgrammerDialog(Runnable action) {
-        android.widget.EditText input = new android.widget.EditText(this);
+        List<String> options = new ArrayList<>();
+        Collections.addAll(options, SUPPORTED_PROGRAMMERS);
+        options.add("Personalizado...");
+
+        LinearLayout container = new LinearLayout(this);
+        container.setOrientation(LinearLayout.VERTICAL);
+        int padding = (int) (20 * getResources().getDisplayMetrics().density);
+        container.setPadding(padding, padding, padding, 0);
+
+        Spinner spinner = new Spinner(this);
+        android.widget.ArrayAdapter<String> adapter = new android.widget.ArrayAdapter<>(
+                this,
+                android.R.layout.simple_spinner_dropdown_item,
+                options
+        );
+        spinner.setAdapter(adapter);
+
+        EditText input = new EditText(this);
         input.setInputType(InputType.TYPE_CLASS_TEXT);
-        input.setHint("Ej: ch341a_spi, ft2232_spi:type=2232H, serprog:dev=/dev/ttyUSB0");
+        input.setHint("Ej: ft2232_spi:type=2232H o serprog:dev=/dev/ttyUSB0");
         input.setText(selectedProgrammer == null ? "ch341a_spi" : selectedProgrammer);
+        input.setVisibility(View.GONE);
+
+        int currentIndex = options.indexOf(selectedProgrammer);
+        if (currentIndex >= 0) {
+            spinner.setSelection(currentIndex);
+        } else {
+            spinner.setSelection(options.size() - 1);
+            input.setVisibility(View.VISIBLE);
+        }
+
+        spinner.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
+                boolean custom = position == options.size() - 1;
+                input.setVisibility(custom ? View.VISIBLE : View.GONE);
+            }
+
+            @Override
+            public void onNothingSelected(android.widget.AdapterView<?> parent) {
+                input.setVisibility(View.GONE);
+            }
+        });
+
+        container.addView(spinner);
+        container.addView(input);
 
         new android.app.AlertDialog.Builder(this)
                 .setTitle("Programador flashrom")
-                .setMessage("Ingresa el parámetro de programador para -p (compatible con todos los drivers soportados por flashrom).")
-                .setView(input)
+                .setMessage("Selecciona un programador soportado por esta build de flashrom o usa valor personalizado para depurar.")
+                .setView(container)
                 .setPositiveButton("Guardar", (dialog, which) -> {
-                    String value = input.getText() == null ? "" : input.getText().toString().trim();
+                    String selected = options.get(spinner.getSelectedItemPosition());
+                    String value = selected;
+                    if ("Personalizado...".equals(selected)) {
+                        value = input.getText() == null ? "" : input.getText().toString().trim();
+                    }
                     if (value.isEmpty()) {
                         value = "ch341a_spi";
                     }
@@ -371,6 +471,55 @@ public class MainActivity extends AppCompatActivity {
                 })
                 .setNegativeButton("Cancelar", null)
                 .show();
+    }
+
+    private void showLegacyProgrammerDialog(Runnable action) {
+        EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        input.setHint("Ej: ch341a_spi, ft2232_spi:type=2232H, serprog:dev=/dev/ttyUSB0");
+        input.setText(selectedProgrammer == null ? "ch341a_spi" : selectedProgrammer);
+
+        new android.app.AlertDialog.Builder(this)
+                .setTitle("Programador flashrom (modo manual anterior)")
+                .setMessage("Ingresa manualmente el parámetro de programador para -p.")
+                .setView(input)
+                .setPositiveButton("Guardar", (dialog, which) -> {
+                    String value = input.getText() == null ? "" : input.getText().toString().trim();
+                    if (value.isEmpty()) {
+                        value = "ch341a_spi";
+                    }
+                    selectedProgrammer = value;
+                    getSharedPreferences(PREFS, MODE_PRIVATE).edit().putString(KEY_PROGRAMMER, value).apply();
+                    log("Programador flashrom actualizado (manual): " + selectedProgrammer);
+                    if (action != null) {
+                        action.run();
+                    }
+                })
+                .setNegativeButton("Cancelar", null)
+                .show();
+    }
+
+    private void executeCustomFlashromCommand(String rawCommand) {
+        File preferredFlashromBin = new File(getFilesDir(), "usr/sbin/flashrom");
+        if (!preferredFlashromBin.exists()) {
+            log("[WARN] flashrom en files/usr/sbin no encontrado; usando fallback jniLibs.");
+            preferredFlashromBin = new File(getApplicationInfo().nativeLibraryDir, "libflashrom_bin.so");
+        }
+        if (!preferredFlashromBin.exists()) {
+            log("Fallo crítico: Binario 'flashrom' no existe. (" + preferredFlashromBin.getAbsolutePath() + ")");
+            return;
+        }
+        String[] args = rawCommand.split("\\s+");
+        log("Comando manual solicitado: flashrom " + rawCommand);
+        if (currentFd < 0) {
+            log("Ejecutando sin USB conectado: útil para comandos como --version, -L o --help.");
+        }
+        setButtonsEnabled(false);
+        final File flashromBin = preferredFlashromBin;
+        executor.execute(() -> {
+            runFlashromProcess(flashromBin, args);
+            runOnUiThread(() -> setButtonsEnabled(true));
+        });
     }
 
     private void executeFlashromTask(String... args) {
@@ -419,7 +568,11 @@ public class MainActivity extends AppCompatActivity {
 
             // Inyectando entorno para las librerías fake_root
             Map<String, String> env = pb.environment();
-            env.put("ANDROID_USB_FD", String.valueOf(currentFd));
+            if (currentFd >= 0) {
+                env.put("ANDROID_USB_FD", String.valueOf(currentFd));
+            } else {
+                env.remove("ANDROID_USB_FD");
+            }
 
             // Recrear las variables de entorno de PTC que incluyen la ruta PATH necesaria
             // si fuesemos a usar otras libs anidadas
@@ -428,7 +581,7 @@ public class MainActivity extends AppCompatActivity {
             env.put("LD_LIBRARY_PATH", jniLibs + ":" + new File(getFilesDir(), "usr/lib").getAbsolutePath());
             env.put("PATH", jniLibs + (fallbackPath != null ? ":" + fallbackPath : ""));
 
-            log("Entorno flashrom => ANDROID_USB_FD=" + currentFd);
+            log("Entorno flashrom => ANDROID_USB_FD=" + (currentFd >= 0 ? currentFd : "NO DEFINIDO"));
             log("Entorno flashrom => LD_LIBRARY_PATH=" + env.get("LD_LIBRARY_PATH"));
             log("Entorno flashrom => PATH=" + env.get("PATH"));
 
@@ -571,6 +724,8 @@ public class MainActivity extends AppCompatActivity {
         btnConnect.setEnabled(enabled);
         btnImport.setEnabled(enabled);
         btnExport.setEnabled(enabled);
+        btnRunCustomCommand.setEnabled(enabled);
+        etCustomCommand.setEnabled(enabled);
     }
 
     @Override
@@ -588,6 +743,9 @@ public class MainActivity extends AppCompatActivity {
             return true;
         } else if (id == R.id.action_programmer) {
             showProgrammerDialog(null);
+            return true;
+        } else if (id == R.id.action_programmer_manual) {
+            showLegacyProgrammerDialog(null);
             return true;
         } else if (id == R.id.action_clear_logs) {
             tvLog.setText("--- Log ---");
@@ -620,7 +778,8 @@ public class MainActivity extends AppCompatActivity {
                 + "• <a href='https://github.com/pciutils/pciutils'>pciutils</a> (GPL-2.0+)<br/>"
                 + "• <a href='https://developer.intra2net.com/git/libftdi'>libftdi</a> (LGPL-2.1+)<br/>"
                 + "• <a href='https://gitlab.zapb.de/libjaylink/libjaylink'>libjaylink</a> (GPL-2.0+)<br/>"
-                + "• <a href='https://github.com/flashrom/flashrom'>flashrom</a> (GPL-2.0+)";
+                + "• <a href='https://github.com/flashrom/flashrom'>flashrom</a> (GPL-2.0+)<br/>"
+                + "• <a href='https://github.com/mik3y/usb-serial-for-android'>usb-serial-for-android</a> (MIT)";
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             aboutText.setText(Html.fromHtml(aboutHtml, Html.FROM_HTML_MODE_LEGACY));
         } else {

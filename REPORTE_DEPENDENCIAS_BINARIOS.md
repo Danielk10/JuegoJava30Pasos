@@ -2,7 +2,7 @@
 
 Este reporte de `DT_NEEDED` se complementa con:
 
-- `MATRIZ_RUNTIME.mdo` (mapeo archivo por archivo a estrategia runtime)
+- `MATRIZ_RUNTIME.md` (mapeo archivo por archivo a estrategia runtime)
 - `AUDITORIA_ANDROID_RUNTIME.md` (checklist operativo)
 
 ## Resumen de dependencias críticas
