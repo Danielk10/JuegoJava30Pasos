@@ -311,6 +311,13 @@ public class MainActivity extends AppCompatActivity {
 
         usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
         selectedProgrammer = getSharedPreferences(PREFS, MODE_PRIVATE).getString(KEY_PROGRAMMER, "ch341a_spi");
+        // Si el programador es dummy, habilitar botones sin necesidad de USB
+        if (isDummyProgrammer()) {
+            btnProbe.setEnabled(true);
+            btnVerify.setEnabled(true);
+            btnRead.setEnabled(true);
+            btnWrite.setEnabled(true);
+        }
         setupLogCopySupport();
 
         mostrarPublicidad = new MostrarPublicidad(this);
@@ -401,13 +408,43 @@ public class MainActivity extends AppCompatActivity {
         // Listener setup para todos los botones
         btnConnect.setOnClickListener(v -> searchAndRequestProgrammer());
 
-        btnProbe.setOnClickListener(v -> ensureProgrammerThenRun(() -> executeFlashromTask("-p", selectedProgrammer)));
+        btnProbe.setOnClickListener(v -> ensureProgrammerThenRun(() -> {
+            if (isDummyProgrammer()) {
+                showDummyTestDialog();
+            } else {
+                executeFlashromTask("-p", selectedProgrammer);
+            }
+        }));
         btnVerify.setOnClickListener(
-                v -> ensureProgrammerThenRun(() -> executeFlashromTask("-p", selectedProgrammer, "-v", "bios.bin")));
+                v -> ensureProgrammerThenRun(() -> {
+                    if (isDummyProgrammer()) {
+                        ensureDummyTestFile(16777216);
+                        executeCustomFlashromCommand(
+                                "-p dummy:emulate=VARIABLE_SIZE,size=16777216,image=bios_test.bin -v bios_test.bin");
+                    } else {
+                        executeFlashromTask("-p", selectedProgrammer, "-v", "bios.bin");
+                    }
+                }));
         btnRead.setOnClickListener(
-                v -> ensureProgrammerThenRun(() -> executeFlashromTask("-p", selectedProgrammer, "-r", "bios.bin")));
+                v -> ensureProgrammerThenRun(() -> {
+                    if (isDummyProgrammer()) {
+                        ensureDummyTestFile(16777216);
+                        executeCustomFlashromCommand(
+                                "-p dummy:emulate=VARIABLE_SIZE,size=16777216,image=bios_test.bin -r read_test.bin");
+                    } else {
+                        executeFlashromTask("-p", selectedProgrammer, "-r", "bios.bin");
+                    }
+                }));
         btnWrite.setOnClickListener(
-                v -> ensureProgrammerThenRun(() -> executeFlashromTask("-p", selectedProgrammer, "-w", "bios.bin")));
+                v -> ensureProgrammerThenRun(() -> {
+                    if (isDummyProgrammer()) {
+                        ensureDummyTestFile(16777216);
+                        executeCustomFlashromCommand(
+                                "-p dummy:emulate=VARIABLE_SIZE,size=16777216,image=bios_test.bin -w bios_test.bin -v");
+                    } else {
+                        executeFlashromTask("-p", selectedProgrammer, "-w", "bios.bin");
+                    }
+                }));
 
         btnExport.setOnClickListener(v -> {
             File sourceFile = new File(getFilesDir(), "bios.bin");
@@ -611,9 +648,18 @@ public class MainActivity extends AppCompatActivity {
         log("Programador flashrom activo: " + selectedProgrammer);
     }
 
+    private boolean isDummyProgrammer() {
+        return selectedProgrammer != null && selectedProgrammer.startsWith("dummy");
+    }
+
     private void ensureProgrammerThenRun(Runnable action) {
         if (selectedProgrammer == null || selectedProgrammer.trim().isEmpty()) {
             log("Error: No se ha seleccionado un programador. Por favor, configúralo en los ajustes.");
+            return;
+        }
+        // Dummy no requiere USB conectado
+        if (isDummyProgrammer()) {
+            action.run();
             return;
         }
         action.run();
@@ -632,6 +678,14 @@ public class MainActivity extends AppCompatActivity {
         if (!updatedProgrammer.equals(selectedProgrammer)) {
             selectedProgrammer = updatedProgrammer;
             log("Programador modificado vía Ajustes: " + selectedProgrammer);
+            // Habilitar botones si es dummy (no requiere USB)
+            if (isDummyProgrammer()) {
+                btnProbe.setEnabled(true);
+                btnVerify.setEnabled(true);
+                btnRead.setEnabled(true);
+                btnWrite.setEnabled(true);
+                log("Modo Dummy activo: Los botones están habilitados sin necesidad de USB.");
+            }
         }
     }
 
