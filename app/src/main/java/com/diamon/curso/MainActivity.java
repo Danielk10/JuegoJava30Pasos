@@ -278,6 +278,8 @@ public class MainActivity extends AppCompatActivity {
             mostrarPublicidad.cargarInterstial();
         }
 
+        log("--- Aplicación Iniciada ---");
+
         // Lógica de inicio rápido: verificar si los assets ya están listos y la versión
         // no ha cambiado
         int currentVersion = getVersionCode();
@@ -326,6 +328,7 @@ public class MainActivity extends AppCompatActivity {
                     logRuntimeInfo();
                     logDependencyChecklist();
                 }
+
                 if (!runtimeReady) {
                     log("[WARN] No se pudieron preparar todas las dependencias locales.");
                 } else {
@@ -337,6 +340,10 @@ public class MainActivity extends AppCompatActivity {
                     // Guardar versión actual tras éxito
                     getSharedPreferences(PREFS, MODE_PRIVATE).edit().putInt(KEY_LAST_VERSION, currentVersion).apply();
                 }
+
+                // Forzar actualización inmediata del log tras la carga inicial
+                logHandler.removeCallbacks(logUpdater);
+                logUpdater.run();
             });
         });
 
