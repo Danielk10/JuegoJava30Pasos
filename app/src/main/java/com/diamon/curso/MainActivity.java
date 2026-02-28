@@ -767,18 +767,32 @@ public class MainActivity extends AppCompatActivity {
 
     private void logDependencyChecklist() {
         File nativeDir = new File(getApplicationInfo().nativeLibraryDir);
+        File filesDir = getFilesDir();
+        File usrBin = new File(filesDir, "usr/bin");
+        File usrSbin = new File(filesDir, "usr/sbin");
+        File usrLib = new File(filesDir, "usr/lib");
+
+        log("--- Verificación de Binarios (jniLibs) ---");
         String[] requiredBins = { "libflashrom_bin.so", "libsetpci.so", "libpcilmr.so", "liblspci.so",
                 "libupdate-pciids.so", "libftdi_eeprom.so" };
         for (String name : requiredBins) {
-            log("jniLibs binario " + name + ": " + new File(nativeDir, name).exists());
+            log("jniLibs bin " + name + ": " + new File(nativeDir, name).exists());
         }
+
+        log("--- Verificación de Librerías (jniLibs) ---");
         String[] requiredLibs = { "libusb-1.0.so", "libflashrom.so", "libpci.so", "libftdi1.so", "libjaylink.so",
                 "libcrypto.so.3", "libssl.so.3", "libz.so.1", "libconfuse.so", "libc++_shared.so" };
         for (String name : requiredLibs) {
             String nativeName = findNativeName(nativeDir, name);
-            log("jniLibs librería " + name + ": " + !"NO".equals(nativeName)
-                    + " (archivo: " + nativeName + ")");
+            log("jniLibs lib " + name + ": " + !"NO".equals(nativeName) + " (" + nativeName + ")");
         }
+
+        log("--- Verificación de Enlaces (Runtime) ---");
+        log("Link flashrom: " + new File(usrSbin, "flashrom").exists());
+        log("Link lspci: " + new File(usrBin, "lspci").exists());
+        log("Link libcrypto: " + new File(usrLib, "libcrypto.so.3").exists());
+        log("Link libssl: " + new File(usrLib, "libssl.so.3").exists());
+        log("Link libusb: " + new File(usrLib, "libusb-1.0.so").exists());
     }
 
     private String findNativeName(File nativeDir, String runtimeSoname) {
