@@ -484,11 +484,9 @@ public class MainActivity extends AppCompatActivity {
         if (currentFd < 0) {
             log("Ejecutando sin USB conectado: útil para comandos como --version, -L o --help.");
         }
-        setButtonsEnabled(false);
         final File flashromBin = preferredFlashromBin;
         executor.execute(() -> {
             runFlashromProcess(flashromBin, args);
-            runOnUiThread(() -> setButtonsEnabled(true));
         });
     }
 
@@ -514,13 +512,8 @@ public class MainActivity extends AppCompatActivity {
         log("Directorio de trabajo: " + getFilesDir().getAbsolutePath());
         log("Binario objetivo: " + flashromBin.getAbsolutePath());
 
-        // Deshabilitar botones mientras trabaja para evitar crasheos por hilos
-        // paralelos
-        setButtonsEnabled(false);
-
         executor.execute(() -> {
             runFlashromProcess(flashromBin, args);
-            runOnUiThread(() -> setButtonsEnabled(true));
         });
     }
 

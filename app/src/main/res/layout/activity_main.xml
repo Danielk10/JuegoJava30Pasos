@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#0F111A"
     android:padding="16dp">
 
     <!-- Indicador de Carga Inicial -->
@@ -30,6 +31,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="Preparando dependencias nativas..."
+            android:textColor="#E0E0E0"
             android:textSize="16sp" />
     </LinearLayout>
 
@@ -49,7 +51,8 @@
             android:id="@+id/tvStatus"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="USB Status: Desconectado"
+            android:text="Estado USB: Desconectado"
+            android:textColor="#4CAF50"
             android:textSize="16sp"
             android:textStyle="bold"
             android:layout_marginBottom="12dp" />
@@ -151,17 +154,23 @@
             android:id="@+id/etCustomCommand"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Comando nativo (ej: -p ch341a_spi -L)"
+            android:hint="Añadir params manualmente (Ej: -p ch341a_spi -L)"
             android:inputType="text"
             android:maxLines="1"
             android:ellipsize="end"
+            android:background="#1B1E2B"
+            android:padding="12dp"
+            android:textColorHint="#757575"
+            android:textColor="#4DB6AC"
             android:layout_marginBottom="8dp" />
 
         <Button
             android:id="@+id/btnRunCustomCommand"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Ejecutar comando manual"
+            android:text="Ejecutar Instrucción por Consola"
+            android:backgroundTint="#1976D2"
+            android:textColor="#FFFFFF"
             android:layout_marginBottom="12dp" />
 
         <LinearLayout
@@ -175,6 +184,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Terminal Salida:"
+                android:textColor="#B0BEC5"
                 android:textStyle="bold"
                 android:layout_gravity="center_vertical"/>
             
@@ -194,8 +204,8 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:background="#1E1E1E"
-            android:padding="12dp">
+            android:background="#0A0E17"
+            android:padding="8dp">
 
             <TextView
                 android:id="@+id/tvLog"
