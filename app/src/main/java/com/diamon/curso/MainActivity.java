@@ -314,15 +314,18 @@ public class MainActivity extends AppCompatActivity {
                 layoutLoading.setVisibility(View.GONE);
                 layoutMainUI.setVisibility(View.VISIBLE);
 
-                if (!wasExtracted || !runtimeReady) {
+                boolean isUpdate = (lastVersion != -1 && currentVersion != lastVersion);
+                if (!wasExtracted || isUpdate || !runtimeReady) {
                     if (!wasExtracted) {
                         log("--- Nueva instalación detectada ---");
                         log("Preparando recursos locales en el almacenamiento interno...");
+                    } else if (isUpdate) {
+                        log("--- Actualización detectada (v" + lastVersion + " -> v" + currentVersion + ") ---");
+                        log("Verificando recursos locales para la nueva versión...");
                     }
                     logRuntimeInfo();
                     logDependencyChecklist();
                 }
-
                 if (!runtimeReady) {
                     log("[WARN] No se pudieron preparar todas las dependencias locales.");
                 } else {

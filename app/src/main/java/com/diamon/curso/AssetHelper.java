@@ -29,7 +29,8 @@ public class AssetHelper {
      * todo el árbol;
      * solamente repara archivos críticos faltantes.
      */
-    public static boolean ensureRuntimeReady(Context context) {
+    public static synchronized boolean ensureRuntimeReady(Context context) {
+        long start = System.currentTimeMillis();
         String runtimeRoot = resolveAssetRuntimeRoot(context);
         if (runtimeRoot == null) {
             Log.e(TAG, "No se encontró ruta runtime en assets (data/data/*/files/usr).");
@@ -47,9 +48,10 @@ public class AssetHelper {
             SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
             prefs.edit().putBoolean(KEY_EXTRACTED, true).apply();
 
-            // Tras extracción completa, preferimos enlazar ejecutables/librerías hacia
-            // jniLibs.
-            return ensureNativeToolLinks(context);
+            boolean linked = ensureNativeToolLinks(context);
+            long duration = System.currentTimeMillis() - start;
+            Log.i(TAG, "ensureRuntimeReady (extracción) completado en " + duration + "ms. Resultado: " + linked);
+            return linked;
         }
 
         // Reparación mínima de recursos críticos del runtime compilado (no
@@ -57,9 +59,14 @@ public class AssetHelper {
         AssetManager assetManager = context.getAssets();
         File pciIdsTarget = new File(usrDir, "share/pci.ids.gz");
         if (!pciIdsTarget.exists() && !copyCriticalPciIds(assetManager, runtimeRoot, pciIdsTarget)) {
+            Log.e(TAG, "Fallo al reparar pci.ids.gz");
             return false;
         }
-        return ensureNativeToolLinks(context);
+
+        boolean ok = ensureNativeToolLinks(context);
+        long duration = System.currentTimeMillis() - start;
+        Log.i(TAG, "ensureRuntimeReady (reparación) completado en " + duration + "ms. Resultado: " + ok);
+        return ok;
     }
 
     public static String getResolvedRuntimeRoot(Context context) {
@@ -174,9 +181,14 @@ public class AssetHelper {
             return true;
         }
 
-        // Asegurar que el directorio padre existe
-        if (!destDir.exists() && !destDir.mkdirs()) {
-            Log.e(TAG, "No se pudo crear directorio: " + destDir.getAbsolutePath());
+        // Asegurar que el directorio padre existe de forma robusta
+        if (!destDir.exists()) {
+            if (!destDir.mkdirs() && !destDir.exists()) {
+                Log.e(TAG, "No se pudo crear directorio (y no existe): " + destDir.getAbsolutePath());
+                return false;
+            }
+        } else if (!destDir.isDirectory()) {
+            Log.e(TAG, "Existe un archivo con el mismo nombre que el directorio: " + destDir.getAbsolutePath());
             return false;
         }
 
