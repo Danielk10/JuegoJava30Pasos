@@ -43,7 +43,7 @@
         android:orientation="vertical"
         android:visibility="gone"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/adContainer"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
@@ -100,11 +100,12 @@
             <Button
                 android:id="@+id/btnRead"
                 android:layout_width="0dp"
-                android:layout_height="64dp"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
                 android:layout_weight="1"
                 android:enabled="false"
                 android:backgroundTint="#4CAF50"
-                app:autoSizeTextType="uniform"
+                android:textSize="14sp"
                 android:text="Leer Backup" />
 
             <Space
@@ -114,11 +115,12 @@
             <Button
                 android:id="@+id/btnWrite"
                 android:layout_width="0dp"
-                android:layout_height="64dp"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
                 android:layout_weight="1"
                 android:enabled="false"
                 android:backgroundTint="#F44336"
-                app:autoSizeTextType="uniform"
+                android:textSize="14sp"
                 android:text="Flashear ROM" />
         </LinearLayout>
 
@@ -132,9 +134,10 @@
             <Button
                 android:id="@+id/btnImport"
                 android:layout_width="0dp"
-                android:layout_height="64dp"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
                 android:layout_weight="1"
-                app:autoSizeTextType="uniform"
+                android:textSize="14sp"
                 android:text="Cargar\nROM" />
 
             <Space
@@ -144,9 +147,10 @@
             <Button
                 android:id="@+id/btnExport"
                 android:layout_width="0dp"
-                android:layout_height="64dp"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
                 android:layout_weight="1"
-                app:autoSizeTextType="uniform"
+                android:textSize="14sp"
                 android:text="Guardar ROM\nLeída" />
         </LinearLayout>
 
@@ -221,14 +225,15 @@
 
         </ScrollView>
 
-        <!-- Contenedor del Banner Publicitario -->
-        <FrameLayout
-            android:id="@+id/adContainer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="4dp" />
-
     </LinearLayout>
+
+    <!-- Contenedor del Banner Publicitario (fuera del scroll principal para evitar solapamientos) -->
+    <FrameLayout
+        android:id="@+id/adContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
