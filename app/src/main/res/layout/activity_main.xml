@@ -154,7 +154,7 @@
             android:id="@+id/etCustomCommand"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Añadir params manualmente (Ej: -p ch341a_spi -L)"
+            android:hint="Ej: -p ch341a_spi -L"
             android:inputType="text"
             android:maxLines="1"
             android:ellipsize="end"
@@ -220,6 +220,15 @@
                 android:text="--- Log ---" />
 
         </ScrollView>
+
+        <!-- Contenedor del Banner Publicitario -->
+        <FrameLayout
+            android:id="@+id/adContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="4dp" />
+
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

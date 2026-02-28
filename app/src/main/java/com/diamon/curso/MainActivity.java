@@ -106,6 +106,7 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayout layoutMainUI;
     private ScrollView scrollLog;
     private TextView tvStatus, tvLog, tvLoadingText;
+    private android.widget.FrameLayout adContainer;
     private Button btnConnect, btnProbe, btnVerify, btnRead, btnWrite, btnImport, btnExport;
     private Button btnRunCustomCommand, btnClearLogs;
     private EditText etCustomCommand;
@@ -131,6 +132,17 @@ public class MainActivity extends AppCompatActivity {
 
     private ExecutorService executor = Executors.newSingleThreadExecutor();
     private String selectedProgrammer = "ch341a_spi";
+    private MostrarPublicidad mostrarPublicidad;
+
+    // API para Visor Hexadecimal (Anuncio al regresar)
+    private final ActivityResultLauncher<Intent> hexViewerLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (mostrarPublicidad != null) {
+                    mostrarPublicidad.mostrarInterstitial();
+                    mostrarPublicidad.cargarInterstial(); // Precarga para la próxima vez
+                }
+            });
 
     // API para importar (Cargar archivo de cualquier carpeta)
     private final ActivityResultLauncher<Intent> fileOpenLauncher = registerForActivityResult(
@@ -223,6 +235,14 @@ public class MainActivity extends AppCompatActivity {
         usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
         selectedProgrammer = getSharedPreferences(PREFS, MODE_PRIVATE).getString(KEY_PROGRAMMER, "ch341a_spi");
         setupLogCopySupport();
+
+        mostrarPublicidad = new MostrarPublicidad(this);
+        adContainer = findViewById(R.id.adContainer);
+        if (adContainer != null) {
+            adContainer.addView(mostrarPublicidad.getBanner());
+            mostrarPublicidad.cargarBanner();
+            mostrarPublicidad.cargarInterstial();
+        }
 
         // Ocultar UI y mostrar ProgressBar mientras carga assets
         layoutMainUI.setVisibility(View.GONE);
@@ -463,10 +483,25 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (mostrarPublicidad != null) {
+            mostrarPublicidad.resumenBanner();
+        }
         // Recargar preferencias al volver si hubo cambios (ej: se cambio el chip o se
         // limpiaron terminales)
         SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
-        selectedProgrammer = prefs.getString(KEY_PROGRAMMER, "ch341a_spi");
+        String updatedProgrammer = prefs.getString(KEY_PROGRAMMER, "ch341a_spi");
+        if (!updatedProgrammer.equals(selectedProgrammer)) {
+            selectedProgrammer = updatedProgrammer;
+            log("Programador modificado vía Ajustes: " + selectedProgrammer);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        if (mostrarPublicidad != null) {
+            mostrarPublicidad.pausarBanner();
+        }
+        super.onPause();
     }
 
     private void executeCustomFlashromCommand(String rawCommand) {
@@ -714,7 +749,7 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         if (id == R.id.action_hex_viewer) {
-            startActivity(new Intent(this, HexViewerActivity.class));
+            hexViewerLauncher.launch(new Intent(this, HexViewerActivity.class));
             return true;
         } else if (id == R.id.action_programmer_settings) {
             startActivity(new Intent(this, ProgrammerSettingsActivity.class));
@@ -769,6 +804,9 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        if (mostrarPublicidad != null) {
+            mostrarPublicidad.disposeBanner();
+        }
         super.onDestroy();
         try {
             unregisterReceiver(usbReceiver);
