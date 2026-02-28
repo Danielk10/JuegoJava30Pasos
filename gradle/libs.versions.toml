@@ -8,6 +8,9 @@ material = "1.13.0"
 constraintlayout = "2.2.1"
 usbSerialForAndroid = "3.10.0"
 documentfile = "1.1.0"
+appCenterSdkVersion = "5.0.6"
+playServicesAds = "25.0.0"
+
 
 
 [libraries]
@@ -19,6 +22,9 @@ material = { group = "com.google.android.material", name = "material", version.r
 constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 usb-serial-for1-android = { module = "com.github.mik3y:usb-serial-for-android", version.ref = "usbSerialForAndroid" }
 documentfile = { group = "androidx.documentfile", name = "documentfile", version.ref = "documentfile" }
+play-services-ads = { module = "com.google.android.gms:play-services-ads", version.ref = "playServicesAds" }
+appcenter-analytics = { module = "com.microsoft.appcenter:appcenter-analytics", version.ref = "appCenterSdkVersion" }
+appcenter-crashes = { module = "com.microsoft.appcenter:appcenter-crashes", version.ref = "appCenterSdkVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

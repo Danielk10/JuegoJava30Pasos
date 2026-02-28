@@ -72,6 +72,11 @@ dependencies {
     implementation libs.material
     implementation libs.constraintlayout
     implementation libs.documentfile
+    implementation(libs.usb.serial.for1.android)
+    def appCenterSdkVersion = '5.0.6'
+    implementation libs.appcenter.analytics
+    implementation libs.appcenter.crashes
+    implementation libs.play.services.ads
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
