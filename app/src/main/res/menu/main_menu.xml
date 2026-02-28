@@ -8,13 +8,8 @@
         app:showAsAction="never" />
 
     <item
-        android:id="@+id/action_programmer"
-        android:title="Agregar dispositivo/programador flashrom (lista)"
-        app:showAsAction="never" />
-
-    <item
-        android:id="@+id/action_programmer_manual"
-        android:title="Configurar programador manual (anterior)"
+        android:id="@+id/action_programmer_settings"
+        android:title="Configurar Programador Flashrom"
         app:showAsAction="never" />
 
     <item

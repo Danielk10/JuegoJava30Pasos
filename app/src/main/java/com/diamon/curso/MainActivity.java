@@ -49,6 +49,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Collections;
 import java.util.Comparator;
+import android.content.SharedPreferences;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -233,9 +234,12 @@ public class MainActivity extends AppCompatActivity {
         btnConnect.setOnClickListener(v -> searchAndRequestProgrammer());
 
         btnProbe.setOnClickListener(v -> ensureProgrammerThenRun(() -> executeFlashromTask("-p", selectedProgrammer)));
-        btnVerify.setOnClickListener(v -> ensureProgrammerThenRun(() -> executeFlashromTask("-p", selectedProgrammer, "-v", "bios.bin")));
-        btnRead.setOnClickListener(v -> ensureProgrammerThenRun(() -> executeFlashromTask("-p", selectedProgrammer, "-r", "bios.bin")));
-        btnWrite.setOnClickListener(v -> ensureProgrammerThenRun(() -> executeFlashromTask("-p", selectedProgrammer, "-w", "bios.bin")));
+        btnVerify.setOnClickListener(
+                v -> ensureProgrammerThenRun(() -> executeFlashromTask("-p", selectedProgrammer, "-v", "bios.bin")));
+        btnRead.setOnClickListener(
+                v -> ensureProgrammerThenRun(() -> executeFlashromTask("-p", selectedProgrammer, "-r", "bios.bin")));
+        btnWrite.setOnClickListener(
+                v -> ensureProgrammerThenRun(() -> executeFlashromTask("-p", selectedProgrammer, "-w", "bios.bin")));
 
         btnExport.setOnClickListener(v -> {
             File sourceFile = new File(getFilesDir(), "bios.bin");
@@ -316,9 +320,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public int compare(UsbDevice a, UsbDevice b) {
                 int vid = Integer.compare(a.getVendorId(), b.getVendorId());
-                if (vid != 0) return vid;
+                if (vid != 0)
+                    return vid;
                 int pid = Integer.compare(a.getProductId(), b.getProductId());
-                if (pid != 0) return pid;
+                if (pid != 0)
+                    return pid;
                 return Integer.compare(a.getDeviceId(), b.getDeviceId());
             }
         });
@@ -342,7 +348,8 @@ public class MainActivity extends AppCompatActivity {
     private void requestUsbPermission(UsbDevice device) {
         String deviceName = device.getProductName() == null ? "Dispositivo USB" : device.getProductName();
         log("Dispositivo detectado: " + deviceName + " | Solicitando enlace...");
-        log("VID:PID detectado => " + String.format(Locale.US, "%04x:%04x", device.getVendorId(), device.getProductId()));
+        log("VID:PID detectado => "
+                + String.format(Locale.US, "%04x:%04x", device.getVendorId(), device.getProductId()));
 
         if (usbManager.hasPermission(device)) {
             connectToDevice(device);
@@ -377,7 +384,8 @@ public class MainActivity extends AppCompatActivity {
         currentFd = currentConnection.getFileDescriptor();
         tvStatus.setText("Status: " + device.getProductName() + " Conectado");
         log("¡Permiso otorgado! Token interno de USB: " + currentFd);
-        log("Conectado a USB VID:PID " + String.format(Locale.US, "%04x:%04x", device.getVendorId(), device.getProductId())
+        log("Conectado a USB VID:PID "
+                + String.format(Locale.US, "%04x:%04x", device.getVendorId(), device.getProductId())
                 + " | DeviceId: " + device.getDeviceId());
         log("Detección automática: dispositivo marcado como potencialmente compatible con flashrom en esta versión.");
         log("No se bloquea ningún programador desde la app. Si hay fallos, comparte el comando y el log para depuración.");
@@ -395,108 +403,19 @@ public class MainActivity extends AppCompatActivity {
 
     private void ensureProgrammerThenRun(Runnable action) {
         if (selectedProgrammer == null || selectedProgrammer.trim().isEmpty()) {
-            showProgrammerDialog(action);
+            log("Error: No se ha seleccionado un programador. Por favor, configúralo en los ajustes.");
             return;
         }
         action.run();
     }
 
-    private void showProgrammerDialog(Runnable action) {
-        List<String> options = new ArrayList<>();
-        Collections.addAll(options, SUPPORTED_PROGRAMMERS);
-        options.add("Personalizado...");
-
-        LinearLayout container = new LinearLayout(this);
-        container.setOrientation(LinearLayout.VERTICAL);
-        int padding = (int) (20 * getResources().getDisplayMetrics().density);
-        container.setPadding(padding, padding, padding, 0);
-
-        Spinner spinner = new Spinner(this);
-        android.widget.ArrayAdapter<String> adapter = new android.widget.ArrayAdapter<>(
-                this,
-                android.R.layout.simple_spinner_dropdown_item,
-                options
-        );
-        spinner.setAdapter(adapter);
-
-        EditText input = new EditText(this);
-        input.setInputType(InputType.TYPE_CLASS_TEXT);
-        input.setHint("Ej: ft2232_spi:type=2232H o serprog:dev=/dev/ttyUSB0");
-        input.setText(selectedProgrammer == null ? "ch341a_spi" : selectedProgrammer);
-        input.setVisibility(View.GONE);
-
-        int currentIndex = options.indexOf(selectedProgrammer);
-        if (currentIndex >= 0) {
-            spinner.setSelection(currentIndex);
-        } else {
-            spinner.setSelection(options.size() - 1);
-            input.setVisibility(View.VISIBLE);
-        }
-
-        spinner.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
-                boolean custom = position == options.size() - 1;
-                input.setVisibility(custom ? View.VISIBLE : View.GONE);
-            }
-
-            @Override
-            public void onNothingSelected(android.widget.AdapterView<?> parent) {
-                input.setVisibility(View.GONE);
-            }
-        });
-
-        container.addView(spinner);
-        container.addView(input);
-
-        new android.app.AlertDialog.Builder(this)
-                .setTitle("Programador flashrom")
-                .setMessage("Selecciona un programador soportado por esta build de flashrom o usa valor personalizado para depurar.")
-                .setView(container)
-                .setPositiveButton("Guardar", (dialog, which) -> {
-                    String selected = options.get(spinner.getSelectedItemPosition());
-                    String value = selected;
-                    if ("Personalizado...".equals(selected)) {
-                        value = input.getText() == null ? "" : input.getText().toString().trim();
-                    }
-                    if (value.isEmpty()) {
-                        value = "ch341a_spi";
-                    }
-                    selectedProgrammer = value;
-                    getSharedPreferences(PREFS, MODE_PRIVATE).edit().putString(KEY_PROGRAMMER, value).apply();
-                    log("Programador flashrom actualizado: " + selectedProgrammer);
-                    if (action != null) {
-                        action.run();
-                    }
-                })
-                .setNegativeButton("Cancelar", null)
-                .show();
-    }
-
-    private void showLegacyProgrammerDialog(Runnable action) {
-        EditText input = new EditText(this);
-        input.setInputType(InputType.TYPE_CLASS_TEXT);
-        input.setHint("Ej: ch341a_spi, ft2232_spi:type=2232H, serprog:dev=/dev/ttyUSB0");
-        input.setText(selectedProgrammer == null ? "ch341a_spi" : selectedProgrammer);
-
-        new android.app.AlertDialog.Builder(this)
-                .setTitle("Programador flashrom (modo manual anterior)")
-                .setMessage("Ingresa manualmente el parámetro de programador para -p.")
-                .setView(input)
-                .setPositiveButton("Guardar", (dialog, which) -> {
-                    String value = input.getText() == null ? "" : input.getText().toString().trim();
-                    if (value.isEmpty()) {
-                        value = "ch341a_spi";
-                    }
-                    selectedProgrammer = value;
-                    getSharedPreferences(PREFS, MODE_PRIVATE).edit().putString(KEY_PROGRAMMER, value).apply();
-                    log("Programador flashrom actualizado (manual): " + selectedProgrammer);
-                    if (action != null) {
-                        action.run();
-                    }
-                })
-                .setNegativeButton("Cancelar", null)
-                .show();
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Recargar preferencias al volver si hubo cambios (ej: se cambio el chip o se
+        // limpiaron terminales)
+        SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
+        selectedProgrammer = prefs.getString(KEY_PROGRAMMER, "ch341a_spi");
     }
 
     private void executeCustomFlashromCommand(String rawCommand) {
@@ -618,9 +537,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void appendLogOnUi(String message) {
-        String current = tvLog.getText().toString();
         String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
-        tvLog.setText(current + "\n" + "[" + time + "] " + message);
+        tvLog.append("\n[" + time + "] " + message);
         scrollLog.post(() -> scrollLog.fullScroll(ScrollView.FOCUS_DOWN));
     }
 
@@ -637,16 +555,21 @@ public class MainActivity extends AppCompatActivity {
         tvLog.setOnLongClickListener(v -> {
             String logs = tvLog.getText() == null ? "" : tvLog.getText().toString();
             if (logs.trim().isEmpty()) {
-                android.widget.Toast.makeText(this, "No hay texto en el log para copiar.", android.widget.Toast.LENGTH_SHORT).show();
+                android.widget.Toast
+                        .makeText(this, "No hay texto en el log para copiar.", android.widget.Toast.LENGTH_SHORT)
+                        .show();
                 return true;
             }
             ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
             if (clipboard == null) {
-                android.widget.Toast.makeText(this, "No se pudo acceder al portapapeles.", android.widget.Toast.LENGTH_SHORT).show();
+                android.widget.Toast
+                        .makeText(this, "No se pudo acceder al portapapeles.", android.widget.Toast.LENGTH_SHORT)
+                        .show();
                 return true;
             }
             clipboard.setPrimaryClip(ClipData.newPlainText("flash_eeprom_tool_logs", logs));
-            android.widget.Toast.makeText(this, "Logs copiados al portapapeles.", android.widget.Toast.LENGTH_SHORT).show();
+            android.widget.Toast.makeText(this, "Logs copiados al portapapeles.", android.widget.Toast.LENGTH_SHORT)
+                    .show();
             return true;
         });
     }
@@ -674,11 +597,13 @@ public class MainActivity extends AppCompatActivity {
 
     private void logDependencyChecklist() {
         File nativeDir = new File(getApplicationInfo().nativeLibraryDir);
-        String[] requiredBins = {"libflashrom_bin.so", "libsetpci.so", "libpcilmr.so", "liblspci.so", "libupdate-pciids.so", "libftdi_eeprom.so"};
+        String[] requiredBins = { "libflashrom_bin.so", "libsetpci.so", "libpcilmr.so", "liblspci.so",
+                "libupdate-pciids.so", "libftdi_eeprom.so" };
         for (String name : requiredBins) {
             log("jniLibs binario " + name + ": " + new File(nativeDir, name).exists());
         }
-        String[] requiredLibs = {"libusb-1.0.so", "libflashrom.so", "libpci.so", "libftdi1.so", "libjaylink.so", "libcrypto.so.3", "libssl.so.3", "libz.so.1", "libconfuse.so", "libc++_shared.so"};
+        String[] requiredLibs = { "libusb-1.0.so", "libflashrom.so", "libpci.so", "libftdi1.so", "libjaylink.so",
+                "libcrypto.so.3", "libssl.so.3", "libz.so.1", "libconfuse.so", "libc++_shared.so" };
         for (String name : requiredLibs) {
             String nativeName = findNativeName(nativeDir, name);
             log("jniLibs librería " + name + ": " + !"NO".equals(nativeName)
@@ -741,11 +666,8 @@ public class MainActivity extends AppCompatActivity {
         if (id == R.id.action_hex_viewer) {
             startActivity(new Intent(this, HexViewerActivity.class));
             return true;
-        } else if (id == R.id.action_programmer) {
-            showProgrammerDialog(null);
-            return true;
-        } else if (id == R.id.action_programmer_manual) {
-            showLegacyProgrammerDialog(null);
+        } else if (id == R.id.action_programmer_settings) {
+            startActivity(new Intent(this, ProgrammerSettingsActivity.class));
             return true;
         } else if (id == R.id.action_clear_logs) {
             tvLog.setText("--- Log ---");
@@ -761,7 +683,6 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
-
 
     private void showAboutDialog() {
         TextView aboutText = new TextView(this);

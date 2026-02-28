@@ -97,11 +97,12 @@
             <Button
                 android:id="@+id/btnRead"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="64dp"
                 android:layout_weight="1"
                 android:enabled="false"
                 android:backgroundTint="#4CAF50"
-                android:text="Leer (Backup)" />
+                app:autoSizeTextType="uniform"
+                android:text="Leer Backup" />
 
             <Space
                 android:layout_width="8dp"
@@ -110,11 +111,12 @@
             <Button
                 android:id="@+id/btnWrite"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="64dp"
                 android:layout_weight="1"
                 android:enabled="false"
                 android:backgroundTint="#F44336"
-                android:text="Flashear (bios.bin)" />
+                app:autoSizeTextType="uniform"
+                android:text="Flashear ROM" />
         </LinearLayout>
 
         <LinearLayout
@@ -127,9 +129,10 @@
             <Button
                 android:id="@+id/btnImport"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="64dp"
                 android:layout_weight="1"
-                android:text="Cargar ROM" />
+                app:autoSizeTextType="uniform"
+                android:text="Cargar\nROM" />
 
             <Space
                 android:layout_width="8dp"
@@ -138,9 +141,10 @@
             <Button
                 android:id="@+id/btnExport"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="64dp"
                 android:layout_weight="1"
-                android:text="Guardar ROM leída" />
+                app:autoSizeTextType="uniform"
+                android:text="Guardar ROM\nLeída" />
         </LinearLayout>
 
         <EditText
@@ -180,6 +184,7 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="monospace"
                 android:textIsSelectable="true"
+                android:lineSpacingExtra="3dp"
                 android:longClickable="true"
                 android:textColor="#00FF00"
                 android:textSize="12sp"

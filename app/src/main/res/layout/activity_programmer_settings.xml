@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Programador Activo (-p)"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:layout_marginBottom="8dp" />
+
+        <EditText
+            android:id="@+id/etProgrammerParam"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text"
+            android:hint="Ej: ch341a_spi o ft2232_spi:type=2232H"
+            android:layout_marginBottom="12dp" />
+
+        <Button
+            android:id="@+id/btnSaveProgrammer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Guardar Configuración"
+            android:layout_marginBottom="24dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Hardware Soportado en esta compilación:"
+            android:textColor="#388E3C"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/tvSupported"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="asm106x, atavia, buspirate_spi, ch341a_spi, ch347_spi, dediprog, developerbox_spi, digilent_spi, dirtyjtag_spi, drkaiser, dummy, ft2232_spi, gfxnvidia, internal, it8212, jlink_spi, linux_mtd, linux_spi, mediatek_i2c_spi, mstarddc_spi, nicintel, nicintel_eeprom, nicintel_spi, nv_sma_spi, ogp_spi, parade_lspcon, pickit2_spi, pony_spi, raiden_debug_spi, realtek_mst_i2c_spi, satasii, serprog, spidriver, stlinkv3_spi, usbblaster_spi"
+            android:textSize="13sp"
+            android:layout_marginBottom="24dp"
+            android:lineSpacingExtra="2dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Hardware NO SOPORTADO o Excluido:"
+            android:textColor="#D32F2F"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/tvUnsupported"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="atahpt, atapromise, ft232r_spi, ni845x_spi, nic3com, nicnatsemi, nicrealtek, rayer_spi, satamv"
+            android:textSize="13sp"
+            android:lineSpacingExtra="2dp"
+            android:layout_marginBottom="16dp" />
+
+    </LinearLayout>
+</ScrollView>

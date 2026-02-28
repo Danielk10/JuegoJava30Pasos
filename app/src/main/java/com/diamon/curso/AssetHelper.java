@@ -13,10 +13,13 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import android.content.SharedPreferences;
 import java.util.Set;
 
 public class AssetHelper {
     private static final String TAG = "AssetHelper";
+    private static final String PREFS_NAME = "AssetHelperPrefs";
+    private static final String KEY_EXTRACTED = "assets_extracted_v2";
     private static final int BUFFER_SIZE = 8192;
     private static volatile String cachedAssetRuntimeRoot;
     private static final String COMPILED_RUNTIME_ROOT = "data/data/com.diamon.curso/files/usr";
@@ -40,6 +43,10 @@ public class AssetHelper {
             if (!extractAssets(context, runtimeRoot, usrDir)) {
                 return false;
             }
+            // Marcamos como extraído exitosamente
+            SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+            prefs.edit().putBoolean(KEY_EXTRACTED, true).apply();
+
             // Tras extracción completa, preferimos enlazar ejecutables/librerías hacia
             // jniLibs.
             return ensureNativeToolLinks(context);
@@ -196,10 +203,12 @@ public class AssetHelper {
     }
 
     public static boolean areAssetsExtracted(Context context) {
-        // En flashrom el componente mas importante a nivel de lectura suele ser share o
-        // sbin
-        // Pero como los de sbin/bin los pasamos a jniLibs, revisaremos si se extrajo
-        // share
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        if (prefs.getBoolean(KEY_EXTRACTED, false)) {
+            return true;
+        }
+
+        // Fallback por si acaso: revisión manual antigua
         File shareDir = new File(context.getFilesDir(), "usr/share");
         return shareDir.exists() && shareDir.isDirectory() && shareDir.list() != null && shareDir.list().length > 0;
     }
