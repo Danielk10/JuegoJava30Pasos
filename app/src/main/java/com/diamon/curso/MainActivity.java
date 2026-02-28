@@ -156,6 +156,20 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
 
+    // API para configurar directorio por defecto
+    private final ActivityResultLauncher<Intent> directoryPickerLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    Uri treeUri = result.getData().getData();
+                    if (treeUri != null) {
+                        getSharedPreferences(PREFS, MODE_PRIVATE).edit().putString("working_dir", treeUri.toString())
+                                .apply();
+                        log("Directorio por defecto configurado. Las siguientes cargas/guardados iniciarán allí.");
+                    }
+                }
+            });
+
     private final BroadcastReceiver usbReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
@@ -272,6 +286,12 @@ public class MainActivity extends AppCompatActivity {
             intent.addCategory(Intent.CATEGORY_OPENABLE);
             intent.setType("application/octet-stream");
             intent.putExtra(Intent.EXTRA_TITLE, "bios_backup.bin");
+
+            String savedDir = getSharedPreferences(PREFS, MODE_PRIVATE).getString("working_dir", null);
+            if (savedDir != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                intent.putExtra(android.provider.DocumentsContract.EXTRA_INITIAL_URI, Uri.parse(savedDir));
+            }
+
             fileSaveLauncher.launch(intent);
         });
 
@@ -279,6 +299,12 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
             intent.setType("*/*");
+
+            String savedDir = getSharedPreferences(PREFS, MODE_PRIVATE).getString("working_dir", null);
+            if (savedDir != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                intent.putExtra(android.provider.DocumentsContract.EXTRA_INITIAL_URI, Uri.parse(savedDir));
+            }
+
             fileOpenLauncher.launch(intent);
         });
 
@@ -700,6 +726,10 @@ public class MainActivity extends AppCompatActivity {
         } else if (id == R.id.action_programmer_settings) {
             startActivity(new Intent(this, ProgrammerSettingsActivity.class));
             return true;
+        } else if (id == R.id.action_set_working_dir) {
+            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+            directoryPickerLauncher.launch(intent);
+            return true;
         } else if (id == R.id.action_about) {
             showAboutDialog();
             return true;
@@ -715,31 +745,32 @@ public class MainActivity extends AppCompatActivity {
         TextView aboutText = new TextView(this);
         int padding = (int) (24 * getResources().getDisplayMetrics().density);
         aboutText.setPadding(padding, padding, padding, padding / 2);
-        aboutText.setTextColor(getResources().getColor(android.R.color.black, getTheme()));
-        aboutText.setLinkTextColor(getResources().getColor(android.R.color.holo_blue_dark, getTheme()));
+        // Permitir que el texto tome el color por defecto (adapta al Dark theme)
         aboutText.setMovementMethod(LinkMovementMethod.getInstance());
-        String aboutHtml = "<b>Flash EEPROM Tool</b><br/>"
-                + "Aplicación Android para lectura, verificación y escritura SPI/I2C con flashrom.<br/><br/>"
+        String aboutHtml = "<h2>Flash EEPROM Tool Pro</h2>"
+                + "<p>Aplicación Android avanzada para lectura, verificación y escritura de Firmware (SPI/I2C/NAND) con <b>flashrom</b> nativo.</p>"
+                + "<hr>"
                 + "<b>Licencia del proyecto:</b> GPLv3.<br/><br/>"
-                + "<b>Dependencias principales y licencias:</b><br/>"
+                + "<b>Dependencias Nativas Integradas:</b><br/>"
                 + "• <a href='https://github.com/libusb/libusb'>libusb</a> (LGPL-2.1+)<br/>"
                 + "• <a href='https://github.com/pciutils/pciutils'>pciutils</a> (GPL-2.0+)<br/>"
                 + "• <a href='https://developer.intra2net.com/git/libftdi'>libftdi</a> (LGPL-2.1+)<br/>"
                 + "• <a href='https://gitlab.zapb.de/libjaylink/libjaylink'>libjaylink</a> (GPL-2.0+)<br/>"
-                + "• <a href='https://github.com/flashrom/flashrom'>flashrom</a> (GPL-2.0+)<br/>"
-                + "• <a href='https://github.com/mik3y/usb-serial-for-android'>usb-serial-for-android</a> (MIT)";
+                + "• <a href='https://github.com/flashrom/flashrom'>flashrom</a> (GPL-2.0)<br/>"
+                + "• <a href='https://github.com/stefanct/ch341eeprom'>ch341eeprom</a> (GPL-3.0+)";
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            aboutText.setText(Html.fromHtml(aboutHtml, Html.FROM_HTML_MODE_LEGACY));
+            aboutText.setText(Html.fromHtml(aboutHtml, Html.FROM_HTML_MODE_COMPACT));
         } else {
             @SuppressWarnings("deprecation")
-            android.text.Spanned legacyHtml = Html.fromHtml(aboutHtml);
-            aboutText.setText(legacyHtml);
+            CharSequence text = Html.fromHtml(aboutHtml);
+            aboutText.setText(text);
         }
 
         new android.app.AlertDialog.Builder(this)
-                .setTitle("Acerca de")
+                .setTitle("Acerca de la App")
                 .setView(aboutText)
-                .setPositiveButton("Aceptar", null)
+                .setPositiveButton("Cerrar", null)
                 .show();
     }
 

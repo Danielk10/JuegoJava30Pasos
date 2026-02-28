@@ -13,8 +13,8 @@
         app:showAsAction="never" />
 
     <item
-        android:id="@+id/action_clear_logs"
-        android:title="Limpiar logs"
+        android:id="@+id/action_set_working_dir"
+        android:title="Ruta de Guardado/Carga"
         app:showAsAction="never" />
 
     <item

@@ -1,21 +1,25 @@
 package com.diamon.curso;
 
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.io.RandomAccessFile;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
 
 public class HexViewerActivity extends AppCompatActivity {
 
-    private TextView tvHexBuffer, tvHexSummary;
-    private ExecutorService executor = Executors.newSingleThreadExecutor();
-    // Limite máximo de lectura visual (por ejemplo 1MB) para no colapsar la RAM del
-    // TextView de la Interfaz
-    private static final int MAX_VIEW_SIZE_BYTES = 1024 * 1024;
+    private TextView tvHexSummary;
+    private RecyclerView recyclerHex;
+    private HexAdapter hexAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,73 +32,25 @@ public class HexViewerActivity extends AppCompatActivity {
         }
 
         tvHexSummary = findViewById(R.id.tvHexSummary);
-        tvHexBuffer = findViewById(R.id.tvHexBuffer);
+        recyclerHex = findViewById(R.id.recyclerHex);
+        recyclerHex.setLayoutManager(new LinearLayoutManager(this));
 
         loadHexData();
     }
 
     private void loadHexData() {
-        executor.execute(() -> {
-            File biosFile = new File(getFilesDir(), "bios.bin");
-            if (!biosFile.exists()) {
-                runOnUiThread(() -> {
-                    tvHexSummary.setText("Error");
-                    tvHexBuffer.setText(
-                            "No se encontró el archivo 'bios.bin'.\nDebes leer un chip o importar una ROM primero.");
-                });
-                return;
-            }
+        File biosFile = new File(getFilesDir(), "bios.bin");
+        if (!biosFile.exists()) {
+            tvHexSummary.setText(
+                    "Error: No se encontró el archivo 'bios.bin'.\nDebes leer un chip o importar una ROM primero.");
+            return;
+        }
 
-            long totalSize = biosFile.length();
-            int bytesToRead = (int) Math.min(totalSize, MAX_VIEW_SIZE_BYTES);
+        long totalSize = biosFile.length();
+        tvHexSummary.setText(String.format("Tamaño ROM: %d bytes (Mapeo directo)", totalSize));
 
-            runOnUiThread(() -> tvHexSummary.setText("Tamaño ROM: " + totalSize + " bytes\n" +
-                    (totalSize > MAX_VIEW_SIZE_BYTES ? "Mostrando primeros " + MAX_VIEW_SIZE_BYTES + " bytes..."
-                            : "")));
-
-            StringBuilder hexBuilder = new StringBuilder();
-            try (FileInputStream fis = new FileInputStream(biosFile)) {
-                byte[] buffer = new byte[16];
-                int read;
-                int address = 0;
-
-                while ((read = fis.read(buffer)) != -1 && address < bytesToRead) {
-                    hexBuilder.append(String.format("%08X | ", address));
-
-                    // Colores ANSI no soportan directo en texto simple, usaremos caracteres
-                    // normales
-                    // Hex part
-                    for (int i = 0; i < 16; i++) {
-                        if (i < read) {
-                            hexBuilder.append(String.format("%02X ", buffer[i]));
-                        } else {
-                            hexBuilder.append("   ");
-                        }
-                    }
-
-                    hexBuilder.append("| ");
-
-                    // ASCII part
-                    for (int i = 0; i < read; i++) {
-                        char c = (char) buffer[i];
-                        if (c >= 32 && c <= 126) {
-                            hexBuilder.append(c);
-                        } else {
-                            hexBuilder.append(".");
-                        }
-                    }
-
-                    hexBuilder.append("\n");
-                    address += 16;
-                }
-
-                final String finalText = hexBuilder.toString();
-                runOnUiThread(() -> tvHexBuffer.setText(finalText));
-
-            } catch (Exception e) {
-                runOnUiThread(() -> tvHexBuffer.setText("Error leyendo binario: " + e.getMessage()));
-            }
-        });
+        hexAdapter = new HexAdapter(biosFile);
+        recyclerHex.setAdapter(hexAdapter);
     }
 
     @Override
@@ -103,9 +59,76 @@ public class HexViewerActivity extends AppCompatActivity {
         return true;
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        executor.shutdownNow();
+    static class HexAdapter extends RecyclerView.Adapter<HexAdapter.HexViewHolder> {
+        private MappedByteBuffer buffer;
+        private long fileSize = 0;
+
+        public HexAdapter(File file) {
+            try {
+                RandomAccessFile raf = new RandomAccessFile(file, "r");
+                FileChannel channel = raf.getChannel();
+                this.fileSize = channel.size();
+                this.buffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, fileSize);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        @NonNull
+        @Override
+        public HexViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_hex_row, parent, false);
+            return new HexViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull HexViewHolder holder, int position) {
+            if (buffer == null)
+                return;
+
+            int address = position * 16;
+            int length = (int) Math.min(16, fileSize - address);
+            byte[] rowBytes = new byte[length];
+
+            buffer.position(address);
+            buffer.get(rowBytes, 0, length);
+
+            StringBuilder hexBuilder = new StringBuilder(48);
+            StringBuilder asciiBuilder = new StringBuilder(16);
+
+            for (int i = 0; i < 16; i++) {
+                if (i < length) {
+                    hexBuilder.append(String.format("%02X ", rowBytes[i]));
+                    char c = (char) rowBytes[i];
+                    if (c >= 32 && c <= 126) {
+                        asciiBuilder.append(c);
+                    } else {
+                        asciiBuilder.append(".");
+                    }
+                } else {
+                    hexBuilder.append("   ");
+                }
+            }
+
+            holder.tvAddress.setText(String.format("%08X", address));
+            holder.tvHex.setText(hexBuilder.toString());
+            holder.tvAscii.setText(asciiBuilder.toString());
+        }
+
+        @Override
+        public int getItemCount() {
+            return (int) Math.ceil((double) fileSize / 16.0);
+        }
+
+        static class HexViewHolder extends RecyclerView.ViewHolder {
+            TextView tvAddress, tvHex, tvAscii;
+
+            HexViewHolder(View itemView) {
+                super(itemView);
+                tvAddress = itemView.findViewById(R.id.tvAddress);
+                tvHex = itemView.findViewById(R.id.tvHex);
+                tvAscii = itemView.findViewById(R.id.tvAscii);
+            }
+        }
     }
 }

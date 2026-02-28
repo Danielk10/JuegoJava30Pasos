@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingLeft="8dp"
+    android:paddingRight="8dp"
+    android:paddingTop="2dp"
+    android:paddingBottom="2dp">
+
+    <TextView
+        android:id="@+id/tvAddress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="monospace"
+        android:textColor="#2196F3"
+        android:textSize="14sp"
+        android:text="00000000" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="monospace"
+        android:textColor="#757575"
+        android:textSize="14sp"
+        android:text=" | " />
+
+    <TextView
+        android:id="@+id/tvHex"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="monospace"
+        android:textColor="#E0E0E0"
+        android:textSize="14sp"
+        android:text="FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF " />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="monospace"
+        android:textColor="#757575"
+        android:textSize="14sp"
+        android:text="| " />
+
+    <TextView
+        android:id="@+id/tvAscii"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="monospace"
+        android:textColor="#4CAF50"
+        android:textSize="14sp"
+        android:text="................" />
+
+</LinearLayout>
