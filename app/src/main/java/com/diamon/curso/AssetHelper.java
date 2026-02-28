@@ -348,19 +348,24 @@ public class AssetHelper {
 
     private static boolean linkTool(File linkPath, File target) {
         if (!target.exists()) {
-            Log.w(TAG, "Target no existe para enlace: " + target.getAbsolutePath());
+            Log.e(TAG, "Librería nativa faltante. Imposible enlazar: " + target.getAbsolutePath());
             return false;
         }
 
         try {
-            if (linkPath.exists()) {
-                linkPath.delete();
+            // Validar si es un symlink correcto
+            if (linkPath.exists() && linkPath.getCanonicalPath().equals(target.getCanonicalPath())) {
+                return true; // Ya existe y apunta correctamente
             }
+            // Eliminar si existe un enlace roto (al actualizar APK se desfasan las rutas
+            // base de nativeLibraryDir)
+            linkPath.delete();
+            // Crear nuevo symlink
             Os.symlink(target.getAbsolutePath(), linkPath.getAbsolutePath());
             return true;
         } catch (Exception e) {
-            Log.w(TAG, "Symlink falló para " + linkPath.getName() + ": " + e.getMessage() + ". Intentando copia.");
-            return copyFile(target, linkPath);
+            Log.e(TAG, "Fallo al enlazar " + linkPath.getName() + " -> " + target.getName() + ": " + e.getMessage());
+            return false;
         }
     }
 
