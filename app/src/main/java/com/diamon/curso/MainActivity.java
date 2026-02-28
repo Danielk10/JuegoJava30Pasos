@@ -921,6 +921,7 @@ public class MainActivity extends AppCompatActivity {
         executor.shutdownNow(); // Finalizar todos los hilos
     }
 
+    @SuppressWarnings("deprecation")
     private int getVersionCode() {
         try {
             android.content.pm.PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
