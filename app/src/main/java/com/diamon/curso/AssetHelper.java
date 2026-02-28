@@ -410,8 +410,9 @@ public class AssetHelper {
             Os.symlink(target.getAbsolutePath(), linkPath.getAbsolutePath());
             return true;
         } catch (Exception e) {
-            Log.e(TAG, "Fallo al enlazar " + linkPath.getName() + " -> " + target.getName() + ": " + e.getMessage());
-            return false;
+            Log.w(TAG, "Symlink falló para " + linkPath.getName() + " -> " + target.getName()
+                    + ": " + e.getMessage() + ". Intentando fallback por copia...");
+            return copyFile(target, linkPath);
         }
     }
 

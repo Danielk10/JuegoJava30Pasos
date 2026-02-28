@@ -71,14 +71,17 @@ public class HexViewerActivity extends AppCompatActivity {
     }
 
     private byte[] readUriToBytes(Uri uri) throws Exception {
-        InputStream is = getContentResolver().openInputStream(uri);
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        int nRead;
-        byte[] data = new byte[16384];
-        while ((nRead = is.read(data, 0, data.length)) != -1) {
-            buffer.write(data, 0, nRead);
+        try (InputStream is = getContentResolver().openInputStream(uri)) {
+            if (is == null)
+                throw new IllegalStateException("No se pudo abrir el archivo.");
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+            int nRead;
+            byte[] data = new byte[16384];
+            while ((nRead = is.read(data, 0, data.length)) != -1) {
+                buffer.write(data, 0, nRead);
+            }
+            return buffer.toByteArray();
         }
-        return buffer.toByteArray();
     }
 
     private void displayBinary(byte[] data, String name) {
