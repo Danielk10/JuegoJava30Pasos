@@ -22,7 +22,8 @@ public class AssetHelper {
     private static final String COMPILED_RUNTIME_ROOT = "data/data/com.diamon.curso/files/usr";
 
     /**
-     * Prepara runtime de assets una sola vez. Si ya existen, no vuelve a recorrer todo el árbol;
+     * Prepara runtime de assets una sola vez. Si ya existen, no vuelve a recorrer
+     * todo el árbol;
      * solamente repara archivos críticos faltantes.
      */
     public static boolean ensureRuntimeReady(Context context) {
@@ -39,11 +40,13 @@ public class AssetHelper {
             if (!extractAssets(context, runtimeRoot, usrDir)) {
                 return false;
             }
-            // Tras extracción completa, preferimos enlazar ejecutables/librerías hacia jniLibs.
+            // Tras extracción completa, preferimos enlazar ejecutables/librerías hacia
+            // jniLibs.
             return ensureNativeToolLinks(context);
         }
 
-        // Reparación mínima de recursos críticos del runtime compilado (no ejecutables).
+        // Reparación mínima de recursos críticos del runtime compilado (no
+        // ejecutables).
         AssetManager assetManager = context.getAssets();
         File pciIdsTarget = new File(usrDir, "share/pci.ids.gz");
         if (!pciIdsTarget.exists() && !copyCriticalPciIds(assetManager, runtimeRoot, pciIdsTarget)) {
@@ -152,7 +155,8 @@ public class AssetHelper {
     private static boolean copyAssetFile(AssetManager assetManager, String assetPath, File destDir) {
         String fileName = assetPath.substring(assetPath.lastIndexOf('/') + 1);
         if (assetPath.endsWith("/share/pci.ids")) {
-            // En algunos empaquetados Android, pci.ids.gz puede quedar listado como pci.ids.
+            // En algunos empaquetados Android, pci.ids.gz puede quedar listado como
+            // pci.ids.
             // Conservamos el nombre runtime esperado por pciutils/flashrom.
             fileName = "pci.ids.gz";
         }
@@ -179,7 +183,7 @@ public class AssetHelper {
             }
             out.flush();
             if (assetPath.contains("/bin/") || assetPath.contains("/sbin/")) {
-                //noinspection ResultOfMethodCallIgnored
+                // noinspection ResultOfMethodCallIgnored
                 destFile.setExecutable(true, true);
             }
             Log.d(TAG, "Copiado: " + destFile.getAbsolutePath());
@@ -232,22 +236,28 @@ public class AssetHelper {
         File usrLib = new File(filesDir, "usr/lib");
         File pythonSitePackages = new File(usrLib, "python3.12/site-packages");
 
-        if (!usrBin.exists()) usrBin.mkdirs();
-        if (!usrSbin.exists()) usrSbin.mkdirs();
-        if (!usrLib.exists()) usrLib.mkdirs();
-        if (!pythonSitePackages.exists()) pythonSitePackages.mkdirs();
+        if (!usrBin.exists())
+            usrBin.mkdirs();
+        if (!usrSbin.exists())
+            usrSbin.mkdirs();
+        if (!usrLib.exists())
+            usrLib.mkdirs();
+        if (!pythonSitePackages.exists())
+            pythonSitePackages.mkdirs();
 
-        // Ejecutables/librerías principales se resuelven desde jniLibs con nombres clásicos vía symlink.
+        // Ejecutables/librerías principales se resuelven desde jniLibs con nombres
+        // clásicos vía symlink.
         boolean ok = true;
         ok &= linkTool(new File(usrSbin, "flashrom"), new File(nativeLibDir, "libflashrom_bin.so"));
         ok &= linkTool(new File(usrBin, "lspci"), new File(nativeLibDir, "liblspci.so"));
         ok &= linkTool(new File(usrSbin, "setpci"), new File(nativeLibDir, "libsetpci.so"));
         ok &= linkTool(new File(usrSbin, "pcilmr"), new File(nativeLibDir, "libpcilmr.so"));
-        ok &= linkTool(new File(usrSbin, "update-pciids"), new File(nativeLibDir, "libupdate-pciids.so"));
+        // update-pciids is a bash script in assets, no symlink needed from jniLibs
         ok &= linkTool(new File(usrBin, "ftdi_eeprom"), new File(nativeLibDir, "libftdi_eeprom.so"));
         ok &= linkTool(new File(usrBin, "libftdi1-config"), new File(nativeLibDir, "liblibftdi1-config.so"));
 
-        // Sonames esperados por binarios/nativas: apuntan al nombre Android copiable (.so).
+        // Sonames esperados por binarios/nativas: apuntan al nombre Android copiable
+        // (.so).
         ok &= linkRuntimeSoname(usrLib, nativeLibDir, "libflashrom.so");
         ok &= linkRuntimeSoname(usrLib, nativeLibDir, "libflashrom.so.1");
         ok &= linkRuntimeSoname(usrLib, nativeLibDir, "libflashrom.so.1.0.0");
@@ -271,7 +281,8 @@ public class AssetHelper {
         ok &= linkRuntimeSoname(usrLib, nativeLibDir, "libz.so.1");
         ok &= linkRuntimeSoname(usrLib, nativeLibDir, "libconfuse.so");
         ok &= linkRuntimeSoname(usrLib, nativeLibDir, "libc++_shared.so");
-        // Extensión Python: nombre Android en jniLibs y nombre original vía symlink en site-packages.
+        // Extensión Python: nombre Android en jniLibs y nombre original vía symlink en
+        // site-packages.
         linkTool(new File(pythonSitePackages, "_pyftdi1.so"), new File(nativeLibDir, "libpyftdi1.so"));
 
         // Validación mínima de dependencias críticas para herramientas principales.
@@ -361,7 +372,7 @@ public class AssetHelper {
             File binParent = dest.getParentFile();
             String parentName = binParent != null ? binParent.getName() : "";
             if ("bin".equals(parentName) || "sbin".equals(parentName)) {
-                //noinspection ResultOfMethodCallIgnored
+                // noinspection ResultOfMethodCallIgnored
                 dest.setExecutable(true, true);
             }
             return true;

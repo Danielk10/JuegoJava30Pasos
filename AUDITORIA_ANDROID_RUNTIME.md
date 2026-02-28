@@ -18,7 +18,7 @@
 - flashrom -> libflashrom_bin.so: OK
 - setpci -> libsetpci.so: OK
 - pcilmr -> libpcilmr.so: OK
-- update-pciids -> libupdate-pciids.so: OK
+- update-pciids: Es script bash extraído directo desde assets (N/A en jniLibs)
 - lspci -> liblspci.so: OK
 - ftdi_eeprom -> libftdi_eeprom.so: OK
 

@@ -67,7 +67,7 @@ Esta matriz documenta **qué archivo base existe en `data/.../usr`**, si viene e
 | sbin/flashrom | SI | NO | libflashrom_bin.so | SI | Symlink a jniLibs (fallback: copia) |
 | sbin/pcilmr | SI | NO | libpcilmr.so | SI | Symlink a jniLibs (fallback: copia) |
 | sbin/setpci | SI | NO | libsetpci.so | SI | Symlink a jniLibs (fallback: copia) |
-| sbin/update-pciids | SI | NO | libupdate-pciids.so | SI | Symlink a jniLibs (fallback: copia) |
+| sbin/update-pciids | SI | SI | - | NO | Extraído como bash script al primer arranque |
 | share/bash-completion/completions/flashrom.bash | SI | SI | - | NO | Copiado desde assets al primer arranque |
 | share/doc/flashrom/html/.buildinfo | SI | SI | - | NO | Copiado desde assets al primer arranque |
 | share/doc/flashrom/html/_images/1200px-DIP_socket_as_SOIC_clip.jpg | SI | SI | - | NO | Copiado desde assets al primer arranque |
