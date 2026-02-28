@@ -184,6 +184,7 @@ public class MainActivity extends AppCompatActivity {
 
     private ExecutorService executor = Executors.newSingleThreadExecutor();
     private String selectedProgrammer = "ch341a_spi";
+    private volatile boolean hasReadData = false; // true cuando hay datos LEÍDOS del chip
     private MostrarPublicidad mostrarPublicidad;
 
     // API para Visor Hexadecimal (Anuncio al regresar)
@@ -423,7 +424,17 @@ public class MainActivity extends AppCompatActivity {
 
         btnProbe.setOnClickListener(v -> ensureProgrammerThenRun(() -> {
             if (isDummyProgrammer()) {
-                showDummyTestDialog();
+                // Probe con dummy: si hay bios.bin del usuario, usarlo; si no, diálogo de
+                // pruebas
+                File userBios = new File(getFilesDir(), "bios.bin");
+                if (userBios.exists() && userBios.length() > 0) {
+                    long size = userBios.length();
+                    executeCustomFlashromCommand(
+                            "-p dummy:emulate=VARIABLE_SIZE,size=" + size + ",image=bios.bin");
+                } else {
+                    log("No hay bios.bin cargado. Abriendo pruebas con archivo generado...");
+                    showDummyTestDialog();
+                }
             } else {
                 executeFlashromTask("-p", selectedProgrammer);
             }
@@ -431,9 +442,14 @@ public class MainActivity extends AppCompatActivity {
         btnVerify.setOnClickListener(
                 v -> ensureProgrammerThenRun(() -> {
                     if (isDummyProgrammer()) {
-                        ensureDummyTestFile(16777216);
+                        File userBios = new File(getFilesDir(), "bios.bin");
+                        if (!userBios.exists() || userBios.length() == 0) {
+                            log("Error: No hay bios.bin cargado. Usa 'Cargar ROM' primero.");
+                            return;
+                        }
+                        long size = userBios.length();
                         executeCustomFlashromCommand(
-                                "-p dummy:emulate=VARIABLE_SIZE,size=16777216,image=bios_test.bin -v bios_test.bin");
+                                "-p dummy:emulate=VARIABLE_SIZE,size=" + size + ",image=bios.bin -v bios.bin");
                     } else {
                         executeFlashromTask("-p", selectedProgrammer, "-v", "bios.bin");
                     }
@@ -441,9 +457,14 @@ public class MainActivity extends AppCompatActivity {
         btnRead.setOnClickListener(
                 v -> ensureProgrammerThenRun(() -> {
                     if (isDummyProgrammer()) {
-                        ensureDummyTestFile(16777216);
+                        File userBios = new File(getFilesDir(), "bios.bin");
+                        if (!userBios.exists() || userBios.length() == 0) {
+                            log("Error: No hay bios.bin cargado. Usa 'Cargar ROM' primero.");
+                            return;
+                        }
+                        long size = userBios.length();
                         executeCustomFlashromCommand(
-                                "-p dummy:emulate=VARIABLE_SIZE,size=16777216,image=bios_test.bin -r read_test.bin");
+                                "-p dummy:emulate=VARIABLE_SIZE,size=" + size + ",image=bios.bin -r bios.bin");
                     } else {
                         executeFlashromTask("-p", selectedProgrammer, "-r", "bios.bin");
                     }
@@ -451,18 +472,29 @@ public class MainActivity extends AppCompatActivity {
         btnWrite.setOnClickListener(
                 v -> ensureProgrammerThenRun(() -> {
                     if (isDummyProgrammer()) {
-                        ensureDummyTestFile(16777216);
+                        File userBios = new File(getFilesDir(), "bios.bin");
+                        if (!userBios.exists() || userBios.length() == 0) {
+                            log("Error: No hay bios.bin cargado. Usa 'Cargar ROM' primero.");
+                            return;
+                        }
+                        long size = userBios.length();
                         executeCustomFlashromCommand(
-                                "-p dummy:emulate=VARIABLE_SIZE,size=16777216,image=bios_test.bin -w bios_test.bin -v");
+                                "-p dummy:emulate=VARIABLE_SIZE,size=" + size + ",image=bios.bin -w bios.bin -v");
                     } else {
                         executeFlashromTask("-p", selectedProgrammer, "-w", "bios.bin");
                     }
                 }));
 
         btnExport.setOnClickListener(v -> {
+            if (!hasReadData) {
+                log("Error: No hay datos leídos del chip aún.");
+                log("Usa 'Leer Backup' primero para leer el contenido del chip.");
+                log("(El botón 'Guardar ROM' exporta datos LEÍDOS, no archivos importados.)");
+                return;
+            }
             File sourceFile = new File(getFilesDir(), "bios.bin");
             if (!sourceFile.exists()) {
-                log("Error: No hay ningún 'bios.bin' leído internamente aún. ¡Léelo primero desde el chip!");
+                log("Error: El archivo 'bios.bin' no existe. Lee el chip primero.");
                 return;
             }
 
@@ -489,7 +521,15 @@ public class MainActivity extends AppCompatActivity {
         btnImport.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
-            intent.setType("*/*");
+            intent.setType("application/octet-stream");
+            // Filtros adicionales para formatos de firmware comunes
+            String[] mimeTypes = {
+                    "application/octet-stream",
+                    "application/x-binary",
+                    "application/macbinary",
+                    "text/plain" // Para .hex (Intel HEX es texto)
+            };
+            intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
 
             String savedDir = getSharedPreferences(PREFS, MODE_PRIVATE).getString("working_dir", null);
             if (savedDir != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -534,17 +574,83 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void importRomFile(Uri uri) {
-        try (InputStream in = getContentResolver().openInputStream(uri);
-                OutputStream out = new FileOutputStream(new File(getFilesDir(), "bios.bin"))) {
+        try (InputStream in = getContentResolver().openInputStream(uri)) {
             if (in == null) {
                 throw new IllegalStateException("No se pudo abrir el archivo seleccionado para lectura.");
             }
+
+            // Leer todo el contenido primero para validar
+            java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
             byte[] buffer = new byte[8192];
             int read;
             while ((read = in.read(buffer)) != -1) {
-                out.write(buffer, 0, read);
+                baos.write(buffer, 0, read);
             }
-            log("ROM importada exitosamente como 'bios.bin'. ¡Lista para Flashear!");
+            byte[] data = baos.toByteArray();
+
+            // Validación de tamaño
+            if (data.length == 0) {
+                log("Error: El archivo seleccionado está vacío. No es un binario válido.");
+                return;
+            }
+            long maxSize = 128L * 1024 * 1024; // 128 MB
+            if (data.length > maxSize) {
+                log("Error: El archivo es demasiado grande (" + (data.length / 1024 / 1024)
+                        + " MB). Máximo soportado: 128 MB.");
+                return;
+            }
+
+            // Detección de formato
+            String fileName = "archivo";
+            try {
+                android.database.Cursor cursor = getContentResolver().query(uri, null, null, null, null);
+                if (cursor != null && cursor.moveToFirst()) {
+                    int idx = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME);
+                    if (idx >= 0)
+                        fileName = cursor.getString(idx);
+                    cursor.close();
+                }
+            } catch (Exception ignored) {
+            }
+
+            boolean isIntelHex = fileName.toLowerCase().endsWith(".hex") ||
+                    (data.length > 0 && data[0] == ':');
+
+            // Validación de contenido sospechoso (archivos de texto no-hex)
+            if (!isIntelHex) {
+                // Verificar que no sea un archivo de texto común
+                boolean looksLikeText = true;
+                int checkLen = Math.min(data.length, 512);
+                for (int i = 0; i < checkLen; i++) {
+                    int b = data[i] & 0xFF;
+                    if (b < 0x09 || (b > 0x0D && b < 0x20 && b != 0x1A)) {
+                        looksLikeText = false;
+                        break;
+                    }
+                }
+                if (looksLikeText && data.length < 1024) {
+                    log("[AVISO] El archivo '" + fileName + "' parece ser texto plano, no un binario de firmware.");
+                    log("Formatos esperados: .bin, .rom, .img (binario crudo) o .hex (Intel HEX).");
+                }
+            }
+
+            // Escribir datos validados
+            try (OutputStream out = new FileOutputStream(new File(getFilesDir(), "bios.bin"))) {
+                out.write(data);
+            }
+
+            String sizeStr;
+            if (data.length >= 1024 * 1024) {
+                sizeStr = String.format(java.util.Locale.US, "%.2f MB", data.length / (1024.0 * 1024.0));
+            } else {
+                sizeStr = String.format(java.util.Locale.US, "%.1f KB", data.length / 1024.0);
+            }
+
+            log("ROM importada: '" + fileName + "' (" + sizeStr + ", " + (isIntelHex ? "Intel HEX" : "binario crudo")
+                    + ")");
+            log("Archivo guardado como 'bios.bin' — listo para Flashear o Verificar.");
+            log("(Para exportar, usa 'Leer Backup' para leer datos del chip primero.)");
+
         } catch (Exception e) {
             log("Error copiando ROM desde almacenamiento: " + e.getMessage());
         }
@@ -801,6 +907,15 @@ public class MainActivity extends AppCompatActivity {
             int exitCode = process.waitFor();
             if (exitCode == 0) {
                 log("[PROCESO TERMINADO] Exit Code: " + exitCode + " (OK)\n");
+                // Detectar si fue una operación de lectura exitosa
+                for (String arg : args) {
+                    if ("-r".equals(arg)) {
+                        hasReadData = true;
+                        runOnUiThread(
+                                () -> log("Datos leídos correctamente. Puedes exportar la ROM con 'Guardar ROM'."));
+                        break;
+                    }
+                }
             } else {
                 log("[PROCESO TERMINADO] Exit Code: " + exitCode + " (ERROR)\n");
             }
