@@ -315,6 +315,10 @@ public class MainActivity extends AppCompatActivity {
                 layoutMainUI.setVisibility(View.VISIBLE);
 
                 if (!wasExtracted || !runtimeReady) {
+                    if (!wasExtracted) {
+                        log("--- Nueva instalación detectada ---");
+                        log("Preparando recursos locales en el almacenamiento interno...");
+                    }
                     logRuntimeInfo();
                     logDependencyChecklist();
                 }
