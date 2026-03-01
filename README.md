@@ -241,6 +241,8 @@ El panel de log muestra salida nativa real con prefijo `[native]`, comandos soli
   https://gitlab.zapb.de/libjaylink/libjaylink
 - **OpenSSL (`libcrypto`/`libssl`)** — Apache License 2.0  
   https://www.openssl.org/
+- **usb-serial-for-android** — MIT+  
+  https://github.com/mik3y/usb-serial-for-android
 
 > Revisa siempre obligaciones de distribución de binarios y código fuente según cada licencia.
 
