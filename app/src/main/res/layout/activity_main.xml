@@ -154,6 +154,16 @@
                 android:text="Guardar ROM" />
         </LinearLayout>
 
+        <Button
+            android:id="@+id/btnQuickClear"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="44dp"
+            android:layout_marginBottom="4dp"
+            android:text="Borrado rápido (ROM cargada)"
+            android:backgroundTint="#616161"
+            android:textColor="#FFFFFF" />
+
         <EditText
             android:id="@+id/etCustomCommand"
             android:layout_width="match_parent"

@@ -35,6 +35,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -162,7 +163,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvStatus, tvLog, tvLoadingText;
     private android.widget.FrameLayout adContainer;
     private Button btnConnect, btnProbe, btnVerify, btnRead, btnWrite, btnImport, btnExport;
-    private Button btnRunCustomCommand, btnClearLogs;
+    private Button btnRunCustomCommand, btnClearLogs, btnQuickClear;
     private EditText etCustomCommand;
 
     private final StringBuilder logBuffer = new StringBuilder();
@@ -309,9 +310,12 @@ public class MainActivity extends AppCompatActivity {
         btnWrite = findViewById(R.id.btnWrite);
         btnImport = findViewById(R.id.btnImport);
         btnExport = findViewById(R.id.btnExport);
+        btnQuickClear = findViewById(R.id.btnQuickClear);
         btnRunCustomCommand = findViewById(R.id.btnRunCustomCommand);
         btnClearLogs = findViewById(R.id.btnClearLogs);
         etCustomCommand = findViewById(R.id.etCustomCommand);
+
+        clearTransientRomState(false);
 
         usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
         selectedProgrammer = getSharedPreferences(PREFS, MODE_PRIVATE).getString(KEY_PROGRAMMER, "ch341a_spi");
@@ -529,6 +533,8 @@ public class MainActivity extends AppCompatActivity {
             fileOpenLauncher.launch(intent);
         });
 
+        btnQuickClear.setOnClickListener(v -> clearTransientRomState(true));
+
         btnRunCustomCommand.setOnClickListener(v -> {
             String rawCommand = etCustomCommand.getText() == null ? "" : etCustomCommand.getText().toString().trim();
             if (rawCommand.isEmpty()) {
@@ -575,7 +581,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             // Leer todo el contenido primero para validar
-            java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
             byte[] buffer = new byte[8192];
             int read;
             while ((read = in.read(buffer)) != -1) {
@@ -629,20 +635,35 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
+            byte[] dataToStore = data;
+            if (isIntelHex) {
+                dataToStore = parseIntelHex(data);
+                if (dataToStore.length == 0) {
+                    log("Error: El Intel HEX no contiene datos útiles para convertir a binario.");
+                    return;
+                }
+            }
+
+            // Limpiar datos anteriores antes de cargar un nuevo archivo
+            clearTransientRomState(false);
+
             // Escribir datos validados
             try (OutputStream out = new FileOutputStream(new File(getFilesDir(), "bios.bin"))) {
-                out.write(data);
+                out.write(dataToStore);
             }
 
             String sizeStr;
-            if (data.length >= 1024 * 1024) {
-                sizeStr = String.format(java.util.Locale.US, "%.2f MB", data.length / (1024.0 * 1024.0));
+            if (dataToStore.length >= 1024 * 1024) {
+                sizeStr = String.format(java.util.Locale.US, "%.2f MB", dataToStore.length / (1024.0 * 1024.0));
             } else {
-                sizeStr = String.format(java.util.Locale.US, "%.1f KB", data.length / 1024.0);
+                sizeStr = String.format(java.util.Locale.US, "%.1f KB", dataToStore.length / 1024.0);
             }
 
             log("ROM importada: '" + fileName + "' (" + sizeStr + ", " + (isIntelHex ? "Intel HEX" : "binario crudo")
                     + ")");
+            if (isIntelHex) {
+                log("Conversión Intel HEX → binario aplicada correctamente.");
+            }
             log("Archivo guardado como 'bios.bin' — listo para Flashear o Verificar.");
             log("(Para exportar, usa 'Leer Backup' para leer datos del chip primero.)");
 
@@ -653,6 +674,110 @@ public class MainActivity extends AppCompatActivity {
             editor.apply();
         } catch (Exception e) {
             log("Error copiando ROM desde almacenamiento: " + e.getMessage());
+        }
+    }
+
+    private byte[] parseIntelHex(byte[] source) {
+        String content = new String(source, java.nio.charset.StandardCharsets.US_ASCII);
+        String[] lines = content.replace("\r", "").split("\n");
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        int upperAddress = 0;
+        int expectedAddress = -1;
+
+        for (String rawLine : lines) {
+            String line = rawLine.trim();
+            if (line.isEmpty()) {
+                continue;
+            }
+            if (!line.startsWith(":")) {
+                throw new IllegalArgumentException("Línea Intel HEX inválida (sin ':'): " + line);
+            }
+            if (line.length() < 11 || (line.length() % 2) == 0) {
+                throw new IllegalArgumentException("Línea Intel HEX malformada: " + line);
+            }
+
+            int byteCount = parseHexByte(line, 1);
+            int address = parseHexWord(line, 3);
+            int recordType = parseHexByte(line, 7);
+            int expectedLen = 11 + (byteCount * 2);
+            if (line.length() != expectedLen) {
+                throw new IllegalArgumentException("Longitud Intel HEX inconsistente: " + line);
+            }
+
+            int checksum = 0;
+            for (int i = 1; i < line.length(); i += 2) {
+                checksum = (checksum + parseHexByte(line, i)) & 0xFF;
+            }
+            if (checksum != 0) {
+                throw new IllegalArgumentException("Checksum inválido en Intel HEX: " + line);
+            }
+
+            if (recordType == 0x00) {
+                int absolute = upperAddress + address;
+                if (expectedAddress < 0) {
+                    expectedAddress = absolute;
+                }
+                if (absolute > expectedAddress) {
+                    output.write(new byte[absolute - expectedAddress], 0, absolute - expectedAddress);
+                    expectedAddress = absolute;
+                }
+                if (absolute < expectedAddress) {
+                    throw new IllegalArgumentException("Intel HEX desordenado: dirección decreciente no soportada.");
+                }
+                int dataStart = 9;
+                for (int i = 0; i < byteCount; i++) {
+                    output.write(parseHexByte(line, dataStart + (i * 2)));
+                }
+                expectedAddress += byteCount;
+            } else if (recordType == 0x01) {
+                break; // EOF
+            } else if (recordType == 0x04) {
+                if (byteCount != 2) {
+                    throw new IllegalArgumentException("Intel HEX tipo 04 inválido: " + line);
+                }
+                upperAddress = parseHexWord(line, 9) << 16;
+                expectedAddress = -1;
+            } else if (recordType == 0x02) {
+                if (byteCount != 2) {
+                    throw new IllegalArgumentException("Intel HEX tipo 02 inválido: " + line);
+                }
+                upperAddress = parseHexWord(line, 9) << 4;
+                expectedAddress = -1;
+            }
+        }
+        return output.toByteArray();
+    }
+
+    private int parseHexByte(String line, int idx) {
+        return Integer.parseInt(line.substring(idx, idx + 2), 16);
+    }
+
+    private int parseHexWord(String line, int idx) {
+        return Integer.parseInt(line.substring(idx, idx + 4), 16);
+    }
+
+    private void clearTransientRomState(boolean notifyUser) {
+        String[] transientFiles = { "bios.bin", "read_test.bin", "bios_test.bin" };
+        for (String fileName : transientFiles) {
+            try {
+                File f = new File(getFilesDir(), fileName);
+                if (f.exists() && !f.delete()) {
+                    Log.w(TAG, "No se pudo eliminar archivo temporal: " + fileName);
+                }
+            } catch (Exception e) {
+                Log.w(TAG, "Error eliminando archivo temporal " + fileName, e);
+            }
+        }
+
+        hasReadData = false;
+        lastReadFile = "bios.bin";
+        getSharedPreferences(PREFS, MODE_PRIVATE).edit()
+                .remove(KEY_BIOS_SOURCE)
+                .remove(KEY_LAST_READ_FILE)
+                .apply();
+
+        if (notifyUser) {
+            log("Datos ROM temporales eliminados (bios.bin / read_test.bin / bios_test.bin).");
         }
     }
 
@@ -841,6 +966,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void executeCustomFlashromCommand(String rawCommand) {
+        String[] args = rawCommand.split("\\s+");
+        for (int i = 0; i < args.length; i++) {
+            if ("-r".equals(args[i])) {
+                clearTransientRomState(false);
+                break;
+            }
+        }
+
         File preferredFlashromBin = new File(getFilesDir(), "usr/sbin/flashrom");
         if (!preferredFlashromBin.exists()) {
             log("[WARN] flashrom en files/usr/sbin no encontrado; usando fallback jniLibs.");
@@ -850,7 +983,6 @@ public class MainActivity extends AppCompatActivity {
             log("Fallo crítico: Binario 'flashrom' no existe. (" + preferredFlashromBin.getAbsolutePath() + ")");
             return;
         }
-        String[] args = rawCommand.split("\\s+");
         log("Comando manual solicitado: flashrom " + rawCommand);
         if (currentFd < 0) {
             log("Ejecutando sin USB conectado: útil para comandos como --version, -L o --help.");
@@ -866,6 +998,13 @@ public class MainActivity extends AppCompatActivity {
         if (currentFd == -1 && !isDummyProgrammer()) {
             log("Error lógico: El FD de USB se perdió.");
             return;
+        }
+
+        for (int i = 0; i < args.length; i++) {
+            if ("-r".equals(args[i])) {
+                clearTransientRomState(false);
+                break;
+            }
         }
 
         File preferredFlashromBin = new File(getFilesDir(), "usr/sbin/flashrom");
@@ -1311,6 +1450,7 @@ public class MainActivity extends AppCompatActivity {
         if (currentConnection != null) {
             currentConnection.close();
         }
+        clearTransientRomState(false);
         executor.shutdownNow(); // Finalizar todos los hilos
     }
 
