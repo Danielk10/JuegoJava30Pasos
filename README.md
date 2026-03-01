@@ -1,4 +1,4 @@
-# Flash EEPROM Tool (Android ARM64)
+# Flash EEPROM Tool
 
 [![Android](https://img.shields.io/badge/Android-6.0%20(API%2023)%20a%20Android%2016%20(API%2036)-3DDC84?logo=android&logoColor=white)](https://developer.android.com/)
 [![ABI](https://img.shields.io/badge/ABI-arm64--v8a-0091EA?logo=arm&logoColor=white)](https://developer.android.com/ndk/guides/abis)
