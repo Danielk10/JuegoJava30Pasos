@@ -1190,7 +1190,7 @@ public class MainActivity extends AppCompatActivity {
 
         String[] testOptions = {
                 "Leer chip emulado (-r)",
-                "Escribir y verificar (-w -v)",
+                "Escribir y verificar (-w)",
                 "Identificar chip emulado (-p dummy)",
                 "Seleccionar chip predefinido",
                 "Info: Chips válidos para emulación"
@@ -1208,7 +1208,7 @@ public class MainActivity extends AppCompatActivity {
                         case 1: // Escribir + verificar
                             ensureDummyTestFile(16777216);
                             executeCustomFlashromCommand(
-                                    "-p dummy:emulate=VARIABLE_SIZE,size=16777216,image=bios_test.bin -w bios_test.bin -v");
+                                    "-p dummy:emulate=VARIABLE_SIZE,size=16777216,image=bios_test.bin -w bios_test.bin");
                             break;
                         case 2: // Probe
                             ensureDummyTestFile(16777216);
