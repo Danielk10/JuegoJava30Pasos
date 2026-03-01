@@ -482,7 +482,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                         long size = userBios.length();
                         executeCustomFlashromCommand(
-                                "-p dummy:emulate=VARIABLE_SIZE,size=" + size + ",image=bios.bin -w bios.bin -v");
+                                "-p dummy:emulate=VARIABLE_SIZE,size=" + size + ",image=bios.bin -w bios.bin");
                     } else {
                         executeFlashromTask("-p", selectedProgrammer, "-w", "bios.bin");
                     }
