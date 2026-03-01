@@ -1148,7 +1148,7 @@ public class MainActivity extends AppCompatActivity {
         aboutText.setPadding(padding, padding, padding, padding / 2);
         // Permitir que el texto tome el color por defecto (adapta al Dark theme)
         aboutText.setMovementMethod(LinkMovementMethod.getInstance());
-        String aboutHtml = "<h2>Flash EEPROM Tool Pro</h2>"
+        String aboutHtml = "<h2>Flash EEPROM Tool</h2>"
                 + "<p>Aplicación Android avanzada para lectura, verificación y escritura de Firmware (SPI/I2C/NAND) con <b>flashrom</b> nativo.</p>"
                 + "<hr>"
                 + "<b>Licencia del proyecto:</b> GPLv3.<br/><br/>"
@@ -1172,7 +1172,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         new android.app.AlertDialog.Builder(this)
-                .setTitle("Acerca de la App")
+                .setTitle("Acerca de")
                 .setView(aboutText)
                 .setPositiveButton("Cerrar", null)
                 .show();
