@@ -26,7 +26,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Spinner;
-import android.widget.TextView; 
+import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -163,7 +163,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvStatus, tvLog, tvLoadingText;
     private android.widget.FrameLayout adContainer;
     private Button btnConnect, btnProbe, btnVerify, btnRead, btnWrite, btnImport, btnExport;
-    private Button btnRunCustomCommand, btnClearLogs, btnQuickClear;
+    private Button btnRunCustomCommand, btnClearLogs, btnQuickClear, btnEraseChip;
     private EditText etCustomCommand;
 
     private final StringBuilder logBuffer = new StringBuilder();
@@ -311,6 +311,7 @@ public class MainActivity extends AppCompatActivity {
         btnImport = findViewById(R.id.btnImport);
         btnExport = findViewById(R.id.btnExport);
         btnQuickClear = findViewById(R.id.btnQuickClear);
+        btnEraseChip = findViewById(R.id.btnEraseChip);
         btnRunCustomCommand = findViewById(R.id.btnRunCustomCommand);
         btnClearLogs = findViewById(R.id.btnClearLogs);
         etCustomCommand = findViewById(R.id.etCustomCommand);
@@ -325,6 +326,7 @@ public class MainActivity extends AppCompatActivity {
             btnVerify.setEnabled(true);
             btnRead.setEnabled(true);
             btnWrite.setEnabled(true);
+            btnEraseChip.setEnabled(true);
         }
         setupLogCopySupport();
 
@@ -534,6 +536,33 @@ public class MainActivity extends AppCompatActivity {
         });
 
         btnQuickClear.setOnClickListener(v -> clearTransientRomState(true));
+
+        btnEraseChip.setOnClickListener(v -> ensureProgrammerThenRun(() -> {
+            new android.app.AlertDialog.Builder(this)
+                    .setTitle("⚠ Confirmar Borrado de Chip")
+                    .setMessage("Esta operación BORRARÁ completamente el contenido del chip flash.\n\n"
+                            + "Todos los datos del chip se perderán (se llenarán con 0xFF).\n\n"
+                            + "¿Estás seguro de continuar?")
+                    .setPositiveButton("Sí, Borrar", (dialog, which) -> {
+                        if (isDummyProgrammer()) {
+                            File userBios = new File(getFilesDir(), "bios.bin");
+                            if (userBios.exists() && userBios.length() > 0) {
+                                long size = userBios.length();
+                                executeCustomFlashromCommand(
+                                        "-p dummy:emulate=VARIABLE_SIZE,size=" + size + ",image=bios.bin --erase");
+                            } else {
+                                log("No hay bios.bin cargado. Usando archivo de prueba para borrado emulado...");
+                                ensureDummyTestFile(16777216);
+                                executeCustomFlashromCommand(
+                                        "-p dummy:emulate=VARIABLE_SIZE,size=16777216,image=bios_test.bin --erase");
+                            }
+                        } else {
+                            executeFlashromTask("-p", selectedProgrammer, "--erase");
+                        }
+                    })
+                    .setNegativeButton("Cancelar", null)
+                    .show();
+        }));
 
         btnRunCustomCommand.setOnClickListener(v -> {
             String rawCommand = etCustomCommand.getText() == null ? "" : etCustomCommand.getText().toString().trim();
@@ -903,6 +932,7 @@ public class MainActivity extends AppCompatActivity {
         btnVerify.setEnabled(true);
         btnRead.setEnabled(true);
         btnWrite.setEnabled(true);
+        btnEraseChip.setEnabled(true);
 
         if (selectedProgrammer == null || selectedProgrammer.trim().isEmpty()) {
             selectedProgrammer = "ch341a_spi";
@@ -952,6 +982,7 @@ public class MainActivity extends AppCompatActivity {
                 btnVerify.setEnabled(true);
                 btnRead.setEnabled(true);
                 btnWrite.setEnabled(true);
+                btnEraseChip.setEnabled(true);
                 log("Modo Dummy activo: Los botones están habilitados sin necesidad de USB.");
             }
         }
@@ -1240,6 +1271,7 @@ public class MainActivity extends AppCompatActivity {
         btnVerify.setEnabled(enabled);
         btnRead.setEnabled(enabled);
         btnWrite.setEnabled(enabled);
+        btnEraseChip.setEnabled(enabled);
         btnConnect.setEnabled(enabled);
         btnImport.setEnabled(enabled);
         btnExport.setEnabled(enabled);
@@ -1269,6 +1301,9 @@ public class MainActivity extends AppCompatActivity {
             return true;
         } else if (id == R.id.action_dummy_test) {
             showDummyTestDialog();
+            return true;
+        } else if (id == R.id.action_erase_chip) {
+            btnEraseChip.performClick();
             return true;
         } else if (id == R.id.action_about) {
             showAboutDialog();
@@ -1330,6 +1365,7 @@ public class MainActivity extends AppCompatActivity {
         String[] testOptions = {
                 "Leer chip emulado (-r)",
                 "Escribir y verificar (-w)",
+                "Borrar chip emulado (--erase)",
                 "Identificar chip emulado (-p dummy)",
                 "Seleccionar chip predefinido",
                 "Info: Chips válidos para emulación"
@@ -1349,15 +1385,20 @@ public class MainActivity extends AppCompatActivity {
                             executeCustomFlashromCommand(
                                     "-p dummy:emulate=VARIABLE_SIZE,size=16777216,image=bios_test.bin -w bios_test.bin");
                             break;
-                        case 2: // Probe
+                        case 2: // Borrar chip emulado
+                            ensureDummyTestFile(16777216);
+                            executeCustomFlashromCommand(
+                                    "-p dummy:emulate=VARIABLE_SIZE,size=16777216,image=bios_test.bin --erase");
+                            break;
+                        case 3: // Probe
                             ensureDummyTestFile(16777216);
                             executeCustomFlashromCommand(
                                     "-p dummy:emulate=VARIABLE_SIZE,size=16777216,image=bios_test.bin");
                             break;
-                        case 3: // Seleccionar chip
+                        case 4: // Seleccionar chip
                             showDummyChipSelector(DUMMY_CHIPS);
                             break;
-                        case 4: // Info
+                        case 5: // Info
                             showDummyChipInfo();
                             break;
                     }

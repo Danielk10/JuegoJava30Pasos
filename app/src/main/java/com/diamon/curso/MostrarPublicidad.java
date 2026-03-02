@@ -14,11 +14,13 @@ import com.google.android.gms.ads.initialization.OnInitializationCompleteListene
 import com.google.android.gms.ads.interstitial.InterstitialAd;
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
 
+import java.lang.ref.WeakReference;
+
 public class MostrarPublicidad implements Publicidad {
 
     private static final String AD_UNIT_ID = "ca-app-pub-5141499161332805/1518371626";
 
-    private Activity actividad;
+    private WeakReference<Activity> actividadRef;
 
     private AdView adView;
 
@@ -28,7 +30,7 @@ public class MostrarPublicidad implements Publicidad {
 
     public MostrarPublicidad(Activity actividad) {
 
-        this.actividad = actividad;
+        this.actividadRef = new WeakReference<>(actividad);
 
         MobileAds.initialize(
                 actividad,
@@ -47,16 +49,16 @@ public class MostrarPublicidad implements Publicidad {
 
     @Override
     public void mostrarInterstitial() {
-
-        if (mInterstitialAd != null) {
-
+        Activity actividad = actividadRef.get();
+        if (mInterstitialAd != null && actividad != null && !actividad.isFinishing()) {
             mInterstitialAd.show(actividad);
-        } else {
-
         }
     }
 
     public void cargarInterstial() {
+        Activity actividad = actividadRef.get();
+        if (actividad == null || actividad.isFinishing())
+            return;
 
         InterstitialAd.load(
                 actividad,
@@ -65,13 +67,11 @@ public class MostrarPublicidad implements Publicidad {
                 new InterstitialAdLoadCallback() {
                     @Override
                     public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
-
                         mInterstitialAd = interstitialAd;
                     }
 
                     @Override
                     public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
-
                         mInterstitialAd = null;
                     }
                 });
@@ -82,40 +82,31 @@ public class MostrarPublicidad implements Publicidad {
     }
 
     public AdView getBanner() {
-
         return adView;
     }
 
     public void cargarBanner() {
-
         adView.loadAd(this.adRequest);
     }
 
     public AdRequest getAdReques() {
-
         return this.adRequest;
     }
 
     public void resumenBanner() {
-
         if (adView != null) {
-
             adView.resume();
         }
     }
 
     public void pausarBanner() {
-
         if (adView != null) {
-
             adView.pause();
         }
     }
 
     public void disposeBanner() {
-
         if (adView != null) {
-
             adView.destroy();
         }
     }

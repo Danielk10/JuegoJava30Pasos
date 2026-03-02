@@ -112,52 +112,82 @@ public class HexViewerActivity extends AppCompatActivity {
             String content = new String(hexData);
             String[] lines = content.split("\\r?\\n");
 
-            // Intel HEX can be sparse, but for simplicity we'll find min/max and use a
-            // buffer
-            // or just show records. Let's show as a continuous buffer if possible.
-            int minAddr = Integer.MAX_VALUE;
-            int maxAddr = 0;
+            // Intel HEX puede tener Extended Address (Type 02/04) para direcciones > 64KB
+            long minAddr = Long.MAX_VALUE;
+            long maxAddr = 0;
+            int upperAddress = 0;
 
-            // Preliminary pass to find size
+            // Primera pasada: calcular rango incluyendo Extended Address
             for (String line : lines) {
+                line = line.trim();
                 if (!line.startsWith(":") || line.length() < 11)
                     continue;
                 int byteCount = Integer.parseInt(line.substring(1, 3), 16);
                 int address = Integer.parseInt(line.substring(3, 7), 16);
                 int type = Integer.parseInt(line.substring(7, 9), 16);
-                if (type == 0) { // Data record
-                    minAddr = Math.min(minAddr, address);
-                    maxAddr = Math.max(maxAddr, address + byteCount);
+                if (type == 0x00) { // Data record
+                    long absolute = (long) upperAddress + address;
+                    minAddr = Math.min(minAddr, absolute);
+                    maxAddr = Math.max(maxAddr, absolute + byteCount);
+                } else if (type == 0x04 && line.length() >= 15) { // Extended Linear Address
+                    upperAddress = Integer.parseInt(line.substring(9, 13), 16) << 16;
+                } else if (type == 0x02 && line.length() >= 15) { // Extended Segment Address
+                    upperAddress = Integer.parseInt(line.substring(9, 13), 16) << 4;
+                } else if (type == 0x01) { // EOF
+                    break;
                 }
             }
 
-            if (minAddr == Integer.MAX_VALUE) {
+            if (minAddr == Long.MAX_VALUE) {
                 tvHexSummary.setText("Archivo HEX no contiene registros de datos válidos.");
                 return;
             }
 
-            byte[] binBuffer = new byte[maxAddr]; // Simplifies to global address space
+            // Limitar el tamaño del buffer para evitar OOM
+            long bufferSize = maxAddr - minAddr;
+            if (bufferSize > 32L * 1024 * 1024) { // 32 MB máximo para visualización
+                tvHexSummary.setText("Archivo HEX demasiado grande para visualizar ("
+                        + (bufferSize / 1024 / 1024) + " MB).");
+                return;
+            }
+
+            byte[] binBuffer = new byte[(int) bufferSize];
             java.util.Arrays.fill(binBuffer, (byte) 0xFF);
 
+            // Segunda pasada: llenar datos con Extended Address
+            upperAddress = 0;
             for (String line : lines) {
+                line = line.trim();
                 if (!line.startsWith(":") || line.length() < 11)
                     continue;
                 int byteCount = Integer.parseInt(line.substring(1, 3), 16);
                 int address = Integer.parseInt(line.substring(3, 7), 16);
                 int type = Integer.parseInt(line.substring(7, 9), 16);
-                if (type == 0) {
+                if (type == 0x00) {
+                    long absolute = (long) upperAddress + address;
+                    int offset = (int) (absolute - minAddr);
                     for (int i = 0; i < byteCount; i++) {
-                        binBuffer[address + i] = (byte) Integer.parseInt(line.substring(9 + i * 2, 11 + i * 2), 16);
+                        if (offset + i < binBuffer.length) {
+                            binBuffer[offset + i] = (byte) Integer.parseInt(
+                                    line.substring(9 + i * 2, 11 + i * 2), 16);
+                        }
                     }
+                } else if (type == 0x04 && line.length() >= 15) {
+                    upperAddress = Integer.parseInt(line.substring(9, 13), 16) << 16;
+                } else if (type == 0x02 && line.length() >= 15) {
+                    upperAddress = Integer.parseInt(line.substring(9, 13), 16) << 4;
+                } else if (type == 0x01) {
+                    break;
                 }
             }
 
-            String summary = String.format("Intel HEX detectado | Rango: 0x%04X - 0x%04X", minAddr, maxAddr - 1);
+            String summary = String.format("Intel HEX detectado | Rango: 0x%08X - 0x%08X",
+                    (int) minAddr, (int) (maxAddr - 1));
             if (biosSource != null) {
                 summary += "\nOrigen: " + biosSource;
             }
             tvHexSummary.setText(summary);
-            hexAdapter = new HexAdapter(binBuffer, 0);
+            hexAdapter = new HexAdapter(binBuffer, (int) minAddr);
             recyclerHex.setAdapter(hexAdapter);
 
         } catch (Exception e) {
