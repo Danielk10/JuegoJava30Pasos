@@ -165,7 +165,6 @@ public class MainActivity extends AppCompatActivity {
     private ScrollView scrollLog;
     private TextView tvStatus, tvLog, tvLoadingText;
     private android.widget.FrameLayout adContainer;
-    private LinearLayout layoutProgress;
     private ProgressBar progressOperation;
     private TextView tvOperationStatus;
     private static final Pattern PROGRESS_PATTERN = Pattern.compile("(\\d{1,3})\\s*%");
@@ -310,7 +309,6 @@ public class MainActivity extends AppCompatActivity {
         tvLog = findViewById(R.id.tvLog);
         scrollLog = findViewById(R.id.scrollLog);
 
-        layoutProgress = findViewById(R.id.layoutProgress);
         progressOperation = findViewById(R.id.progressOperation);
         tvOperationStatus = findViewById(R.id.tvOperationStatus);
 
@@ -1123,9 +1121,10 @@ public class MainActivity extends AppCompatActivity {
             }
             final String operationLabel = opLabel;
             runOnUiThread(() -> {
-                layoutProgress.setVisibility(View.VISIBLE);
                 progressOperation.setProgress(0);
+                progressOperation.setVisibility(View.VISIBLE);
                 tvOperationStatus.setText(operationLabel + "...");
+                tvOperationStatus.setTextColor(0xFFFFD740);
             });
 
             Process process = pb.start();
@@ -1158,8 +1157,13 @@ public class MainActivity extends AppCompatActivity {
                 tvOperationStatus.setText(exitCode == 0
                         ? operationLabel + " — ¡Completado!"
                         : operationLabel + " — Error (código " + exitCode + ")");
-                // Ocultar después de 3 segundos
-                layoutProgress.postDelayed(() -> layoutProgress.setVisibility(View.GONE), 3000);
+                tvOperationStatus.setTextColor(exitCode == 0 ? 0xFF4CAF50 : 0xFFFF5252);
+                // Restaurar a label normal después de 3 segundos
+                tvOperationStatus.postDelayed(() -> {
+                    progressOperation.setVisibility(View.GONE);
+                    tvOperationStatus.setText("Terminal Salida:");
+                    tvOperationStatus.setTextColor(0xFFB0BEC5);
+                }, 3000);
             });
             if (exitCode == 0) {
                 log("[PROCESO TERMINADO] Exit Code: " + exitCode + " (OK)\n");
