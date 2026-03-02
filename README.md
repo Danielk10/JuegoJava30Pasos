@@ -206,14 +206,17 @@ bash ./setup-sdk.sh
 ## 8) Uso básico de la app
 
 1. Conecta el programador USB OTG.
-2. Pulsa **Detectar y Conectar Automáticamente**, elige dispositivo si aparece el selector, y concede permiso.
+2. Pulsa **Detectar y Conectar Automáticamente** — la app reconoce automáticamente CH341A, FT2232, ST-LINK, Dediprog, J-Link, Bus Pirate y otros por VID:PID. Si hay múltiples dispositivos, elige en el selector.
 3. Usa los botones principales:
    - **Identificar Chip** (`flashrom -p <programador>`)
-   - **Leer (Backup)** (`-r bios.bin`)
+   - **Leer Backup** (`-r bios.bin`)
    - **Verificar ROM** (`-v bios.bin`)
-   - **Flashear (bios.bin)** (`-w bios.bin`)
-4. Si necesitas diagnóstico avanzado, usa **Comando flashrom manual** (ej. `--version`, `-L`, `--help`, o parámetros `-p` completos).
-5. Importa/exporta `bios.bin` desde/hacia almacenamiento usando SAF.
+   - **Flashear ROM** (`-w bios.bin`)
+   - **Borrar Chip** (`--erase`) — con diálogo de confirmación
+   - **Borrar ROM** — elimina archivos temporales (bios.bin, read_test.bin, bios_test.bin)
+4. **Barra de progreso en tiempo real**: durante operaciones de lectura/escritura/verificación/borrado, una barra inline muestra el porcentaje parseado del stdout de flashrom.
+5. **Consola de comandos**: ejecuta cualquier comando flashrom directamente (ej. `--version`, `-L`, `--help`, `-p ch341a_spi -r bios.bin --layout layout.txt`, offsets parciales, etc.).
+6. Importa/exporta archivos ROM desde/hacia almacenamiento usando SAF.
 
 El panel de log muestra salida nativa real con prefijo `[native]`, comandos solicitados y estados de entorno/rutas.
 
@@ -259,18 +262,54 @@ El panel de log muestra salida nativa real con prefijo `[native]`, comandos soli
 
 ## 11) Características de Usuario
 
+### Barra de Progreso en Tiempo Real
+- Barra delgada (4dp) integrada en el header del terminal — no consume espacio extra.
+- Parsea el porcentaje del stdout de flashrom (ej: `Reading flash... 50%`) y muestra progreso visual.
+- Cambia de color automáticamente: amarillo (en progreso), verde (completado), rojo (error).
+- Se oculta automáticamente 3 segundos después de finalizar la operación.
+
+### Borrado de Chip
+- Botón **Borrar Chip** (`--erase`) con diálogo de confirmación de seguridad.
+- Funciona tanto en modo real (hardware USB) como en modo dummy (emulación).
+
 ### Modo Dummy y Diagnóstico
-La app incluye soporte nativo y un flujo dedicado para el programador `dummy` de flashrom. 
+La app incluye soporte nativo y un flujo dedicado para el programador `dummy` de flashrom.
 - Permite probar la interfaz y comandos sin hardware real conectado.
-- Cuenta con un menú **Modo Prueba (Dummy)** para generar chips vituales (SST25VF040, MX25L6436, etc.) en un archivo temporal.
+- Cuenta con un menú **Modo Prueba (Dummy)** para generar chips virtuales (SST25VF040, MX25L6436, etc.) en un archivo temporal.
 - Los botones principales adaptan su comando automáticamente si el programador dummy está seleccionado.
 
 ### Visor Hexadecimal Integrado
 Cuenta con un visor hexadecimal profesional (`HexViewerActivity`) capaz de:
 - Mostrar volcados de datos leídos del chip.
-- Decodificar e inspeccionar archivos Intel HEX (analizando direcciones reales).
+- Decodificar e inspeccionar archivos Intel HEX (analizando direcciones reales, soportando Extended Address Types 02/04).
 - Mostrar siempre el *Origen* de los datos (ej: `Leído del chip (ch341a_spi)` o `Importado: firmware.hex`).
+- Protección contra OOM para archivos grandes (límite de 32 MB para visualización).
+
+### Comparador HEX (Diff)
+Herramienta de comparación binaria (`HexDiffActivity`) accesible desde el menú:
+- Compara dos archivos byte a byte con vista hexadecimal.
+- Resalta diferencias en rojo con notación `A→B` (valor original → valor nuevo).
+- Muestra estadísticas: cantidad y porcentaje de bytes diferentes.
+- Pre-carga automáticamente `bios.bin` como archivo A si existe.
+
+### Pinouts de Hardware
+Guía de referencia rápida accesible desde el menú con diagramas ASCII:
+- **CH341A Mini Programmer** — pinout del header SPI y configuración de jumpers.
+- **Clip SOIC8/DIP8** — pinout del chip flash y conexión al CH341A.
+- **Interfaz SPI** — diagrama de conexión Master-Slave.
+- **Interfaz I2C** — diagrama de bus con pull-ups y pinout de EEPROM.
+
+### Consola de Comandos Avanzada
+- Ejecuta cualquier comando flashrom desde la interfaz (ej: `-p ch341a_spi -r bios.bin --layout layout.txt`).
+- Soporta operaciones parciales con offsets nativos de flashrom.
+- Funciona sin USB para comandos informativos (`--version`, `-L`, `--help`).
+- Inyecta automáticamente `ANDROID_USB_FD` y `LD_LIBRARY_PATH` cuando hay USB conectado.
+
+### Detección Automática de Programadores USB
+La app reconoce automáticamente más de 25 modelos de programadores por VID:PID:
+- CH341A, CH347, FT2232/FT232H/FT4232H, Bus Pirate, ST-LINK (v2/v2.1/v3), J-Link, Pickit2, USB-Blaster, Dediprog, Digilent, DirtyJTAG, Serprog (Arduino/CH340/CP2102).
+- Selecciona automáticamente el parámetro `-p` correcto sin intervención del usuario.
 
 ### Importación y Exportación Inteligente
-- **Cargar ROM**: usa el Android Storage Access Framework (SAF) para importar sin restricciones (`*/*`), detectando automáticamente el formato (binario crudo vs Intel HEX) y validando tamaños (hasta 128 MB).
-- **Guardar ROM**: solo permite respaldar volcados legítimos (datos comprobados mediante chip read), asegurando que los usuarios no exporten accidentalmente el mismo archivo que importaron. El nombre sugerido de salida coincide dinámicamente con el nombre del archivo de entrada.
+- **Cargar ROM**: usa el Android Storage Access Framework (SAF) para importar sin restricciones (`*/*`), detectando automáticamente el formato (binario crudo vs Intel HEX) y validando tamaños (hasta 128 MB). Incluye conversión Intel HEX → binario automática con validación de checksum.
+- **Guardar ROM**: solo permite respaldar volcados legítimos (datos comprobados mediante chip read), asegurando que los usuarios no exporten accidentalmente el mismo archivo que importaron.

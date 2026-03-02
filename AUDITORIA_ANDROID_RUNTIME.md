@@ -43,7 +43,12 @@
 - Menú **Agregar dispositivo/programador flashrom (lista)** con programadores soportados: OK
 - Menú **Configurar programador manual (anterior)** (texto libre legacy): OK
 - Menú **Modo Prueba (Dummy)** para pruebas locales de chip virtual: OK
-- Visor Hexadecimal avanzado (`HexViewerActivity`) con soporte Intel HEX y origen de datos: OK
+- Visor Hexadecimal avanzado (`HexViewerActivity`) con soporte Intel HEX (Types 02/04) y origen de datos: OK
+- Comparador HEX (Diff) (`HexDiffActivity`) con comparación byte-a-byte y resaltado de diferencias: OK
+- Pinouts de Hardware (CH341A, SOIC8/DIP8, SPI, I2C) con diagramas ASCII monospace: OK
+- Botón **Borrar Chip** (`--erase`) con diálogo de confirmación, modo real y dummy: OK
+- Barra de progreso en tiempo real (4dp inline, parseo de stdout `%`): OK
+- Detección automática de programadores USB por VID:PID (25+ modelos): OK
 - Campo de comando manual para ejecutar parámetros flashrom y ver salida en consola: OK
 - Rastreo dinámico de archivos leídos (ej. usa `lastReadFile` en lugar de `bios.bin` rígido): OK
 - Comandos manuales sin USB conectado (ej. `--version`, `-L`, `--help`): OK
