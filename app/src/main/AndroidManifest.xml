@@ -76,6 +76,11 @@
 
         <activity android:name=".ProgrammerSettingsActivity"
             android:exported="false" />
+
+        <activity android:name=".HexDiffActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.Light.DarkActionBar"
+            android:label="Comparar HEX" />
     </application>
 
 </manifest>

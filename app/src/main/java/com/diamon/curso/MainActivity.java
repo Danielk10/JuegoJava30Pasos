@@ -50,7 +50,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import android.content.SharedPreferences;
+import android.widget.ProgressBar;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -162,6 +165,10 @@ public class MainActivity extends AppCompatActivity {
     private ScrollView scrollLog;
     private TextView tvStatus, tvLog, tvLoadingText;
     private android.widget.FrameLayout adContainer;
+    private LinearLayout layoutProgress;
+    private ProgressBar progressOperation;
+    private TextView tvOperationStatus;
+    private static final Pattern PROGRESS_PATTERN = Pattern.compile("(\\d{1,3})\\s*%");
     private Button btnConnect, btnProbe, btnVerify, btnRead, btnWrite, btnImport, btnExport;
     private Button btnRunCustomCommand, btnClearLogs, btnQuickClear, btnEraseChip;
     private EditText etCustomCommand;
@@ -302,6 +309,10 @@ public class MainActivity extends AppCompatActivity {
         tvStatus = findViewById(R.id.tvStatus);
         tvLog = findViewById(R.id.tvLog);
         scrollLog = findViewById(R.id.scrollLog);
+
+        layoutProgress = findViewById(R.id.layoutProgress);
+        progressOperation = findViewById(R.id.progressOperation);
+        tvOperationStatus = findViewById(R.id.tvOperationStatus);
 
         btnConnect = findViewById(R.id.btnConnect);
         btnProbe = findViewById(R.id.btnProbe);
@@ -1090,16 +1101,66 @@ public class MainActivity extends AppCompatActivity {
             log("Entorno flashrom => LD_LIBRARY_PATH=" + env.get("LD_LIBRARY_PATH"));
             log("Entorno flashrom => PATH=" + env.get("PATH"));
 
+            // Detectar tipo de operación para etiqueta de progreso
+            String opLabel = "Operación";
+            for (String arg : args) {
+                if ("-r".equals(arg)) {
+                    opLabel = "Leyendo flash";
+                    break;
+                }
+                if ("-w".equals(arg)) {
+                    opLabel = "Escribiendo flash";
+                    break;
+                }
+                if ("-v".equals(arg)) {
+                    opLabel = "Verificando flash";
+                    break;
+                }
+                if ("--erase".equals(arg)) {
+                    opLabel = "Borrando flash";
+                    break;
+                }
+            }
+            final String operationLabel = opLabel;
+            runOnUiThread(() -> {
+                layoutProgress.setVisibility(View.VISIBLE);
+                progressOperation.setProgress(0);
+                tvOperationStatus.setText(operationLabel + "...");
+            });
+
             Process process = pb.start();
 
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     log("[native] " + line);
+                    // Parsear progreso del stdout de flashrom
+                    Matcher m = PROGRESS_PATTERN.matcher(line);
+                    if (m.find()) {
+                        try {
+                            int pct = Integer.parseInt(m.group(1));
+                            if (pct >= 0 && pct <= 100) {
+                                final int progress = pct;
+                                runOnUiThread(() -> {
+                                    progressOperation.setProgress(progress);
+                                    tvOperationStatus.setText(operationLabel + "... " + progress + "%");
+                                });
+                            }
+                        } catch (NumberFormatException ignored) {
+                        }
+                    }
                 }
             }
 
             int exitCode = process.waitFor();
+            runOnUiThread(() -> {
+                progressOperation.setProgress(exitCode == 0 ? 100 : 0);
+                tvOperationStatus.setText(exitCode == 0
+                        ? operationLabel + " — ¡Completado!"
+                        : operationLabel + " — Error (código " + exitCode + ")");
+                // Ocultar después de 3 segundos
+                layoutProgress.postDelayed(() -> layoutProgress.setVisibility(View.GONE), 3000);
+            });
             if (exitCode == 0) {
                 log("[PROCESO TERMINADO] Exit Code: " + exitCode + " (OK)\n");
                 // Detectar si fue una operación de lectura exitosa y rastrear el archivo
@@ -1302,8 +1363,11 @@ public class MainActivity extends AppCompatActivity {
         } else if (id == R.id.action_dummy_test) {
             showDummyTestDialog();
             return true;
-        } else if (id == R.id.action_erase_chip) {
-            btnEraseChip.performClick();
+        } else if (id == R.id.action_hex_diff) {
+            startActivity(new Intent(this, HexDiffActivity.class));
+            return true;
+        } else if (id == R.id.action_pinouts) {
+            showPinoutsDialog();
             return true;
         } else if (id == R.id.action_about) {
             showAboutDialog();
@@ -1349,6 +1413,140 @@ public class MainActivity extends AppCompatActivity {
                 .setTitle("Acerca de")
                 .setView(aboutText)
                 .setPositiveButton("Cerrar", null)
+                .show();
+    }
+
+    private void showPinoutsDialog() {
+        String[] pinoutOptions = {
+                "CH341A — Mini Programmer",
+                "Clip SOIC8 / DIP8 Flash",
+                "Interfaz SPI (Serial Peripheral)",
+                "Interfaz I2C (Inter-Integrated Circuit)"
+        };
+
+        new android.app.AlertDialog.Builder(this)
+                .setTitle("📌 Pinouts de Hardware")
+                .setItems(pinoutOptions, (dialog, which) -> {
+                    String title;
+                    String content;
+                    switch (which) {
+                        case 0:
+                            title = "CH341A Mini Programmer";
+                            content = "          CH341A Mini Programmer\n" +
+                                    "     ┌─────────────────────────────┐\n" +
+                                    "     │  USB  ┌─────┐    ZIF-24    │\n" +
+                                    "     │  ═══  │CH341│    Socket    │\n" +
+                                    "     │       │  A  │              │\n" +
+                                    "     │       └─────┘   ┌──────┐  │\n" +
+                                    "     │                 │ CHIP │  │\n" +
+                                    "     │  [1] [2]        └──────┘  │\n" +
+                                    "     │  SPI Header               │\n" +
+                                    "     └─────────────────────────────┘\n\n" +
+                                    "  SPI Header (8 pines, vista superior):\n" +
+                                    "     ┌─────────────────┐\n" +
+                                    "     │ 1-CS    2-MISO  │\n" +
+                                    "     │ 3-WP    4-GND   │\n" +
+                                    "     │ 5-MOSI  6-CLK   │\n" +
+                                    "     │ 7-HOLD  8-VCC   │\n" +
+                                    "     └─────────────────┘\n\n" +
+                                    "  ⚠ Voltage: 3.3V (NO usar en 5V)\n" +
+                                    "  ⚠ Jumper 1-2: Modo programación SPI\n" +
+                                    "  ⚠ Jumper 2-3: Modo UART/I2C";
+                            break;
+                        case 1:
+                            title = "Clip SOIC8 / DIP8 Flash";
+                            content = "  Chip Flash SOIC8 / DIP8\n" +
+                                    "  (Vista superior, punto = Pin 1)\n\n" +
+                                    "       ┌────────────┐\n" +
+                                    "     ● │1  CS   VCC│ 8\n" +
+                                    "       │2  DO  HOLD│ 7\n" +
+                                    "       │3  WP   CLK│ 6\n" +
+                                    "       │4  GND   DI│ 5\n" +
+                                    "       └────────────┘\n\n" +
+                                    "  Conexión a CH341A:\n" +
+                                    "   Chip  →  CH341A Header\n" +
+                                    "   ─────────────────────\n" +
+                                    "   1-CS   →  1-CS\n" +
+                                    "   2-DO   →  2-MISO\n" +
+                                    "   3-WP   →  3-WP (o VCC)\n" +
+                                    "   4-GND  →  4-GND\n" +
+                                    "   5-DI   →  5-MOSI\n" +
+                                    "   6-CLK  →  6-CLK\n" +
+                                    "   7-HOLD →  7-HOLD (o VCC)\n" +
+                                    "   8-VCC  →  8-VCC (3.3V)\n\n" +
+                                    "  ⚠ Alimentar HOLD y WP a VCC\n" +
+                                    "     si no se usan";
+                            break;
+                        case 2:
+                            title = "Interfaz SPI";
+                            content = "  Bus SPI — Serial Peripheral Interface\n\n" +
+                                    "   ┌────────────┐           ┌────────┐\n" +
+                                    "   │   MASTER   │           │ SLAVE  │\n" +
+                                    "   │ (CH341A)   │           │ (CHIP) │\n" +
+                                    "   │            │           │        │\n" +
+                                    "   │    MOSI────┼──────────►│──DI    │\n" +
+                                    "   │    MISO◄───┼───────────┤──DO    │\n" +
+                                    "   │    CLK─────┼──────────►│──CLK   │\n" +
+                                    "   │    CS──────┼──────────►│──CS    │\n" +
+                                    "   │            │           │        │\n" +
+                                    "   └────────────┘           └────────┘\n\n" +
+                                    "  MOSI = Master Out, Slave In (datos)\n" +
+                                    "  MISO = Master In, Slave Out (datos)\n" +
+                                    "  CLK  = Reloj (genera el master)\n" +
+                                    "  CS   = Chip Select (activo bajo)\n\n" +
+                                    "  Modos SPI: CPOL=0/1, CPHA=0/1\n" +
+                                    "  Velocidad típica: 1-50 MHz";
+                            break;
+                        case 3:
+                            title = "Interfaz I2C";
+                            content = "  Bus I2C — Inter-Integrated Circuit\n\n" +
+                                    "      VCC (3.3V o 5V)\n" +
+                                    "       │       │\n" +
+                                    "      [R]     [R]  ← Pull-up (4.7KΩ)\n" +
+                                    "       │       │\n" +
+                                    "  ─────┼───────┼───── SDA (datos)\n" +
+                                    "       │       │\n" +
+                                    "  ─────┼───────┼───── SCL (reloj)\n" +
+                                    "       │       │\n" +
+                                    "   ┌───┴──┐ ┌──┴───┐\n" +
+                                    "   │MASTER│ │SLAVE │\n" +
+                                    "   │      │ │(CHIP)│\n" +
+                                    "   └──────┘ └──────┘\n\n" +
+                                    "  EEPROM I2C típica (SOIC8):\n" +
+                                    "       ┌────────────┐\n" +
+                                    "     ● │1  A0   VCC│ 8\n" +
+                                    "       │2  A1    WP│ 7\n" +
+                                    "       │3  A2   SCL│ 6\n" +
+                                    "       │4  GND  SDA│ 5\n" +
+                                    "       └────────────┘\n\n" +
+                                    "  A0-A2 = Dirección (GND o VCC)\n" +
+                                    "  WP = Write Protect (GND=escribir)\n" +
+                                    "  Velocidad: 100/400 KHz";
+                            break;
+                        default:
+                            return;
+                    }
+
+                    TextView tv = new TextView(this);
+                    tv.setTypeface(android.graphics.Typeface.MONOSPACE);
+                    tv.setTextSize(11);
+                    tv.setTextColor(0xFFE0E0E0);
+                    tv.setBackgroundColor(0xFF1B1E2B);
+                    int p = (int) (16 * getResources().getDisplayMetrics().density);
+                    tv.setPadding(p, p, p, p);
+                    tv.setText(content);
+                    tv.setTextIsSelectable(true);
+
+                    ScrollView scroll = new ScrollView(this);
+                    scroll.addView(tv);
+
+                    new android.app.AlertDialog.Builder(this)
+                            .setTitle(title)
+                            .setView(scroll)
+                            .setPositiveButton("Cerrar", null)
+                            .show();
+                })
+                .setNegativeButton("Cerrar", null)
                 .show();
     }
 

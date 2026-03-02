@@ -8,6 +8,11 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/action_hex_diff"
+        android:title="Comparar HEX (Diff)"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_programmer_settings"
         android:title="Configurar Programador Flashrom"
         app:showAsAction="never" />
@@ -23,8 +28,8 @@
         app:showAsAction="never" />
 
     <item
-        android:id="@+id/action_erase_chip"
-        android:title="Borrar Chip (Erase)"
+        android:id="@+id/action_pinouts"
+        android:title="Pinouts de Hardware"
         app:showAsAction="never" />
 
     <item

@@ -234,6 +234,35 @@
                 android:paddingBottom="4dp"/>
         </LinearLayout>
 
+        <!-- Barra de Progreso de Operación -->
+        <LinearLayout
+            android:id="@+id/layoutProgress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:layout_marginBottom="4dp">
+
+            <TextView
+                android:id="@+id/tvOperationStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Operación en progreso..."
+                android:textColor="#FFD740"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <ProgressBar
+                android:id="@+id/progressOperation"
+                style="@android:style/Widget.ProgressBar.Horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="100"
+                android:progress="0"
+                android:progressTint="#4CAF50"
+                android:progressBackgroundTint="#333333" />
+        </LinearLayout>
+
         <!-- Terminal de Logs -->
         <ScrollView
             android:id="@+id/scrollLog"
