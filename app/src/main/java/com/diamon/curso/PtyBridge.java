@@ -33,7 +33,7 @@ import java.util.List;
 public class PtyBridge {
 
     private static final String TAG = "PtyBridge";
-    private static final int USB_TIMEOUT_MS = 200;
+    private static final int USB_TIMEOUT_MS = 50;
     private static final int BUFFER_SIZE = 4096;
 
     // Cargado desde native-lib.cpp (mismo .so que el resto de la app)
@@ -108,9 +108,10 @@ public class PtyBridge {
         try {
             usbPort.open(connection);
             usbPort.setParameters(baudRate, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
-            // DTR/RTS: algunos Arduinos necesitan DTR para no resetear
-            usbPort.setDTR(true);
-            usbPort.setRTS(true);
+            // DTR/RTS en false para NO disparar Auto-Reset del Arduino
+            // (DTR toggle = RESET en Arduino Uno con CH340/ATmega16U2)
+            usbPort.setDTR(false);
+            usbPort.setRTS(false);
         } catch (IOException e) {
             Log.e(TAG, "Error abriendo UsbSerialPort: " + e.getMessage());
             cleanupPty();
