@@ -241,19 +241,8 @@
                     android:minHeight="0dp"
                     android:paddingTop="4dp"
                     android:paddingBottom="4dp"/>
-            </LinearLayout>
-
-            <ProgressBar
-                android:id="@+id/progressOperation"
-                style="@android:style/Widget.ProgressBar.Horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="4dp"
-                android:max="100"
-                android:progress="0"
-                android:visibility="gone"
-                android:progressTint="#4CAF50"
-                android:progressBackgroundTint="#333333" />
         </LinearLayout>
+
 
         <!-- Terminal de Logs -->
         <ScrollView
