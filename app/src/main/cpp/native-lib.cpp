@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/wait.h>
+#include <termios.h>
 #include <android/log.h>
 
 #define LOG_TAG "FlashromJNI"
@@ -71,6 +72,30 @@ Java_com_diamon_curso_PtyBridge_createPty(JNIEnv *env, jclass clazz) {
         close(masterFd);
         return nullptr;
     }
+
+    // ── CRÍTICO: poner el PTY en modo RAW (binario puro) ──────────────
+    // Sin esto, la line discipline del PTY transforma bytes del protocolo
+    // serprog: 0x03 → SIGINT, 0x13 → XOFF (¡es S_CMD_O_SPIOP!),
+    // 0x0D → convierte a 0x0A, etc.  cfmakeraw() desactiva TODO eso.
+    struct termios tio;
+    if (tcgetattr(masterFd, &tio) == 0) {
+        cfmakeraw(&tio);
+        tcsetattr(masterFd, TCSANOW, &tio);
+        LOGI("PTY master configurado en modo RAW (binario puro)");
+    } else {
+        LOGE("tcgetattr falló en master: errno=%d (continuando)", errno);
+    }
+    // También configurar el slave para que flashrom lo vea en raw
+    int slaveFd = open(slavePath, O_RDWR | O_NOCTTY);
+    if (slaveFd >= 0) {
+        if (tcgetattr(slaveFd, &tio) == 0) {
+            cfmakeraw(&tio);
+            tcsetattr(slaveFd, TCSANOW, &tio);
+            LOGI("PTY slave configurado en modo RAW");
+        }
+        close(slaveFd);
+    }
+
     LOGI("PTY creado: master_fd=%d slave=%s", masterFd, slavePath);
 
     // Construir array de retorno: [masterFdAsString, slavePath]
