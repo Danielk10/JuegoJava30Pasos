@@ -241,6 +241,7 @@
                     android:minHeight="0dp"
                     android:paddingTop="4dp"
                     android:paddingBottom="4dp"/>
+            </LinearLayout>
         </LinearLayout>
 
 

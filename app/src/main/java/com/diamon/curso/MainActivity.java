@@ -173,7 +173,7 @@ public class MainActivity extends AppCompatActivity {
     private ScrollView scrollLog;
     private TextView tvStatus, tvLog, tvLoadingText;
     private android.widget.FrameLayout adContainer;
-    private ProgressBar progressOperation;
+
     private TextView tvOperationStatus;
     private static final Pattern PROGRESS_PATTERN = Pattern.compile("(\\d{1,3})\\s*%");
     private Button btnConnect, btnProbe, btnVerify, btnRead, btnWrite, btnImport, btnExport;
@@ -315,7 +315,6 @@ public class MainActivity extends AppCompatActivity {
         tvLog = findViewById(R.id.tvLog);
         scrollLog = findViewById(R.id.scrollLog);
 
-        progressOperation = findViewById(R.id.progressOperation);
         tvOperationStatus = findViewById(R.id.tvOperationStatus);
 
         btnConnect = findViewById(R.id.btnConnect);
@@ -995,7 +994,15 @@ public class MainActivity extends AppCompatActivity {
             log("Error: No hay dispositivo USB conectado. Conecta tu programador primero.");
             return;
         }
-        action.run();
+        // ── Serprog (Arduino): esperar Auto-Reset del bootloader antes de sincronizar
+        // ──
+        if ("serprog".equals(selectedProgrammer)) {
+            log("Sincronizando con Arduino... espera 2.5 segundos (Auto-Reset).");
+            new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(action, 2500);
+        } else {
+            // CH341A y otros programadores con parche libusb son instantáneos
+            action.run();
+        }
     }
 
     @Override
@@ -1165,8 +1172,7 @@ public class MainActivity extends AppCompatActivity {
             }
             final String operationLabel = opLabel;
             runOnUiThread(() -> {
-                progressOperation.setProgress(0);
-                progressOperation.setVisibility(View.VISIBLE);
+
                 tvOperationStatus.setText(operationLabel + "...");
                 tvOperationStatus.setTextColor(0xFFFFD740);
             });
@@ -1185,7 +1191,7 @@ public class MainActivity extends AppCompatActivity {
                             if (pct >= 0 && pct <= 100) {
                                 final int progress = pct;
                                 runOnUiThread(() -> {
-                                    progressOperation.setProgress(progress);
+
                                     tvOperationStatus.setText(operationLabel + "... " + progress + "%");
                                 });
                             }
@@ -1197,14 +1203,14 @@ public class MainActivity extends AppCompatActivity {
 
             int exitCode = process.waitFor();
             runOnUiThread(() -> {
-                progressOperation.setProgress(exitCode == 0 ? 100 : 0);
+
                 tvOperationStatus.setText(exitCode == 0
                         ? operationLabel + " — ¡Completado!"
                         : operationLabel + " — Error (código " + exitCode + ")");
                 tvOperationStatus.setTextColor(exitCode == 0 ? 0xFF4CAF50 : 0xFFFF5252);
                 // Restaurar a label normal después de 3 segundos
                 tvOperationStatus.postDelayed(() -> {
-                    progressOperation.setVisibility(View.GONE);
+
                     tvOperationStatus.setText("Terminal Salida:");
                     tvOperationStatus.setTextColor(0xFFB0BEC5);
                 }, 3000);
