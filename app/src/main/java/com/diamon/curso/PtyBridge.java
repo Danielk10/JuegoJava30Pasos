@@ -177,6 +177,42 @@ public class PtyBridge {
         return running && slavePath != null;
     }
 
+    /**
+     * Descarta toda la basura acumulada en el buffer USB y el PTY master.
+     * Llamar ANTES de iniciar flashrom para que lo primero que lea sea
+     * el ACK real del Arduino y no restos del bootloader o ruido del CH340.
+     */
+    public void purge() {
+        // Drenar buffer USB (respuestas viejas / basura del bootloader)
+        if (usbPort != null) {
+            byte[] drain = new byte[BUFFER_SIZE];
+            try {
+                int total = 0;
+                int n;
+                while ((n = usbPort.read(drain, 10)) > 0) {
+                    total += n;
+                }
+                if (total > 0) {
+                    Log.i(TAG, "Purge USB: descartados " + total + " bytes de basura");
+                }
+            } catch (IOException ignored) {
+            }
+        }
+        // Drenar buffer PTY master (bytes que ya pasaron del USB al PTY)
+        if (masterPfd != null) {
+            try {
+                FileInputStream masterIn = new FileInputStream(masterPfd.getFileDescriptor());
+                int avail = masterIn.available();
+                if (avail > 0) {
+                    byte[] skip = new byte[avail];
+                    masterIn.read(skip);
+                    Log.i(TAG, "Purge PTY: descartados " + avail + " bytes del master");
+                }
+            } catch (IOException ignored) {
+            }
+        }
+    }
+
     // -------- Privados --------
 
     private void startForwardingThreads() {

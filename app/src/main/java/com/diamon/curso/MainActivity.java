@@ -998,7 +998,14 @@ public class MainActivity extends AppCompatActivity {
         // ──
         if ("serprog".equals(selectedProgrammer)) {
             log("Sincronizando con Arduino... espera 2.5 segundos (Auto-Reset).");
-            new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(action, 2500);
+            new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                // Purgar basura del bootloader/CH340 antes de que flashrom hable
+                if (ptyBridge != null && ptyBridge.isOpen()) {
+                    ptyBridge.purge();
+                    log("Buffer purgado — canal limpio para flashrom.");
+                }
+                action.run();
+            }, 2500);
         } else {
             // CH341A y otros programadores con parche libusb son instantáneos
             action.run();
