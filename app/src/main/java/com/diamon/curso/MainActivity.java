@@ -1230,8 +1230,6 @@ public class MainActivity extends AppCompatActivity {
                         editor.apply();
                         final String rf = readFile;
                         runOnUiThread(() -> {
-                            log("Datos leídos en '" + rf + "'. Puedes exportar con 'Guardar ROM'.");
-                            log("Abre 'Ver Memoria HEX' para inspeccionar los datos.");
                         });
                         break;
                     }
