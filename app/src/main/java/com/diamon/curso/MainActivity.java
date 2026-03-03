@@ -1171,6 +1171,10 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
             final String operationLabel = opLabel;
+            runOnUiThread(() -> {
+                tvOperationStatus.setText(operationLabel + "...");
+                tvOperationStatus.setTextColor(0xFFFFD740);
+            });
 
             Process process = pb.start();
 
@@ -1178,10 +1182,34 @@ public class MainActivity extends AppCompatActivity {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     log("[native] " + line);
+                    // Parsear progreso del stdout de flashrom
+                    Matcher m = PROGRESS_PATTERN.matcher(line);
+                    if (m.find()) {
+                        try {
+                            int pct = Integer.parseInt(m.group(1));
+                            if (pct >= 0 && pct <= 100) {
+                                final int progress = pct;
+                                runOnUiThread(() -> {
+                                    tvOperationStatus.setText(operationLabel + "... " + progress + "%");
+                                });
+                            }
+                        } catch (NumberFormatException ignored) {
+                        }
+                    }
                 }
             }
 
             int exitCode = process.waitFor();
+            runOnUiThread(() -> {
+                tvOperationStatus.setText(exitCode == 0
+                        ? operationLabel + " \u2014 \u00a1Completado!"
+                        : operationLabel + " \u2014 Error (c\u00f3digo " + exitCode + ")");
+                tvOperationStatus.setTextColor(exitCode == 0 ? 0xFF4CAF50 : 0xFFFF5252);
+                tvOperationStatus.postDelayed(() -> {
+                    tvOperationStatus.setText("Terminal Salida:");
+                    tvOperationStatus.setTextColor(0xFFB0BEC5);
+                }, 3000);
+            });
 
             if (exitCode == 0) {
                 log("[PROCESO TERMINADO] Exit Code: " + exitCode + " (OK)\n");
