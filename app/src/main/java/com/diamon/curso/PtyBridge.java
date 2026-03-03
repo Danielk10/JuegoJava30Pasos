@@ -33,8 +33,10 @@ import java.util.List;
 public class PtyBridge {
 
     private static final String TAG = "PtyBridge";
-    private static final int USB_TIMEOUT_MS = 50;
+    private static final int USB_TIMEOUT_MS = 200;
     private static final int BUFFER_SIZE = 4096;
+    /** Cuántos bytes iniciales loggear en hex para diagnóstico */
+    private static final int DEBUG_HEX_LIMIT = 32;
 
     // Cargado desde native-lib.cpp (mismo .so que el resto de la app)
     static {
@@ -108,11 +110,16 @@ public class PtyBridge {
         try {
             usbPort.open(connection);
             usbPort.setParameters(baudRate, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
-            // DTR/RTS en false para NO disparar Auto-Reset del Arduino
-            // (DTR toggle = RESET en Arduino Uno con CH340/ATmega16U2)
+            // ── Pulso DTR para forzar un reset LIMPIO del Arduino ──
+            // El toggle DTR HIGH→LOW dispara Auto-Reset en Arduino Uno (CH340/ATmega16U2).
+            // Sin esto, el Arduino puede estar en un estado indeterminado del bootloader.
+            usbPort.setDTR(true);
+            usbPort.setRTS(true);
+            Thread.sleep(50); // Mantener DTR alto brevemente
             usbPort.setDTR(false);
             usbPort.setRTS(false);
-        } catch (IOException e) {
+            Log.i(TAG, "DTR reset pulse enviado — Arduino reiniciándose");
+        } catch (IOException | InterruptedException e) {
             Log.e(TAG, "Error abriendo UsbSerialPort: " + e.getMessage());
             cleanupPty();
             return false;
@@ -183,19 +190,22 @@ public class PtyBridge {
      * el ACK real del Arduino y no restos del bootloader o ruido del CH340.
      */
     public void purge() {
-        // Drenar buffer USB (respuestas viejas / basura del bootloader)
+        // Drenar buffer USB con reintentos (el bootloader puede seguir enviando)
         if (usbPort != null) {
             byte[] drain = new byte[BUFFER_SIZE];
-            try {
-                int total = 0;
-                int n;
-                while ((n = usbPort.read(drain, 10)) > 0) {
-                    total += n;
+            int totalDrained = 0;
+            for (int attempt = 0; attempt < 3; attempt++) {
+                try {
+                    int n;
+                    while ((n = usbPort.read(drain, 20)) > 0) {
+                        totalDrained += n;
+                    }
+                    Thread.sleep(50); // Esperar por datos rezagados
+                } catch (IOException | InterruptedException ignored) {
                 }
-                if (total > 0) {
-                    Log.i(TAG, "Purge USB: descartados " + total + " bytes de basura");
-                }
-            } catch (IOException ignored) {
+            }
+            if (totalDrained > 0) {
+                Log.i(TAG, "Purge USB: descartados " + totalDrained + " bytes de basura");
             }
         }
         // Drenar buffer PTY master (bytes que ya pasaron del USB al PTY)
@@ -213,16 +223,47 @@ public class PtyBridge {
         }
     }
 
+    /**
+     * Envía un NOP de "calentamiento" (0x00) y descarta la respuesta.
+     * Esto confirma que el canal USB↔Arduino está vivo y limpia
+     * cualquier byte residual que el Arduino envíe tras su setup().
+     */
+    public void warmupNop() {
+        if (usbPort == null)
+            return;
+        try {
+            byte[] nop = { 0x00 }; // serprog NOP
+            usbPort.write(nop, 1, USB_TIMEOUT_MS);
+            Log.i(TAG, "Warmup NOP enviado (0x00)");
+            // Esperar la respuesta ACK (0x06) y descartarla
+            Thread.sleep(100);
+            byte[] drain = new byte[64];
+            int n = usbPort.read(drain, USB_TIMEOUT_MS);
+            if (n > 0) {
+                Log.i(TAG, "Warmup respuesta: " + bytesToHex(drain, n));
+            }
+        } catch (IOException | InterruptedException e) {
+            Log.w(TAG, "Warmup NOP fallo: " + e.getMessage());
+        }
+    }
+
     // -------- Privados --------
 
     private void startForwardingThreads() {
         // Hilo A: PTY master → USB (lo que flashrom escribe al puerto serie virtual)
         threadMasterToUsb = new Thread(() -> {
+            int totalSent = 0;
             try (FileInputStream masterIn = new FileInputStream(masterPfd.getFileDescriptor())) {
                 byte[] buf = new byte[BUFFER_SIZE];
                 while (running && !Thread.currentThread().isInterrupted()) {
                     int n = masterIn.read(buf);
                     if (n > 0 && usbPort != null) {
+                        // Debug: loggear los primeros bytes enviados por flashrom
+                        if (totalSent < DEBUG_HEX_LIMIT) {
+                            int logLen = Math.min(n, DEBUG_HEX_LIMIT - totalSent);
+                            Log.d(TAG, "PTY→USB [" + n + "B]: " + bytesToHex(buf, logLen));
+                        }
+                        totalSent += n;
                         try {
                             usbPort.write(buf, n, USB_TIMEOUT_MS);
                         } catch (IOException e) {
@@ -241,6 +282,7 @@ public class PtyBridge {
 
         // Hilo B: USB → PTY master (respuestas del Arduino que flashrom lee)
         threadUsbToMaster = new Thread(() -> {
+            int totalReceived = 0;
             try (FileOutputStream masterOut = new FileOutputStream(masterPfd.getFileDescriptor())) {
                 byte[] buf = new byte[BUFFER_SIZE];
                 while (running && !Thread.currentThread().isInterrupted()) {
@@ -248,6 +290,12 @@ public class PtyBridge {
                         if (usbPort != null) {
                             int n = usbPort.read(buf, USB_TIMEOUT_MS);
                             if (n > 0) {
+                                // Debug: loggear los primeros bytes recibidos del Arduino
+                                if (totalReceived < DEBUG_HEX_LIMIT) {
+                                    int logLen = Math.min(n, DEBUG_HEX_LIMIT - totalReceived);
+                                    Log.d(TAG, "USB→PTY [" + n + "B]: " + bytesToHex(buf, logLen));
+                                }
+                                totalReceived += n;
                                 masterOut.write(buf, 0, n);
                                 masterOut.flush();
                             }
@@ -264,6 +312,19 @@ public class PtyBridge {
         }, "PtyBridge-usb-to-master");
         threadUsbToMaster.setDaemon(true);
         threadUsbToMaster.start();
+    }
+
+    /**
+     * Convierte los primeros 'len' bytes del buffer a string hexadecimal legible.
+     */
+    private static String bytesToHex(byte[] buf, int len) {
+        StringBuilder sb = new StringBuilder(len * 3);
+        for (int i = 0; i < len; i++) {
+            if (i > 0)
+                sb.append(' ');
+            sb.append(String.format("%02X", buf[i] & 0xFF));
+        }
+        return sb.toString();
     }
 
     private void cleanupPort() {
