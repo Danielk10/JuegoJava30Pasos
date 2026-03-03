@@ -121,7 +121,10 @@ public class MainActivity extends AppCompatActivity {
             put("0403:6010", "ft2232_spi");
             put("0403:6011", "ft2232_spi");
             put("0403:6014", "ft2232_spi");
-            put("0403:6015", "ft2232_spi"); // Algunos usan ft232r_spi emulado
+            put("0403:6015", "ft2232_spi"); // Algunos
+                                            // usan
+                                            // ft232r_spi
+                                            // emulado
             // Bus Pirate
             put("0403:6001", "buspirate_spi");
             // ST-LINK
@@ -226,8 +229,7 @@ public class MainActivity extends AppCompatActivity {
 
     // API para exportar (Guardar archivo en carpeta seleccionada por el usuario)
     private final ActivityResultLauncher<Intent> fileSaveLauncher = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(),
-            result -> {
+            new ActivityResultContracts.StartActivityForResult(), result -> {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                     Uri uri = result.getData().getData();
                     if (uri != null) {
@@ -240,6 +242,7 @@ public class MainActivity extends AppCompatActivity {
                         } catch (Exception e) {
                             // Algunos URIs no soportan persistencia (SAF ciego), se ignora
                         }
+
                         exportRomFileToUri(uri);
                     }
                 }
@@ -247,8 +250,7 @@ public class MainActivity extends AppCompatActivity {
 
     // API para configurar directorio por defecto
     private final ActivityResultLauncher<Intent> directoryPickerLauncher = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(),
-            result -> {
+            new ActivityResultContracts.StartActivityForResult(), result -> {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                     Uri treeUri = result.getData().getData();
                     if (treeUri != null) {
@@ -256,8 +258,7 @@ public class MainActivity extends AppCompatActivity {
                             getContentResolver().takePersistableUriPermission(treeUri,
                                     Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
                             getSharedPreferences(PREFS, MODE_PRIVATE).edit()
-                                    .putString(KEY_EXPORT_URI, treeUri.toString())
-                                    .apply();
+                                    .putString(KEY_EXPORT_URI, treeUri.toString()).apply();
                             log("Directorio de exportación configurado y guardado.");
                         } catch (Exception e) {
                             getSharedPreferences(PREFS, MODE_PRIVATE).edit()
@@ -1465,128 +1466,40 @@ public class MainActivity extends AppCompatActivity {
 
     private void showPinoutsDialog() {
         String[] pinoutOptions = {
-                "CH341A — Mini Programmer",
+                "CH341A — Header SPI",
                 "Clip SOIC8 / DIP8 Flash",
-                "Interfaz SPI (Serial Peripheral)",
-                "Interfaz I2C (Inter-Integrated Circuit)"
+                "Bus SPI (Serial Peripheral)",
+                "Bus I2C (Inter-Integrated Circuit)"
         };
 
         new android.app.AlertDialog.Builder(this)
-                .setTitle("📌 Pinouts de Hardware")
+                .setTitle("\uD83D\uDCCC Pinouts de Hardware")
                 .setItems(pinoutOptions, (dialog, which) -> {
+                    android.widget.ImageView iv = new android.widget.ImageView(this);
+                    iv.setBackgroundColor(0xFF1B1E2B);
+                    int pad = (int) (8 * getResources().getDisplayMetrics().density);
+                    iv.setPadding(pad, pad, pad, pad);
                     String title;
-                    String content;
                     switch (which) {
                         case 0:
-                            title = "CH341A Mini Programmer";
-                            content = "          CH341A Mini Programmer\n" +
-                                    "     ┌─────────────────────────────┐\n" +
-                                    "     │  USB  ┌─────┐    ZIF-24    │\n" +
-                                    "     │  ═══  │CH341│    Socket    │\n" +
-                                    "     │       │  A  │              │\n" +
-                                    "     │       └─────┘   ┌──────┐  │\n" +
-                                    "     │                 │ CHIP │  │\n" +
-                                    "     │  [1] [2]        └──────┘  │\n" +
-                                    "     │  SPI Header               │\n" +
-                                    "     └─────────────────────────────┘\n\n" +
-                                    "  SPI Header (8 pines, vista superior):\n" +
-                                    "     ┌─────────────────┐\n" +
-                                    "     │ 1-CS    2-MISO  │\n" +
-                                    "     │ 3-WP    4-GND   │\n" +
-                                    "     │ 5-MOSI  6-CLK   │\n" +
-                                    "     │ 7-HOLD  8-VCC   │\n" +
-                                    "     └─────────────────┘\n\n" +
-                                    "  ⚠ Voltage: 3.3V (NO usar en 5V)\n" +
-                                    "  ⚠ Jumper 1-2: Modo programación SPI\n" +
-                                    "  ⚠ Jumper 2-3: Modo UART/I2C";
+                            title = "CH341A — Header SPI";
+                            PinoutView.dibujarCH341A(this, iv);
                             break;
                         case 1:
-                            title = "Clip SOIC8 / DIP8 Flash";
-                            content = "  Chip Flash SOIC8 / DIP8\n" +
-                                    "  (Vista superior, punto = Pin 1)\n\n" +
-                                    "       ┌────────────┐\n" +
-                                    "     ● │1  CS   VCC│ 8\n" +
-                                    "       │2  DO  HOLD│ 7\n" +
-                                    "       │3  WP   CLK│ 6\n" +
-                                    "       │4  GND   DI│ 5\n" +
-                                    "       └────────────┘\n\n" +
-                                    "  Conexión a CH341A:\n" +
-                                    "   Chip  →  CH341A Header\n" +
-                                    "   ─────────────────────\n" +
-                                    "   1-CS   →  1-CS\n" +
-                                    "   2-DO   →  2-MISO\n" +
-                                    "   3-WP   →  3-WP (o VCC)\n" +
-                                    "   4-GND  →  4-GND\n" +
-                                    "   5-DI   →  5-MOSI\n" +
-                                    "   6-CLK  →  6-CLK\n" +
-                                    "   7-HOLD →  7-HOLD (o VCC)\n" +
-                                    "   8-VCC  →  8-VCC (3.3V)\n\n" +
-                                    "  ⚠ Alimentar HOLD y WP a VCC\n" +
-                                    "     si no se usan";
+                            title = "Chip Flash SOIC8 / DIP8";
+                            PinoutView.dibujarSOIC8(this, iv);
                             break;
                         case 2:
-                            title = "Interfaz SPI";
-                            content = "  Bus SPI — Serial Peripheral Interface\n\n" +
-                                    "   ┌────────────┐           ┌────────┐\n" +
-                                    "   │   MASTER   │           │ SLAVE  │\n" +
-                                    "   │ (CH341A)   │           │ (CHIP) │\n" +
-                                    "   │            │           │        │\n" +
-                                    "   │    MOSI────┼──────────►│──DI    │\n" +
-                                    "   │    MISO◄───┼───────────┤──DO    │\n" +
-                                    "   │    CLK─────┼──────────►│──CLK   │\n" +
-                                    "   │    CS──────┼──────────►│──CS    │\n" +
-                                    "   │            │           │        │\n" +
-                                    "   └────────────┘           └────────┘\n\n" +
-                                    "  MOSI = Master Out, Slave In (datos)\n" +
-                                    "  MISO = Master In, Slave Out (datos)\n" +
-                                    "  CLK  = Reloj (genera el master)\n" +
-                                    "  CS   = Chip Select (activo bajo)\n\n" +
-                                    "  Modos SPI: CPOL=0/1, CPHA=0/1\n" +
-                                    "  Velocidad típica: 1-50 MHz";
-                            break;
-                        case 3:
-                            title = "Interfaz I2C";
-                            content = "  Bus I2C — Inter-Integrated Circuit\n\n" +
-                                    "      VCC (3.3V o 5V)\n" +
-                                    "       │       │\n" +
-                                    "      [R]     [R]  ← Pull-up (4.7KΩ)\n" +
-                                    "       │       │\n" +
-                                    "  ─────┼───────┼───── SDA (datos)\n" +
-                                    "       │       │\n" +
-                                    "  ─────┼───────┼───── SCL (reloj)\n" +
-                                    "       │       │\n" +
-                                    "   ┌───┴──┐ ┌──┴───┐\n" +
-                                    "   │MASTER│ │SLAVE │\n" +
-                                    "   │      │ │(CHIP)│\n" +
-                                    "   └──────┘ └──────┘\n\n" +
-                                    "  EEPROM I2C típica (SOIC8):\n" +
-                                    "       ┌────────────┐\n" +
-                                    "     ● │1  A0   VCC│ 8\n" +
-                                    "       │2  A1    WP│ 7\n" +
-                                    "       │3  A2   SCL│ 6\n" +
-                                    "       │4  GND  SDA│ 5\n" +
-                                    "       └────────────┘\n\n" +
-                                    "  A0-A2 = Dirección (GND o VCC)\n" +
-                                    "  WP = Write Protect (GND=escribir)\n" +
-                                    "  Velocidad: 100/400 KHz";
+                            title = "Bus SPI — Serial Peripheral Interface";
+                            PinoutView.dibujarSPI(this, iv);
                             break;
                         default:
-                            return;
+                            title = "Bus I2C — Inter-Integrated Circuit";
+                            PinoutView.dibujarI2C(this, iv);
+                            break;
                     }
-
-                    TextView tv = new TextView(this);
-                    tv.setTypeface(android.graphics.Typeface.MONOSPACE);
-                    tv.setTextSize(11);
-                    tv.setTextColor(0xFFE0E0E0);
-                    tv.setBackgroundColor(0xFF1B1E2B);
-                    int p = (int) (16 * getResources().getDisplayMetrics().density);
-                    tv.setPadding(p, p, p, p);
-                    tv.setText(content);
-                    tv.setTextIsSelectable(true);
-
                     ScrollView scroll = new ScrollView(this);
-                    scroll.addView(tv);
-
+                    scroll.addView(iv);
                     new android.app.AlertDialog.Builder(this)
                             .setTitle(title)
                             .setView(scroll)
@@ -1598,13 +1511,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showDummyTestDialog() {
-        // Chips predefinidos que el programador dummy reconoce
+        // Chips predefinidos que el programador dummy reconoce.
+        // Formato: [etiqueta, nombre emulate=, tamaño bytes, chipname para -c (o null
+        // si no hay ambigüedad)]
         final String[][] DUMMY_CHIPS = {
-                { "VARIABLE_SIZE (Tamaño libre)", "VARIABLE_SIZE", "16777216" }, // 16 MB
-                { "MX25L6436 (8 MB)", "MX25L6436", "8388608" },
-                { "SST25VF032B (4 MB)", "SST25VF032B", "4194304" },
-                { "SST25VF040.REMS (512 KB)", "SST25VF040.REMS", "524288" },
-                { "M25P10.RES (128 KB)", "M25P10.RES", "131072" }
+                // VARIABLE_SIZE — chip virtual sin ambigüedad, -c no necesario
+                { "VARIABLE_SIZE (16 MB)", "VARIABLE_SIZE", "16777216", null },
+                // MX25L6436 — flashrom detecta 6 variantes; usamos la exacta que coincide con
+                // el emulate=
+                { "MX25L6436 (8 MB)", "MX25L6436", "8388608", "MX25L6436E/MX25L6445E/MX25L6465E" },
+                // SST25VF032B — una sola definición en flashrom v1.7
+                { "SST25VF032B (4 MB)", "SST25VF032B", "4194304", null },
+                // SST25VF040.REMS — flashrom detecta SST25LF040A + SST25VF040; elegimos
+                // SST25VF040
+                { "SST25VF040/REMS (512 KB)", "SST25VF040.REMS", "524288", "SST25VF040" },
+                // M25P10.RES — una sola definición
+                { "M25P10 (128 KB)", "M25P10.RES", "131072", null }
         };
 
         String[] testOptions = {
@@ -1663,15 +1585,22 @@ public class MainActivity extends AppCompatActivity {
                 .setItems(labels, (dialog, which) -> {
                     String chipName = chips[which][1];
                     int size = Integer.parseInt(chips[which][2]);
+                    // Columna [3]: nombre exacto para -c (null si no hay ambigüedad)
+                    String chipFlag = chips[which].length > 3 ? chips[which][3] : null;
                     ensureDummyTestFile(size);
 
                     String cmd;
                     if ("VARIABLE_SIZE".equals(chipName)) {
                         cmd = "-p dummy:emulate=VARIABLE_SIZE,size=" + size + ",image=bios_test.bin -r read_test.bin";
+                    } else if (chipFlag != null) {
+                        // Incluir -c para evitar "Multiple flash chip definitions match"
+                        cmd = "-p dummy:emulate=" + chipName + ",image=bios_test.bin -c \"" + chipFlag
+                                + "\" -r read_test.bin";
                     } else {
                         cmd = "-p dummy:emulate=" + chipName + ",image=bios_test.bin -r read_test.bin";
                     }
-                    log("Chip seleccionado para emulación: " + chips[which][0]);
+                    log("Chip seleccionado para emulación: " + chips[which][0]
+                            + (chipFlag != null ? " (-c " + chipFlag + ")" : ""));
                     executeCustomFlashromCommand(cmd);
                 })
                 .setNegativeButton("Cancelar", null)
