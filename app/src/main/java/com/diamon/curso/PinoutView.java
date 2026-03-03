@@ -47,7 +47,7 @@ public class PinoutView {
         dibujarChipSOIC8(g, 40, 90, new String[] { "CS", "MISO", "WP", "GND", "MOSI", "CLK", "HOLD", "VCC" }, true);
         dibujarPinHeader(g, 290, 90, new String[] { "CS", "MISO", "WP", "GND", "MOSI", "CLK", "HOLD", "VCC" });
         dibujarNota(g, "⚠ Jumper 1-2: SPI  ⚠ Jumper 2-3: UART/I2C  ⚠ SOLO 3.3V");
-        aplicar(g, target);
+        aplicar(tex, target);
         tex.dispose();
     }
 
@@ -61,7 +61,7 @@ public class PinoutView {
                 new String[] { "1-CS", "2-DO", "3-WP", "4-GND", "5-DI", "6-CLK", "7-HOLD", "8-VCC" },
                 new String[] { "1-CS", "2-MISO", "3-WP(VCC)", "4-GND", "5-MOSI", "6-CLK", "7-HOLD(VCC)", "8-VCC" });
         dibujarNota(g, "⚠ HOLD y WP → VCC si no se usan  ⚠ 3.3V máximo");
-        aplicar(g, target);
+        aplicar(tex, target);
         tex.dispose();
     }
 
@@ -71,7 +71,7 @@ public class PinoutView {
         dibujarHeaderPinout(g, "Bus SPI — Serial Peripheral Interface");
         dibujarBusSPI(g);
         dibujarNota(g, "CPOL=0, CPHA=0 (Modo 0)  |  Velocidad típica: 1–50 MHz");
-        aplicar(g, target);
+        aplicar(tex, target);
         tex.dispose();
     }
 
@@ -81,7 +81,7 @@ public class PinoutView {
         dibujarHeaderPinout(g, "Bus I2C — Inter-Integrated Circuit");
         dibujarBusI2C(g);
         dibujarNota(g, "Pull-up 4.7 KΩ recomendado  |  100/400 KHz");
-        aplicar(g, target);
+        aplicar(tex, target);
         tex.dispose();
     }
 
@@ -377,8 +377,9 @@ public class PinoutView {
         return COL_LABEL;
     }
 
-    private static void aplicar(Graficos2D g, ImageView target) {
-        Bitmap bmp = Bitmap.createBitmap(g.getCanvas().getBitmap());
+    private static void aplicar(Textura2D tex, ImageView target) {
+        // getBipmap() es el getter del Bitmap en la clase Textura2D del proyecto
+        Bitmap bmp = Bitmap.createBitmap(tex.getBipmap());
         target.setImageBitmap(bmp);
         target.setScaleType(ImageView.ScaleType.FIT_CENTER);
     }
