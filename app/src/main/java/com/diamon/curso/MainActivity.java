@@ -160,6 +160,11 @@ public class MainActivity extends AppCompatActivity {
     private UsbDeviceConnection currentConnection;
     private int currentFd = -1;
 
+    // Puente PTY para programador serprog (Arduino con firmware serprog)
+    private PtyBridge ptyBridge = null;
+    // Baud rate usado por el firmware serprog del Arduino (configurable)
+    private static final int SERPROG_BAUD = 115200;
+
     private LinearLayout layoutLoading;
     private LinearLayout layoutMainUI;
     private ScrollView scrollLog;
@@ -948,6 +953,26 @@ public class MainActivity extends AppCompatActivity {
             log("Programador no configurado — usando 'ch341a_spi' por defecto. Cámbialo en 'Ajustes de Programador' si es necesario.");
         }
         log("Programador flashrom activo: " + selectedProgrammer);
+
+        // ── Serprog: abrir puente PTY ↔ USB-serial ──────────────────────────────
+        if ("serprog".equals(selectedProgrammer)) {
+            // Cerrar puente anterior si hubiera uno activo
+            if (ptyBridge != null) {
+                ptyBridge.close();
+                ptyBridge = null;
+            }
+            log("Programador serprog detectado — iniciando puente PTY...");
+            PtyBridge bridge = new PtyBridge();
+            // Pasamos la conexión ya abierta; PtyBridge también abre UsbSerialPort con ella
+            if (bridge.open(device, usbManager, currentConnection, SERPROG_BAUD)) {
+                ptyBridge = bridge;
+                log("PtyBridge activo: flashrom usará " + ptyBridge.getSlavePath()
+                        + " a " + SERPROG_BAUD + " bps");
+            } else {
+                log("[WARN] PtyBridge no pudo iniciarse. ¿devpts disponible? Revisa el log nativo.");
+                log("Los comandos serprog usarán -p serprog sin dev= y probablemente fallen.");
+            }
+        }
     }
 
     private boolean isDummyProgrammer() {
@@ -1047,6 +1072,23 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        // ── Serprog: sustituir "-p serprog" por "-p serprog:dev=/dev/pts/N:baud" ──
+        String[] resolvedArgs = args;
+        if (ptyBridge != null && ptyBridge.isOpen()) {
+            String serprogParam = "serprog:dev=" + ptyBridge.getSlavePath() + ":" + ptyBridge.getBaudRate();
+            List<String> argList = new ArrayList<>();
+            for (int i = 0; i < args.length; i++) {
+                if ("-p".equals(args[i]) && i + 1 < args.length && "serprog".equals(args[i + 1])) {
+                    argList.add("-p");
+                    argList.add(serprogParam);
+                    i++; // saltar el siguiente elemento ("serprog" sin parámetros)
+                } else {
+                    argList.add(args[i]);
+                }
+            }
+            resolvedArgs = argList.toArray(new String[0]);
+        }
+
         File preferredFlashromBin = new File(getFilesDir(), "usr/sbin/flashrom");
         if (!preferredFlashromBin.exists()) {
             // Fallback directo a jniLibs por si la creación de enlaces falló.
@@ -1059,12 +1101,13 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        log("------------\n[INICIANDO OPERACIÓN] flashrom " + String.join(" ", args));
+        log("------------\n[INICIANDO OPERACIÓN] flashrom " + String.join(" ", resolvedArgs));
         log("Directorio de trabajo: " + getFilesDir().getAbsolutePath());
         log("Binario objetivo: " + flashromBin.getAbsolutePath());
 
+        final String[] finalArgs = resolvedArgs;
         executor.execute(() -> {
-            runFlashromProcess(flashromBin, args);
+            runFlashromProcess(flashromBin, finalArgs);
         });
     }
 
@@ -1683,6 +1726,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         if (mostrarPublicidad != null) {
             mostrarPublicidad.disposeBanner();
+        }
+        // Cerrar puente PTY antes de destruir la actividad
+        if (ptyBridge != null) {
+            ptyBridge.close();
+            ptyBridge = null;
         }
         super.onDestroy();
         try {
