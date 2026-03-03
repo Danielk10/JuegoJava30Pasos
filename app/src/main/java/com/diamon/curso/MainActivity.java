@@ -1002,12 +1002,13 @@ public class MainActivity extends AppCompatActivity {
                 // Purgar basura del bootloader/CH340 antes de que flashrom hable
                 if (ptyBridge != null && ptyBridge.isOpen()) {
                     ptyBridge.purge();
-                    log("Buffer purgado — enviando NOP de calentamiento...");
-                    // Warmup: enviar NOP al Arduino y verificar ACK para confirmar canal vivo
-                    ptyBridge.warmupNop();
-                    // Segunda purga rápida para descartar cualquier residuo del warmup
+                    log("Buffer purgado — ejecutando test de handshake...");
+                    // Test: enviar SYNCNOP+NOP y verificar respuesta 0x15 0x06 0x06
+                    String handshakeResult = ptyBridge.testHandshake();
+                    log("Handshake: " + handshakeResult);
+                    // Segunda purga para descartar residuos del test
                     ptyBridge.purge();
-                    log("Canal verificado — listo para flashrom.");
+                    log("Canal limpio — lanzando flashrom.");
                 }
                 action.run();
             }, 3500);

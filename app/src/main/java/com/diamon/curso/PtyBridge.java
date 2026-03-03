@@ -224,26 +224,76 @@ public class PtyBridge {
     }
 
     /**
-     * Envía un NOP de "calentamiento" (0x00) y descarta la respuesta.
-     * Esto confirma que el canal USB↔Arduino está vivo y limpia
-     * cualquier byte residual que el Arduino envíe tras su setup().
+     * Test de handshake completo: envía SYNCNOP (0x10) + NOP (0x00) y verifica
+     * que el Arduino responde la secuencia correcta: 0x15 0x06 0x06.
+     *
+     * Esto prueba 3 cosas a la vez:
+     * - Que el comando 0x10 llega íntegro al Arduino
+     * - Que el firmware responde NAK+ACK (protocolo serprog correcto)
+     * - Que los bytes de vuelta viajan íntegros por USB y por el PTY
+     *
+     * @return String con el diagnóstico legible (para mostrar en el log de la app)
      */
-    public void warmupNop() {
+    public String testHandshake() {
         if (usbPort == null)
-            return;
+            return "[ERROR] Puerto USB no disponible";
         try {
-            byte[] nop = { 0x00 }; // serprog NOP
-            usbPort.write(nop, 1, USB_TIMEOUT_MS);
-            Log.i(TAG, "Warmup NOP enviado (0x00)");
-            // Esperar la respuesta ACK (0x06) y descartarla
-            Thread.sleep(100);
-            byte[] drain = new byte[64];
-            int n = usbPort.read(drain, USB_TIMEOUT_MS);
-            if (n > 0) {
-                Log.i(TAG, "Warmup respuesta: " + bytesToHex(drain, n));
+            // 1. Enviar SYNCNOP (0x10) + NOP (0x00) como un solo paquete
+            byte[] testCmd = { 0x10, 0x00 };
+            usbPort.write(testCmd, 2, USB_TIMEOUT_MS);
+            Log.i(TAG, "Handshake test: enviado [0x10, 0x00]");
+
+            // 2. Esperar respuesta del Arduino (NAK+ACK del SYNCNOP, ACK del NOP)
+            Thread.sleep(200); // dar tiempo al Arduino para procesar ambos comandos
+            byte[] readBuf = new byte[64];
+            java.io.ByteArrayOutputStream responseStream = new java.io.ByteArrayOutputStream();
+
+            // Leer con reintentos para capturar toda la respuesta
+            for (int attempt = 0; attempt < 3 && responseStream.size() < 3; attempt++) {
+                int n = usbPort.read(readBuf, USB_TIMEOUT_MS);
+                if (n > 0)
+                    responseStream.write(readBuf, 0, n);
+                if (responseStream.size() < 3)
+                    Thread.sleep(50);
+            }
+
+            byte[] response = responseStream.toByteArray();
+            int totalRead = response.length;
+
+            // 3. Analizar la respuesta
+            String hexReceived = (totalRead > 0) ? bytesToHex(response, totalRead) : "(vacío)";
+            Log.i(TAG, "Handshake test: recibido [" + hexReceived + "] (" + totalRead + " bytes)");
+
+            if (totalRead == 0) {
+                return "[FALLO] Arduino no respondió nada — ¿firmware cargado? ¿baud rate correcto?";
+            }
+
+            // Respuesta esperada: 0x15 (NAK) 0x06 (ACK) 0x06 (ACK)
+            boolean syncOk = totalRead >= 3
+                    && (response[0] & 0xFF) == 0x15
+                    && (response[1] & 0xFF) == 0x06
+                    && (response[2] & 0xFF) == 0x06;
+
+            if (syncOk) {
+                return "[OK] Handshake perfecto: " + hexReceived
+                        + " (SYNCNOP=NAK+ACK, NOP=ACK) — flashrom debería sincronizar";
+            } else {
+                // Diagnóstico detallado del fallo
+                StringBuilder diag = new StringBuilder();
+                diag.append("[FALLO] Respuesta inesperada: ").append(hexReceived);
+                diag.append(" (esperado: 15 06 06)");
+                if (totalRead >= 1 && (response[0] & 0xFF) == 0x06) {
+                    diag.append("\n  → SYNCNOP solo envía ACK sin NAK previo. " +
+                            "¿Firmware viejo cargado? Verifica case 0x10.");
+                }
+                if (totalRead >= 1 && (response[0] & 0xFF) != 0x15 && (response[0] & 0xFF) != 0x06) {
+                    diag.append("\n  → Byte desconocido (¿basura del bootloader o baud rate incorrecto?)");
+                }
+                return diag.toString();
             }
         } catch (IOException | InterruptedException e) {
-            Log.w(TAG, "Warmup NOP fallo: " + e.getMessage());
+            Log.w(TAG, "Handshake test fallo: " + e.getMessage());
+            return "[ERROR] Excepción en test: " + e.getMessage();
         }
     }
 
