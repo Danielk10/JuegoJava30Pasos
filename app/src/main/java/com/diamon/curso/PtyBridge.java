@@ -110,16 +110,13 @@ public class PtyBridge {
         try {
             usbPort.open(connection);
             usbPort.setParameters(baudRate, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
-            // ── Pulso DTR para forzar un reset LIMPIO del Arduino ──
-            // El toggle DTR HIGH→LOW dispara Auto-Reset en Arduino Uno (CH340/ATmega16U2).
-            // Sin esto, el Arduino puede estar en un estado indeterminado del bootloader.
-            usbPort.setDTR(true);
-            usbPort.setRTS(true);
-            Thread.sleep(50); // Mantener DTR alto brevemente
+            // DTR/RTS en false para NO disparar Auto-Reset del Arduino.
+            // El Arduino ya se reinició durante la enumeración USB.
+            // Un pulso DTR adicional aquí causaría un SEGUNDO reset,
+            // cuya basura del bootloader contaminaría el PTY slave.
             usbPort.setDTR(false);
             usbPort.setRTS(false);
-            Log.i(TAG, "DTR reset pulse enviado — Arduino reiniciándose");
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
             Log.e(TAG, "Error abriendo UsbSerialPort: " + e.getMessage());
             cleanupPty();
             return false;
@@ -137,11 +134,27 @@ public class PtyBridge {
             return false;
         }
 
-        // 4. Iniciar hilos de forwarding
+        // 4. NO iniciar hilos de forwarding aquí.
+        // Se inician DESPUÉS del purge+handshake con startForwarding().
+        // Esto evita que los hilos reenvíen basura del bootloader al PTY slave.
+        Log.i(TAG, "PtyBridge preparado: flashrom usará " + slavePath + " a " + baudRate + " bps");
+        return true;
+    }
+
+    /**
+     * Inicia los hilos de forwarding bidireccional PTY↔USB.
+     * DEBE llamarse DESPUÉS de purge() y testHandshake(), justo antes de flashrom.
+     * Si se llama antes, los hilos reenviarán basura del bootloader al PTY slave
+     * y flashrom leerá esa basura como respuesta corrupta.
+     */
+    public void startForwarding() {
+        if (running) {
+            Log.w(TAG, "startForwarding() llamado pero ya está running — ignorando");
+            return;
+        }
         running = true;
         startForwardingThreads();
-        Log.i(TAG, "PtyBridge activo: flashrom usará " + slavePath + " a " + baudRate + " bps");
-        return true;
+        Log.i(TAG, "Hilos de forwarding iniciados — puente PTY↔USB activo");
     }
 
     /**
@@ -179,9 +192,9 @@ public class PtyBridge {
         Log.i(TAG, "PtyBridge cerrado.");
     }
 
-    /** True si el puente está activo y listo. */
+    /** True si el puente está preparado (PTY creado + USB abierto). */
     public boolean isOpen() {
-        return running && slavePath != null;
+        return slavePath != null && usbPort != null;
     }
 
     /**

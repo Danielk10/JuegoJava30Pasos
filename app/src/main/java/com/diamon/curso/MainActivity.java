@@ -1008,7 +1008,10 @@ public class MainActivity extends AppCompatActivity {
                     log("Handshake: " + handshakeResult);
                     // Segunda purga para descartar residuos del test
                     ptyBridge.purge();
-                    log("Canal limpio — lanzando flashrom.");
+                    // Iniciar forwarding AHORA — después de purge+handshake
+                    // (si se inicia antes, los hilos reenvían basura del bootloader al PTY)
+                    ptyBridge.startForwarding();
+                    log("Puente PTY↔USB activo — lanzando flashrom.");
                 }
                 action.run();
             }, 3500);
