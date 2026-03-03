@@ -33,7 +33,7 @@ import java.util.List;
 public class PtyBridge {
 
     private static final String TAG = "PtyBridge";
-    private static final int USB_TIMEOUT_MS = 200;
+    private static final int USB_TIMEOUT_MS = 50;
     private static final int BUFFER_SIZE = 4096;
     /** Cuántos bytes iniciales loggear en hex para diagnóstico */
     private static final int DEBUG_HEX_LIMIT = 32;
@@ -340,6 +340,7 @@ public class PtyBridge {
                         // Debug: loggear los primeros bytes enviados por flashrom
                         if (totalSent < DEBUG_HEX_LIMIT) {
                             int logLen = Math.min(n, DEBUG_HEX_LIMIT - totalSent);
+                            Log.d(TAG, "PTY→USB write " + n + " bytes");
                             Log.d(TAG, "PTY→USB [" + n + "B]: " + bytesToHex(buf, logLen));
                         }
                         totalSent += n;
