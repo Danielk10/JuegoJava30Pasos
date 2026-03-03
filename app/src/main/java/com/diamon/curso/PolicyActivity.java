@@ -31,7 +31,7 @@ public class PolicyActivity extends AppCompatActivity {
 
         webView.setWebViewClient(new WebViewClient());
         // URL base de PTC
-        webView.loadUrl("https://flasheepromtool.blogspot.com/");
+        webView.loadUrl("https://todoandroid.42web.io/privacy-policy.html");
     }
 
     @Override
