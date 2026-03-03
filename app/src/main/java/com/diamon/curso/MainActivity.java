@@ -1011,7 +1011,10 @@ public class MainActivity extends AppCompatActivity {
                     // Iniciar forwarding AHORA — después de purge+handshake
                     // (si se inicia antes, los hilos reenvían basura del bootloader al PTY)
                     ptyBridge.startForwarding();
-                    log("Puente PTY↔USB activo — lanzando flashrom.");
+                    // Test round-trip: enviar SYNCNOP a través del PTY slave completo
+                    String roundTrip = ptyBridge.testPtyRoundTrip();
+                    log("Round-trip PTY: " + roundTrip);
+                    log("Lanzando flashrom.");
                 }
                 action.run();
             }, 3500);

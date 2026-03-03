@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <sys/wait.h>
 #include <termios.h>
+#include <poll.h>
 #include <android/log.h>
 
 #define LOG_TAG "FlashromJNI"
@@ -116,4 +117,101 @@ Java_com_diamon_curso_PtyBridge_closeFd(JNIEnv *env, jclass clazz, jint fd) {
         LOGI("Cerrando FD nativo: %d", fd);
         close((int) fd);
     }
+}
+
+/**
+ * Test end-to-end: abre el slave PTY (como flashrom), envía SYNCNOP (0x10),
+ * y espera la respuesta (0x15 0x06) a través de toda la cadena de forwarding:
+ *   slave → master → Thread A → USB → Arduino → USB → Thread B → master → slave
+ *
+ * Usa poll() para timeout no-bloqueante de 2 segundos.
+ * Retorna un string de diagnóstico legible.
+ */
+extern "C" JNIEXPORT jstring JNICALL
+Java_com_diamon_curso_PtyBridge_nativeTestRoundTrip(JNIEnv *env, jclass clazz, jstring jSlavePath) {
+    const char *slavePath = env->GetStringUTFChars(jSlavePath, nullptr);
+
+    // Abrir slave exactamente como flashrom: O_RDWR | O_NOCTTY
+    int fd = open(slavePath, O_RDWR | O_NOCTTY);
+    env->ReleaseStringUTFChars(jSlavePath, slavePath);
+
+    if (fd < 0) {
+        char msg[256];
+        snprintf(msg, sizeof(msg), "[ERROR] No pude abrir slave PTY: errno=%d", errno);
+        LOGE("testRoundTrip: %s", msg);
+        return env->NewStringUTF(msg);
+    }
+
+    // Configurar raw mode (como hace flashrom en sp_openserport)
+    struct termios tio;
+    if (tcgetattr(fd, &tio) == 0) {
+        cfmakeraw(&tio);
+        tcsetattr(fd, TCSANOW, &tio);
+    }
+
+    // Escribir SYNCNOP (0x10) al slave → debería llegar al Arduino vía forwarding
+    uint8_t cmd = 0x10;
+    ssize_t written = write(fd, &cmd, 1);
+    if (written != 1) {
+        close(fd);
+        char msg[256];
+        snprintf(msg, sizeof(msg), "[ERROR] write() al slave PTY falló: written=%zd errno=%d", written, errno);
+        LOGE("testRoundTrip: %s", msg);
+        return env->NewStringUTF(msg);
+    }
+    LOGI("testRoundTrip: escribí 0x10 al slave PTY");
+
+    // Esperar respuesta con poll() — timeout de 2 segundos
+    struct pollfd pfd;
+    pfd.fd = fd;
+    pfd.events = POLLIN;
+    int ready = poll(&pfd, 1, 2000);
+
+    char msg[512];
+    if (ready < 0) {
+        close(fd);
+        snprintf(msg, sizeof(msg), "[ERROR] poll() falló: errno=%d", errno);
+        LOGE("testRoundTrip: %s", msg);
+        return env->NewStringUTF(msg);
+    }
+    if (ready == 0) {
+        close(fd);
+        snprintf(msg, sizeof(msg),
+                 "[FALLO] Timeout 2s: el SYNCNOP salió por el PTY slave pero la respuesta "
+                 "del Arduino NO llegó de vuelta. Los hilos de forwarding no mueven datos "
+                 "correctamente (PTY→USB funciona, pero USB→PTY no entregan al slave).");
+        LOGE("testRoundTrip: %s", msg);
+        return env->NewStringUTF(msg);
+    }
+
+    // Leer respuesta
+    uint8_t buf[32];
+    ssize_t n = read(fd, buf, sizeof(buf));
+    close(fd);
+
+    if (n <= 0) {
+        snprintf(msg, sizeof(msg), "[FALLO] poll() reportó datos pero read() devolvió %zd (errno=%d)", n, errno);
+        LOGE("testRoundTrip: %s", msg);
+        return env->NewStringUTF(msg);
+    }
+
+    // Formatear hex
+    char hex[128] = {0};
+    for (int i = 0; i < n && i < 32; i++) {
+        char h[4];
+        snprintf(h, sizeof(h), "%02X ", buf[i]);
+        strcat(hex, h);
+    }
+
+    LOGI("testRoundTrip: recibido [%s] (%zd bytes)", hex, n);
+
+    if (n >= 2 && buf[0] == 0x15 && buf[1] == 0x06) {
+        snprintf(msg, sizeof(msg),
+                 "[OK] Round-trip PTY completo: %s— cadena slave→USB→Arduino→USB→slave funciona perfectamente", hex);
+    } else {
+        snprintf(msg, sizeof(msg),
+                 "[FALLO] Respuesta incorrecta del round-trip: %s(esperado: 15 06). "
+                 "Los bytes se corrompen en el forwarding.", hex);
+    }
+    return env->NewStringUTF(msg);
 }

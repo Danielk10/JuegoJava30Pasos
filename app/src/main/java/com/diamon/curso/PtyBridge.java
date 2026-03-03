@@ -49,6 +49,9 @@ public class PtyBridge {
     // JNI: cierra el master FD nativo
     public static native void closeFd(int fd);
 
+    // JNI: test round-trip completo a través del PTY slave (como flashrom)
+    public static native String nativeTestRoundTrip(String slavePath);
+
     // -------- Estado --------
     private int masterFd = -1;
     private String slavePath = null;
@@ -308,6 +311,19 @@ public class PtyBridge {
             Log.w(TAG, "Handshake test fallo: " + e.getMessage());
             return "[ERROR] Excepción en test: " + e.getMessage();
         }
+    }
+
+    /**
+     * Test end-to-end: envía SYNCNOP a través del PTY slave (como flashrom)
+     * y verifica que la respuesta del Arduino llega de vuelta por toda la cadena.
+     * REQUIERE que startForwarding() ya se haya llamado.
+     */
+    public String testPtyRoundTrip() {
+        if (!running)
+            return "[ERROR] Forwarding no iniciado — llama startForwarding() primero";
+        if (slavePath == null)
+            return "[ERROR] Slave PTY no disponible";
+        return nativeTestRoundTrip(slavePath);
     }
 
     // -------- Privados --------
