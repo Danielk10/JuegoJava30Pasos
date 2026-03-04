@@ -373,28 +373,38 @@ public class PtyBridge {
         // Hilo B: USB → PTY master (respuestas del Arduino que flashrom lee)
         threadUsbToMaster = new Thread(() -> {
             int totalReceived = 0;
+            int zeroReads = 0;
             usbToMasterReady = true;
             byte[] buf = new byte[BUFFER_SIZE];
+            Log.i(TAG, "Thread B iniciado — esperando datos de USB (masterPfd.getFd()=" + masterPfd.getFd() + ")");
             while (running && !Thread.currentThread().isInterrupted()) {
                 try {
                     if (usbPort != null) {
-                        int n = usbPort.read(buf, USB_TIMEOUT_MS);
+                        // Usar timeout más largo para CH340G (200ms vs 50ms)
+                        int n = usbPort.read(buf, 200);
                         if (n > 0) {
+                            zeroReads = 0;
                             // Debug: loggear los primeros bytes recibidos del Arduino
                             if (totalReceived < DEBUG_HEX_LIMIT) {
                                 int logLen = Math.min(n, DEBUG_HEX_LIMIT - totalReceived);
-                                Log.d(TAG, "USB→PTY [" + n + "B]: " + bytesToHex(buf, logLen));
+                                Log.i(TAG, "USB→PTY RECV [" + n + "B]: " + bytesToHex(buf, logLen));
                             }
-                            totalReceived += n;
 
                             // Escribir al master PTY usando el FD del PFD
-                            // (masterPfd.getFd() es el FD adoptado, siempre válido
-                            // mientras el PFD no se cierre)
                             int mfd = masterPfd.getFd();
                             int written = writeFd(mfd, buf, n);
+                            Log.d(TAG, "USB→PTY writeFd(fd=" + mfd + ", n=" + n + ") → wrote=" + written);
                             if (written != n && running) {
-                                Log.w(TAG, "USB→PTY writeFd parcial/error: wrote=" + written
+                                Log.e(TAG, "USB→PTY writeFd FALLO: wrote=" + written
                                         + " expected=" + n + " fd=" + mfd);
+                            }
+                            totalReceived += n;
+                        } else {
+                            zeroReads++;
+                            // Log periódico cada 100 lecturas vacías
+                            if (zeroReads % 100 == 0) {
+                                Log.d(TAG, "Thread B: " + zeroReads + " lecturas vacías consecutivas (totalRecv="
+                                        + totalReceived + ")");
                             }
                         }
                     }
@@ -403,6 +413,7 @@ public class PtyBridge {
                         Log.w(TAG, "Error leyendo USB: " + e.getMessage());
                 }
             }
+            Log.i(TAG, "Thread B finalizado — totalReceived=" + totalReceived);
         }, "PtyBridge-usb-to-master");
         threadUsbToMaster.setDaemon(true);
         threadUsbToMaster.start();
