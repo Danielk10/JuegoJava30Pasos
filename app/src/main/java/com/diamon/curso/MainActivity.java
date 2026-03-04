@@ -1068,6 +1068,16 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        // ── Serprog: asegurar que el puente PTY↔USB esté activo ──────────────
+        if ("serprog".equals(selectedProgrammer) && ptyBridge != null && ptyBridge.isOpen()) {
+            if (!ptyBridge.isForwardingActive()) {
+                log("Iniciando puente PTY↔USB para serprog...");
+                ptyBridge.purge();
+                ptyBridge.startForwarding();
+                log("Hilos de forwarding activos.");
+            }
+        }
+
         File preferredFlashromBin = new File(getFilesDir(), "usr/sbin/flashrom");
         if (!preferredFlashromBin.exists()) {
             log("[WARN] flashrom en files/usr/sbin no encontrado; usando fallback jniLibs.");
@@ -1078,12 +1088,31 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         log("Comando manual solicitado: flashrom " + rawCommand);
+
+        // ── Serprog: resolver ruta PTY en argumentos manuales ─────────────────
+        // El usuario puede escribir "-p serprog" sin dev=, resolverlo automáticamente
+        if (ptyBridge != null && ptyBridge.isOpen()) {
+            String serprogParam = "serprog:dev=" + ptyBridge.getSlavePath() + ":" + ptyBridge.getBaudRate();
+            List<String> argList = new ArrayList<>();
+            for (int i = 0; i < args.length; i++) {
+                if ("-p".equals(args[i]) && i + 1 < args.length && "serprog".equals(args[i + 1])) {
+                    argList.add("-p");
+                    argList.add(serprogParam);
+                    i++; // saltar "serprog"
+                } else {
+                    argList.add(args[i]);
+                }
+            }
+            args = argList.toArray(new String[0]);
+        }
+
         if (currentFd < 0) {
             log("Ejecutando sin USB conectado: útil para comandos como --version, -L o --help.");
         }
         final File flashromBin = preferredFlashromBin;
+        final String[] finalArgs = args;
         executor.execute(() -> {
-            runFlashromProcess(flashromBin, args);
+            runFlashromProcess(flashromBin, finalArgs);
         });
     }
 

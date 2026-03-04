@@ -207,6 +207,11 @@ public class PtyBridge {
         return slavePath != null && usbPort != null;
     }
 
+    /** True si los hilos de forwarding PTY↔USB están activos. */
+    public boolean isForwardingActive() {
+        return running;
+    }
+
     /**
      * Descarta toda la basura acumulada en el buffer USB y el PTY master.
      * Llamar ANTES de iniciar flashrom para que lo primero que lea sea
