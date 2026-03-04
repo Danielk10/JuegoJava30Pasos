@@ -1628,8 +1628,8 @@ public class MainActivity extends AppCompatActivity {
                         cmd = "-p dummy:emulate=VARIABLE_SIZE,size=" + size + ",image=bios_test.bin -r read_test.bin";
                     } else if (chipFlag != null) {
                         // Incluir -c para evitar "Multiple flash chip definitions match"
-                        cmd = "-p dummy:emulate=" + chipName + ",image=bios_test.bin -c \"" + chipFlag
-                                + "\" -r read_test.bin";
+                        cmd = "-p dummy:emulate=" + chipName + ",image=bios_test.bin -c " + chipFlag
+                                + " -r read_test.bin";
                     } else {
                         cmd = "-p dummy:emulate=" + chipName + ",image=bios_test.bin -r read_test.bin";
                     }
