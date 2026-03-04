@@ -11,7 +11,6 @@ import com.hoho.android.usbserial.driver.UsbSerialPort;
 import com.hoho.android.usbserial.driver.UsbSerialProber;
 
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 
@@ -51,6 +50,9 @@ public class PtyBridge {
 
     // JNI: test round-trip completo a través del PTY slave (como flashrom)
     public static native String nativeTestRoundTrip(String slavePath);
+
+    // JNI: escribe bytes directamente en un FD nativo (retorna bytes escritos o -1)
+    public static native int writeFd(int fd, byte[] data, int len);
 
     // -------- Estado --------
     private int masterFd = -1;
@@ -366,31 +368,29 @@ public class PtyBridge {
         // Hilo B: USB → PTY master (respuestas del Arduino que flashrom lee)
         threadUsbToMaster = new Thread(() -> {
             int totalReceived = 0;
-            try (FileOutputStream masterOut = new FileOutputStream(masterPfd.getFileDescriptor())) {
-                byte[] buf = new byte[BUFFER_SIZE];
-                while (running && !Thread.currentThread().isInterrupted()) {
-                    try {
-                        if (usbPort != null) {
-                            int n = usbPort.read(buf, USB_TIMEOUT_MS);
-                            if (n > 0) {
-                                // Debug: loggear los primeros bytes recibidos del Arduino
-                                if (totalReceived < DEBUG_HEX_LIMIT) {
-                                    int logLen = Math.min(n, DEBUG_HEX_LIMIT - totalReceived);
-                                    Log.d(TAG, "USB→PTY [" + n + "B]: " + bytesToHex(buf, logLen));
-                                }
-                                totalReceived += n;
-                                masterOut.write(buf, 0, n);
-                                masterOut.flush();
+            byte[] buf = new byte[BUFFER_SIZE];
+            while (running && !Thread.currentThread().isInterrupted()) {
+                try {
+                    if (usbPort != null) {
+                        int n = usbPort.read(buf, USB_TIMEOUT_MS);
+                        if (n > 0) {
+                            // Debug: loggear los primeros bytes recibidos del Arduino
+                            if (totalReceived < DEBUG_HEX_LIMIT) {
+                                int logLen = Math.min(n, DEBUG_HEX_LIMIT - totalReceived);
+                                Log.d(TAG, "USB→PTY [" + n + "B]: " + bytesToHex(buf, logLen));
+                            }
+                            totalReceived += n;
+
+                            int written = writeFd(masterFd, buf, n);
+                            if (written != n && running) {
+                                Log.w(TAG, "USB→PTY writeFd parcial/error: wrote=" + written + " expected=" + n);
                             }
                         }
-                    } catch (IOException e) {
-                        if (running)
-                            Log.w(TAG, "Error leyendo USB: " + e.getMessage());
                     }
+                } catch (IOException e) {
+                    if (running)
+                        Log.w(TAG, "Error leyendo USB: " + e.getMessage());
                 }
-            } catch (IOException e) {
-                if (running)
-                    Log.w(TAG, "Hilo USB→master terminado: " + e.getMessage());
             }
         }, "PtyBridge-usb-to-master");
         threadUsbToMaster.setDaemon(true);
