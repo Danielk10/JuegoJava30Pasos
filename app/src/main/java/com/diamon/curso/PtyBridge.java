@@ -63,6 +63,8 @@ public class PtyBridge {
     private volatile boolean running = false;
     private Thread threadMasterToUsb = null;
     private Thread threadUsbToMaster = null;
+    private volatile boolean masterToUsbReady = false;
+    private volatile boolean usbToMasterReady = false;
     private int baudRate = 115200;
 
     /**
@@ -158,7 +160,10 @@ public class PtyBridge {
             return;
         }
         running = true;
+        masterToUsbReady = false;
+        usbToMasterReady = false;
         startForwardingThreads();
+        waitForwardingReady();
         Log.i(TAG, "Hilos de forwarding iniciados — puente PTY↔USB activo");
     }
 
@@ -333,6 +338,7 @@ public class PtyBridge {
         // Hilo A: PTY master → USB (lo que flashrom escribe al puerto serie virtual)
         threadMasterToUsb = new Thread(() -> {
             int totalSent = 0;
+            masterToUsbReady = true;
             boolean firstWriteLogged = false;
             try (FileInputStream masterIn = new FileInputStream(masterPfd.getFileDescriptor())) {
                 byte[] buf = new byte[BUFFER_SIZE];
@@ -368,6 +374,7 @@ public class PtyBridge {
         // Hilo B: USB → PTY master (respuestas del Arduino que flashrom lee)
         threadUsbToMaster = new Thread(() -> {
             int totalReceived = 0;
+            usbToMasterReady = true;
             byte[] buf = new byte[BUFFER_SIZE];
             while (running && !Thread.currentThread().isInterrupted()) {
                 try {
@@ -395,6 +402,23 @@ public class PtyBridge {
         }, "PtyBridge-usb-to-master");
         threadUsbToMaster.setDaemon(true);
         threadUsbToMaster.start();
+    }
+
+    private void waitForwardingReady() {
+        for (int i = 0; i < 20 && running; i++) {
+            if (masterToUsbReady && usbToMasterReady) {
+                return;
+            }
+            try {
+                Thread.sleep(25);
+            } catch (InterruptedException ignored) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+        if (!(masterToUsbReady && usbToMasterReady)) {
+            Log.w(TAG, "Forwarding arrancó sin confirmación completa de ambos hilos");
+        }
     }
 
     /**
