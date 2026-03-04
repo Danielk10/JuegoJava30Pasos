@@ -179,12 +179,34 @@ public class PtyBridge {
             Log.w(TAG, "startForwarding() llamado pero ya está running — ignorando");
             return;
         }
+
+        // ── CRÍTICO: Activar DTR/RTS para que CH340G reenvíe datos UART→USB ──
+        // Sin DTR/RTS en HIGH, el CH340G no transmite los bytes recibidos por UART
+        // al endpoint USB IN, causando que usbPort.read() siempre devuelva 0.
+        //
+        // En open() los dejamos en false para no disparar el Auto-Reset del Arduino.
+        // Ahora (después de 3.5s) el bootloader ya terminó. El flanco LOW→HIGH de DTR
+        // NO causa reset en el Uno (el condensador de auto-reset solo reacciona a
+        // HIGH→LOW).
+        if (usbPort != null) {
+            try {
+                usbPort.setDTR(true);
+                usbPort.setRTS(true);
+                bridgeLog("DTR/RTS activados — CH340G habilitado para datos bidireccionales");
+                // Pequeña pausa + purge por si el cambio DTR genera basura
+                Thread.sleep(100);
+                purge();
+            } catch (IOException | InterruptedException e) {
+                Log.w(TAG, "Error seteando DTR/RTS: " + e.getMessage());
+            }
+        }
+
         running = true;
         masterToUsbReady = false;
         usbToMasterReady = false;
         startForwardingThreads();
         waitForwardingReady();
-        Log.i(TAG, "Hilos de forwarding iniciados — puente PTY↔USB activo");
+        bridgeLog("Forwarding activo — puente PTY↔USB listo");
     }
 
     /**
