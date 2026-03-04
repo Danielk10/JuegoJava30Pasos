@@ -129,17 +129,11 @@ public class PtyBridge {
             return false;
         }
 
-        // 3. Crear ParcelFileDescriptor desde el master FD (sin adoptarlo: dup primero)
-        // adoptFd() cierra el FD cuando el PFD se cierra; nosotros lo cerramos en
-        // closeFd()
-        try {
-            masterPfd = ParcelFileDescriptor.fromFd(masterFd);
-        } catch (IOException e) {
-            Log.e(TAG, "Error creando PFD desde master FD: " + e.getMessage());
-            cleanupPort();
-            cleanupPty();
-            return false;
-        }
+        // 3. Crear ParcelFileDescriptor ADOPTANDO el master FD.
+        // adoptFd() transfiere la propiedad del FD al PFD: el PFD lo cerrará
+        // en cleanupPfd(). Usamos adoptFd (no fromFd) para evitar que un
+        // dup() temporal sea GC'd y cierre el FD original.
+        masterPfd = ParcelFileDescriptor.adoptFd(masterFd);
 
         // 4. NO iniciar hilos de forwarding aquí.
         // Se inician DESPUÉS del purge+handshake con startForwarding().
@@ -393,9 +387,14 @@ public class PtyBridge {
                             }
                             totalReceived += n;
 
-                            int written = writeFd(masterFd, buf, n);
+                            // Escribir al master PTY usando el FD del PFD
+                            // (masterPfd.getFd() es el FD adoptado, siempre válido
+                            // mientras el PFD no se cierre)
+                            int mfd = masterPfd.getFd();
+                            int written = writeFd(mfd, buf, n);
                             if (written != n && running) {
-                                Log.w(TAG, "USB→PTY writeFd parcial/error: wrote=" + written + " expected=" + n);
+                                Log.w(TAG, "USB→PTY writeFd parcial/error: wrote=" + written
+                                        + " expected=" + n + " fd=" + mfd);
                             }
                         }
                     }
@@ -464,10 +463,10 @@ public class PtyBridge {
     }
 
     private void cleanupPty() {
-        if (masterFd >= 0) {
-            closeFd(masterFd);
-            masterFd = -1;
-        }
+        // El FD real es cerrado por masterPfd.close() en cleanupPfd()
+        // (adoptFd transfirió la propiedad al PFD).
+        // Aquí solo limpiamos el estado Java.
+        masterFd = -1;
         slavePath = null;
     }
 }

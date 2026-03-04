@@ -1004,19 +1004,15 @@ public class MainActivity extends AppCompatActivity {
                     ptyBridge.purge();
                     log("Buffer USB purgado.");
 
-                    // Iniciar forwarding PRIMERO — los hilos deben estar activos
-                    // para que cualquier test (y flashrom) pueda leer respuestas del Arduino
-                    ptyBridge.startForwarding();
-                    log("Hilos de forwarding activos.");
-
-                    // Test round-trip completo: enviar SYNCNOP por el PTY slave
-                    // y verificar que la respuesta 0x15 0x06 llega de vuelta
-                    String roundTrip = ptyBridge.testPtyRoundTrip();
-                    log("Round-trip PTY: " + roundTrip);
+                    // Iniciar forwarding — los hilos puentean PTY↔USB
+                    if (!ptyBridge.isForwardingActive()) {
+                        ptyBridge.startForwarding();
+                        log("Hilos de forwarding activos.");
+                    }
 
                     // Purga final para arrancar flashrom con buffers limpios
                     ptyBridge.purge();
-                    log("Lanzando flashrom.");
+                    log("Puente PTY↔USB listo — lanzando flashrom.");
                 }
                 action.run();
             }, 3500);
@@ -1068,16 +1064,41 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        // ── Serprog: asegurar que el puente PTY↔USB esté activo ──────────────
-        if ("serprog".equals(selectedProgrammer) && ptyBridge != null && ptyBridge.isOpen()) {
+        // ── Serprog: si el comando usa "-p serprog..." activar puente PTY↔USB ──
+        // Detectar si el comando manual requiere el programador serprog
+        boolean commandUsesSerprog = false;
+        for (int i = 0; i < args.length; i++) {
+            if ("-p".equals(args[i]) && i + 1 < args.length && args[i + 1].startsWith("serprog")) {
+                commandUsesSerprog = true;
+                break;
+            }
+        }
+
+        if (commandUsesSerprog && ptyBridge != null && ptyBridge.isOpen()) {
+            // Asegurar que los hilos de forwarding estén corriendo
             if (!ptyBridge.isForwardingActive()) {
                 log("Iniciando puente PTY↔USB para serprog...");
                 ptyBridge.purge();
                 ptyBridge.startForwarding();
                 log("Hilos de forwarding activos.");
             }
-        }
 
+            // Solo si el usuario escribió "-p serprog" a secas (sin dev=),
+            // completar automáticamente con la ruta del PTY slave.
+            // Si ya escribió "-p serprog:dev=/dev/pts/17:115200", se respeta tal cual.
+            String serprogParam = "serprog:dev=" + ptyBridge.getSlavePath() + ":" + ptyBridge.getBaudRate();
+            List<String> argList = new ArrayList<>();
+            for (int i = 0; i < args.length; i++) {
+                if ("-p".equals(args[i]) && i + 1 < args.length && "serprog".equals(args[i + 1])) {
+                    argList.add("-p");
+                    argList.add(serprogParam);
+                    i++; // saltar "serprog" bare
+                } else {
+                    argList.add(args[i]);
+                }
+            }
+            args = argList.toArray(new String[0]);
+        }
         File preferredFlashromBin = new File(getFilesDir(), "usr/sbin/flashrom");
         if (!preferredFlashromBin.exists()) {
             log("[WARN] flashrom en files/usr/sbin no encontrado; usando fallback jniLibs.");
@@ -1087,24 +1108,7 @@ public class MainActivity extends AppCompatActivity {
             log("Fallo crítico: Binario 'flashrom' no existe. (" + preferredFlashromBin.getAbsolutePath() + ")");
             return;
         }
-        log("Comando manual solicitado: flashrom " + rawCommand);
-
-        // ── Serprog: resolver ruta PTY en argumentos manuales ─────────────────
-        // El usuario puede escribir "-p serprog" sin dev=, resolverlo automáticamente
-        if (ptyBridge != null && ptyBridge.isOpen()) {
-            String serprogParam = "serprog:dev=" + ptyBridge.getSlavePath() + ":" + ptyBridge.getBaudRate();
-            List<String> argList = new ArrayList<>();
-            for (int i = 0; i < args.length; i++) {
-                if ("-p".equals(args[i]) && i + 1 < args.length && "serprog".equals(args[i + 1])) {
-                    argList.add("-p");
-                    argList.add(serprogParam);
-                    i++; // saltar "serprog"
-                } else {
-                    argList.add(args[i]);
-                }
-            }
-            args = argList.toArray(new String[0]);
-        }
+        log("Comando manual solicitado: flashrom " + String.join(" ", args));
 
         if (currentFd < 0) {
             log("Ejecutando sin USB conectado: útil para comandos como --version, -L o --help.");
