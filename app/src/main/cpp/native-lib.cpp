@@ -120,6 +120,33 @@ Java_com_diamon_curso_PtyBridge_closeFd(JNIEnv *env, jclass clazz, jint fd) {
 }
 
 /**
+ * Escribe bytes directamente a un FD nativo (usado por USB->PTY).
+ * Retorna cantidad escrita o -1 en error.
+ */
+extern "C" JNIEXPORT jint JNICALL
+Java_com_diamon_curso_PtyBridge_writeFd(JNIEnv *env, jclass clazz, jint fd, jbyteArray data, jint len) {
+    if (fd < 0 || data == nullptr || len <= 0) {
+        return -1;
+    }
+
+    jsize arrLen = env->GetArrayLength(data);
+    if (len > arrLen) {
+        len = arrLen;
+    }
+
+    std::string buf;
+    buf.resize(static_cast<size_t>(len));
+    env->GetByteArrayRegion(data, 0, len, reinterpret_cast<jbyte *>(&buf[0]));
+
+    ssize_t w = write(fd, buf.data(), static_cast<size_t>(len));
+    if (w < 0) {
+        LOGE("writeFd falló: fd=%d len=%d errno=%d", (int) fd, (int) len, errno);
+        return -1;
+    }
+    return static_cast<jint>(w);
+}
+
+/**
  * Test end-to-end: abre el slave PTY (como flashrom), envía SYNCNOP (0x10),
  * y espera la respuesta (0x15 0x06) a través de toda la cadena de forwarding:
  *   slave → master → Thread A → USB → Arduino → USB → Thread B → master → slave
