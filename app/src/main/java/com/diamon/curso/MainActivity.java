@@ -1003,9 +1003,13 @@ public class MainActivity extends AppCompatActivity {
                 if (ptyBridge != null && ptyBridge.isOpen()) {
                     ptyBridge.purge();
                     log("Buffer purgado — ejecutando test de handshake...");
-                    // Test: enviar SYNCNOP+NOP y verificar respuesta 0x15 0x06 0x06
+                    // Test: validar SYNCNOP, NOP y nombre del programador directo sobre USB
                     String handshakeResult = ptyBridge.testHandshake();
                     log("Handshake: " + handshakeResult);
+                    if (!handshakeResult.startsWith("[OK]")) {
+                        log("[ABORTADO] Handshake serprog falló. No se lanza flashrom para evitar falsos errores.");
+                        return;
+                    }
                     // Segunda purga para descartar residuos del test
                     ptyBridge.purge();
                     // Iniciar forwarding AHORA — después de purge+handshake
@@ -1014,6 +1018,12 @@ public class MainActivity extends AppCompatActivity {
                     // Test round-trip: enviar SYNCNOP a través del PTY slave completo
                     String roundTrip = ptyBridge.testPtyRoundTrip();
                     log("Round-trip PTY: " + roundTrip);
+                    if (!roundTrip.startsWith("[OK]")) {
+                        log("[ABORTADO] Round-trip PTY falló. No se lanza flashrom.");
+                        return;
+                    }
+                    // Purga final para arrancar flashrom con buffers limpios
+                    ptyBridge.purge();
                     log("Lanzando flashrom.");
                 }
                 action.run();
@@ -1152,7 +1162,12 @@ public class MainActivity extends AppCompatActivity {
 
             // Inyectando entorno para las librerías fake_root
             Map<String, String> env = pb.environment();
-            if (currentFd >= 0) {
+            // Serprog usa PTY (/dev/pts/N) y NO debe pasar por libusb directo.
+            // Si exportamos ANDROID_USB_FD aquí, el wrapper de libusb parcheado puede
+            // interferir con el mismo dispositivo USB-Serial y romper la sincronización.
+            if ("serprog".equals(selectedProgrammer)) {
+                env.remove("ANDROID_USB_FD");
+            } else if (currentFd >= 0) {
                 env.put("ANDROID_USB_FD", String.valueOf(currentFd));
             } else {
                 env.remove("ANDROID_USB_FD");
@@ -1165,7 +1180,10 @@ public class MainActivity extends AppCompatActivity {
             env.put("LD_LIBRARY_PATH", jniLibs + ":" + new File(getFilesDir(), "usr/lib").getAbsolutePath());
             env.put("PATH", jniLibs + (fallbackPath != null ? ":" + fallbackPath : ""));
 
-            log("Entorno flashrom => ANDROID_USB_FD=" + (currentFd >= 0 ? currentFd : "NO DEFINIDO"));
+            String fdLogValue = "serprog".equals(selectedProgrammer)
+                    ? "NO DEFINIDO (serprog por PTY)"
+                    : (currentFd >= 0 ? String.valueOf(currentFd) : "NO DEFINIDO");
+            log("Entorno flashrom => ANDROID_USB_FD=" + fdLogValue);
             log("Entorno flashrom => LD_LIBRARY_PATH=" + env.get("LD_LIBRARY_PATH"));
             log("Entorno flashrom => PATH=" + env.get("PATH"));
 
