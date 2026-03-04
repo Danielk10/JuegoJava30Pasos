@@ -11,7 +11,6 @@ import com.hoho.android.usbserial.driver.UsbSerialPort;
 import com.hoho.android.usbserial.driver.UsbSerialProber;
 
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 
@@ -52,6 +51,9 @@ public class PtyBridge {
     // JNI: test round-trip completo a través del PTY slave (como flashrom)
     public static native String nativeTestRoundTrip(String slavePath);
 
+    // JNI: escribe bytes directamente en un FD nativo (retorna bytes escritos o -1)
+    public static native int writeFd(int fd, byte[] data, int len);
+
     // -------- Estado --------
     private int masterFd = -1;
     private String slavePath = null;
@@ -61,6 +63,8 @@ public class PtyBridge {
     private volatile boolean running = false;
     private Thread threadMasterToUsb = null;
     private Thread threadUsbToMaster = null;
+    private volatile boolean masterToUsbReady = false;
+    private volatile boolean usbToMasterReady = false;
     private int baudRate = 115200;
 
     /**
@@ -156,7 +160,10 @@ public class PtyBridge {
             return;
         }
         running = true;
+        masterToUsbReady = false;
+        usbToMasterReady = false;
         startForwardingThreads();
+        waitForwardingReady();
         Log.i(TAG, "Hilos de forwarding iniciados — puente PTY↔USB activo");
     }
 
@@ -254,63 +261,62 @@ public class PtyBridge {
         if (usbPort == null)
             return "[ERROR] Puerto USB no disponible";
         try {
-            // 1. Enviar SYNCNOP (0x10) + NOP (0x00) como un solo paquete
-            byte[] testCmd = { 0x10, 0x00 };
-            usbPort.write(testCmd, 2, USB_TIMEOUT_MS);
-            Log.i(TAG, "Handshake test: enviado [0x10, 0x00]");
+            // 1) SYNCNOP (0x10) -> esperado: 15 06
+            usbPort.write(new byte[] { 0x10 }, 1, USB_TIMEOUT_MS);
+            byte[] syncResp = readUsbResponse(2, 5);
+            Log.i(TAG, "Handshake test SYNCNOP: [" + bytesToHex(syncResp, syncResp.length) + "]");
 
-            // 2. Esperar respuesta del Arduino (NAK+ACK del SYNCNOP, ACK del NOP)
-            Thread.sleep(200); // dar tiempo al Arduino para procesar ambos comandos
-            byte[] readBuf = new byte[64];
-            java.io.ByteArrayOutputStream responseStream = new java.io.ByteArrayOutputStream();
+            // 2) NOP (0x00) -> esperado: 06
+            usbPort.write(new byte[] { 0x00 }, 1, USB_TIMEOUT_MS);
+            byte[] nopResp = readUsbResponse(1, 3);
+            Log.i(TAG, "Handshake test NOP: [" + bytesToHex(nopResp, nopResp.length) + "]");
 
-            // Leer con reintentos para capturar toda la respuesta
-            for (int attempt = 0; attempt < 3 && responseStream.size() < 3; attempt++) {
-                int n = usbPort.read(readBuf, USB_TIMEOUT_MS);
-                if (n > 0)
-                    responseStream.write(readBuf, 0, n);
-                if (responseStream.size() < 3)
-                    Thread.sleep(50);
+            // 3) Query Programmer Name (0x03) -> esperado: 06 + 16 bytes
+            usbPort.write(new byte[] { 0x03 }, 1, USB_TIMEOUT_MS);
+            byte[] nameResp = readUsbResponse(17, 6);
+            Log.i(TAG, "Handshake test NAME: [" + bytesToHex(nameResp, nameResp.length) + "]");
+
+            boolean syncOk = syncResp.length >= 2
+                    && (syncResp[0] & 0xFF) == 0x15
+                    && (syncResp[1] & 0xFF) == 0x06;
+            boolean nopOk = nopResp.length >= 1
+                    && (nopResp[0] & 0xFF) == 0x06;
+            boolean nameOk = nameResp.length >= 17
+                    && (nameResp[0] & 0xFF) == 0x06;
+
+            if (!syncOk || !nopOk || !nameOk) {
+                return "[FALLO] Handshake incompleto: SYNC=" + bytesToHex(syncResp, syncResp.length)
+                        + " NOP=" + bytesToHex(nopResp, nopResp.length)
+                        + " NAME=" + bytesToHex(nameResp, nameResp.length);
             }
 
-            byte[] response = responseStream.toByteArray();
-            int totalRead = response.length;
+            byte[] nameBytes = new byte[16];
+            System.arraycopy(nameResp, 1, nameBytes, 0, 16);
+            String progName = new String(nameBytes).trim();
+            return "[OK] Handshake completo: SYNC=" + bytesToHex(syncResp, syncResp.length)
+                    + " NOP=" + bytesToHex(nopResp, nopResp.length)
+                    + " NAME='" + progName + "'";
 
-            // 3. Analizar la respuesta
-            String hexReceived = (totalRead > 0) ? bytesToHex(response, totalRead) : "(vacío)";
-            Log.i(TAG, "Handshake test: recibido [" + hexReceived + "] (" + totalRead + " bytes)");
-
-            if (totalRead == 0) {
-                return "[FALLO] Arduino no respondió nada — ¿firmware cargado? ¿baud rate correcto?";
-            }
-
-            // Respuesta esperada: 0x15 (NAK) 0x06 (ACK) 0x06 (ACK)
-            boolean syncOk = totalRead >= 3
-                    && (response[0] & 0xFF) == 0x15
-                    && (response[1] & 0xFF) == 0x06
-                    && (response[2] & 0xFF) == 0x06;
-
-            if (syncOk) {
-                return "[OK] Handshake perfecto: " + hexReceived
-                        + " (SYNCNOP=NAK+ACK, NOP=ACK) — flashrom debería sincronizar";
-            } else {
-                // Diagnóstico detallado del fallo
-                StringBuilder diag = new StringBuilder();
-                diag.append("[FALLO] Respuesta inesperada: ").append(hexReceived);
-                diag.append(" (esperado: 15 06 06)");
-                if (totalRead >= 1 && (response[0] & 0xFF) == 0x06) {
-                    diag.append("\n  → SYNCNOP solo envía ACK sin NAK previo. " +
-                            "¿Firmware viejo cargado? Verifica case 0x10.");
-                }
-                if (totalRead >= 1 && (response[0] & 0xFF) != 0x15 && (response[0] & 0xFF) != 0x06) {
-                    diag.append("\n  → Byte desconocido (¿basura del bootloader o baud rate incorrecto?)");
-                }
-                return diag.toString();
-            }
         } catch (IOException | InterruptedException e) {
             Log.w(TAG, "Handshake test fallo: " + e.getMessage());
             return "[ERROR] Excepción en test: " + e.getMessage();
         }
+    }
+
+    private byte[] readUsbResponse(int minBytes, int maxAttempts) throws IOException, InterruptedException {
+        byte[] readBuf = new byte[64];
+        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+
+        for (int attempt = 0; attempt < maxAttempts && out.size() < minBytes; attempt++) {
+            int n = usbPort.read(readBuf, USB_TIMEOUT_MS);
+            if (n > 0) {
+                out.write(readBuf, 0, n);
+            }
+            if (out.size() < minBytes) {
+                Thread.sleep(40);
+            }
+        }
+        return out.toByteArray();
     }
 
     /**
@@ -332,15 +338,20 @@ public class PtyBridge {
         // Hilo A: PTY master → USB (lo que flashrom escribe al puerto serie virtual)
         threadMasterToUsb = new Thread(() -> {
             int totalSent = 0;
+            masterToUsbReady = true;
+            boolean firstWriteLogged = false;
             try (FileInputStream masterIn = new FileInputStream(masterPfd.getFileDescriptor())) {
                 byte[] buf = new byte[BUFFER_SIZE];
                 while (running && !Thread.currentThread().isInterrupted()) {
                     int n = masterIn.read(buf);
                     if (n > 0 && usbPort != null) {
+                        if (!firstWriteLogged) {
+                            Log.d(TAG, "PTY→USB write " + n + " bytes");
+                            firstWriteLogged = true;
+                        }
                         // Debug: loggear los primeros bytes enviados por flashrom
                         if (totalSent < DEBUG_HEX_LIMIT) {
                             int logLen = Math.min(n, DEBUG_HEX_LIMIT - totalSent);
-                            Log.d(TAG, "PTY→USB write " + n + " bytes");
                             Log.d(TAG, "PTY→USB [" + n + "B]: " + bytesToHex(buf, logLen));
                         }
                         totalSent += n;
@@ -363,35 +374,51 @@ public class PtyBridge {
         // Hilo B: USB → PTY master (respuestas del Arduino que flashrom lee)
         threadUsbToMaster = new Thread(() -> {
             int totalReceived = 0;
-            try (FileOutputStream masterOut = new FileOutputStream(masterPfd.getFileDescriptor())) {
-                byte[] buf = new byte[BUFFER_SIZE];
-                while (running && !Thread.currentThread().isInterrupted()) {
-                    try {
-                        if (usbPort != null) {
-                            int n = usbPort.read(buf, USB_TIMEOUT_MS);
-                            if (n > 0) {
-                                // Debug: loggear los primeros bytes recibidos del Arduino
-                                if (totalReceived < DEBUG_HEX_LIMIT) {
-                                    int logLen = Math.min(n, DEBUG_HEX_LIMIT - totalReceived);
-                                    Log.d(TAG, "USB→PTY [" + n + "B]: " + bytesToHex(buf, logLen));
-                                }
-                                totalReceived += n;
-                                masterOut.write(buf, 0, n);
-                                masterOut.flush();
+            usbToMasterReady = true;
+            byte[] buf = new byte[BUFFER_SIZE];
+            while (running && !Thread.currentThread().isInterrupted()) {
+                try {
+                    if (usbPort != null) {
+                        int n = usbPort.read(buf, USB_TIMEOUT_MS);
+                        if (n > 0) {
+                            // Debug: loggear los primeros bytes recibidos del Arduino
+                            if (totalReceived < DEBUG_HEX_LIMIT) {
+                                int logLen = Math.min(n, DEBUG_HEX_LIMIT - totalReceived);
+                                Log.d(TAG, "USB→PTY [" + n + "B]: " + bytesToHex(buf, logLen));
+                            }
+                            totalReceived += n;
+
+                            int written = writeFd(masterFd, buf, n);
+                            if (written != n && running) {
+                                Log.w(TAG, "USB→PTY writeFd parcial/error: wrote=" + written + " expected=" + n);
                             }
                         }
-                    } catch (IOException e) {
-                        if (running)
-                            Log.w(TAG, "Error leyendo USB: " + e.getMessage());
                     }
+                } catch (IOException e) {
+                    if (running)
+                        Log.w(TAG, "Error leyendo USB: " + e.getMessage());
                 }
-            } catch (IOException e) {
-                if (running)
-                    Log.w(TAG, "Hilo USB→master terminado: " + e.getMessage());
             }
         }, "PtyBridge-usb-to-master");
         threadUsbToMaster.setDaemon(true);
         threadUsbToMaster.start();
+    }
+
+    private void waitForwardingReady() {
+        for (int i = 0; i < 20 && running; i++) {
+            if (masterToUsbReady && usbToMasterReady) {
+                return;
+            }
+            try {
+                Thread.sleep(25);
+            } catch (InterruptedException ignored) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+        if (!(masterToUsbReady && usbToMasterReady)) {
+            Log.w(TAG, "Forwarding arrancó sin confirmación completa de ambos hilos");
+        }
     }
 
     /**
