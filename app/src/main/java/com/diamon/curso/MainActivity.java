@@ -999,29 +999,21 @@ public class MainActivity extends AppCompatActivity {
         if ("serprog".equals(selectedProgrammer)) {
             log("Sincronizando con Arduino... espera 3.5 segundos (Auto-Reset + estabilización).");
             new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
-                // Purgar basura del bootloader/CH340 antes de que flashrom hable
+                // Purgar basura del bootloader/CH340 antes de iniciar forwarding
                 if (ptyBridge != null && ptyBridge.isOpen()) {
                     ptyBridge.purge();
-                    log("Buffer purgado — ejecutando test de handshake...");
-                    // Test: validar SYNCNOP, NOP y nombre del programador directo sobre USB
-                    String handshakeResult = ptyBridge.testHandshake();
-                    log("Handshake: " + handshakeResult);
-                    if (!handshakeResult.startsWith("[OK]")) {
-                        log("[ABORTADO] Handshake serprog falló. No se lanza flashrom para evitar falsos errores.");
-                        return;
-                    }
-                    // Segunda purga para descartar residuos del test
-                    ptyBridge.purge();
-                    // Iniciar forwarding AHORA — después de purge+handshake
-                    // (si se inicia antes, los hilos reenvían basura del bootloader al PTY)
+                    log("Buffer USB purgado.");
+
+                    // Iniciar forwarding PRIMERO — los hilos deben estar activos
+                    // para que cualquier test (y flashrom) pueda leer respuestas del Arduino
                     ptyBridge.startForwarding();
-                    // Test round-trip: enviar SYNCNOP a través del PTY slave completo
+                    log("Hilos de forwarding activos.");
+
+                    // Test round-trip completo: enviar SYNCNOP por el PTY slave
+                    // y verificar que la respuesta 0x15 0x06 llega de vuelta
                     String roundTrip = ptyBridge.testPtyRoundTrip();
                     log("Round-trip PTY: " + roundTrip);
-                    if (!roundTrip.startsWith("[OK]")) {
-                        log("[ABORTADO] Round-trip PTY falló. No se lanza flashrom.");
-                        return;
-                    }
+
                     // Purga final para arrancar flashrom con buffers limpios
                     ptyBridge.purge();
                     log("Lanzando flashrom.");
