@@ -963,6 +963,8 @@ public class MainActivity extends AppCompatActivity {
             }
             log("Programador serprog detectado — iniciando puente PTY...");
             PtyBridge bridge = new PtyBridge();
+            // Callback para que los logs del bridge aparezcan en el UI
+            bridge.setLogCallback(msg -> log(msg));
             // Pasamos la conexión ya abierta; PtyBridge también abre UsbSerialPort con ella
             if (bridge.open(device, usbManager, currentConnection, SERPROG_BAUD)) {
                 ptyBridge = bridge;
@@ -1265,7 +1267,12 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             } else {
-                log("[PROCESO TERMINADO] Exit Code: " + exitCode + " (ERROR)\n");
+                log("[PROCESO TERMINADO] Exit Code: " + exitCode + " (ERROR)");
+                // Diagnóstico del puente PTY para serprog
+                if ("serprog".equals(selectedProgrammer) && ptyBridge != null) {
+                    log("[DIAG PtyBridge] " + ptyBridge.getDiagnosticReport());
+                }
+                log("");
             }
 
         } catch (Exception e) {

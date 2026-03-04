@@ -11,6 +11,7 @@ import com.hoho.android.usbserial.driver.UsbSerialPort;
 import com.hoho.android.usbserial.driver.UsbSerialProber;
 
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 
@@ -36,6 +37,11 @@ public class PtyBridge {
     private static final int BUFFER_SIZE = 4096;
     /** Cuántos bytes iniciales loggear en hex para diagnóstico */
     private static final int DEBUG_HEX_LIMIT = 32;
+
+    /** Callback para enviar logs al UI de la app (no sólo logcat) */
+    public interface LogCallback {
+        void onLog(String message);
+    }
 
     // Cargado desde native-lib.cpp (mismo .so que el resto de la app)
     static {
@@ -66,6 +72,26 @@ public class PtyBridge {
     private volatile boolean masterToUsbReady = false;
     private volatile boolean usbToMasterReady = false;
     private int baudRate = 115200;
+    private LogCallback logCallback = null;
+
+    // Contadores de diagnóstico para Thread B
+    private volatile int diagUsbReads = 0;
+    private volatile int diagUsbBytesReceived = 0;
+    private volatile int diagPtyWrites = 0;
+    private volatile int diagPtyWriteErrors = 0;
+    private volatile String diagLastError = "none";
+
+    /** Configura el callback para que los logs del bridge aparezcan en la app */
+    public void setLogCallback(LogCallback cb) {
+        this.logCallback = cb;
+    }
+
+    private void bridgeLog(String msg) {
+        Log.i(TAG, msg);
+        if (logCallback != null) {
+            logCallback.onLog("[PtyBridge] " + msg);
+        }
+    }
 
     /**
      * Abre el puente:
@@ -194,6 +220,13 @@ public class PtyBridge {
         cleanupPfd();
         cleanupPty();
         Log.i(TAG, "PtyBridge cerrado.");
+    }
+
+    /** Reporte de diagnóstico de Thread B para depuración visible en la app */
+    public String getDiagnosticReport() {
+        return "usbReads=" + diagUsbReads + " usbBytesRecv=" + diagUsbBytesReceived
+                + " ptyWrites=" + diagPtyWrites + " ptyErrors=" + diagPtyWriteErrors
+                + " lastError=" + diagLastError;
     }
 
     /** True si el puente está preparado (PTY creado + USB abierto). */
@@ -371,49 +404,66 @@ public class PtyBridge {
         threadMasterToUsb.start();
 
         // Hilo B: USB → PTY master (respuestas del Arduino que flashrom lee)
+        // Usa FileOutputStream sobre el master PTY para las escrituras (más fiable que
+        // JNI writeFd)
         threadUsbToMaster = new Thread(() -> {
             int totalReceived = 0;
             int zeroReads = 0;
+            diagUsbReads = 0;
+            diagUsbBytesReceived = 0;
+            diagPtyWrites = 0;
+            diagPtyWriteErrors = 0;
+            diagLastError = "none";
             usbToMasterReady = true;
             byte[] buf = new byte[BUFFER_SIZE];
-            Log.i(TAG, "Thread B iniciado — esperando datos de USB (masterPfd.getFd()=" + masterPfd.getFd() + ")");
-            while (running && !Thread.currentThread().isInterrupted()) {
-                try {
-                    if (usbPort != null) {
-                        // Usar timeout más largo para CH340G (200ms vs 50ms)
-                        int n = usbPort.read(buf, 200);
-                        if (n > 0) {
-                            zeroReads = 0;
-                            // Debug: loggear los primeros bytes recibidos del Arduino
-                            if (totalReceived < DEBUG_HEX_LIMIT) {
-                                int logLen = Math.min(n, DEBUG_HEX_LIMIT - totalReceived);
-                                Log.i(TAG, "USB→PTY RECV [" + n + "B]: " + bytesToHex(buf, logLen));
-                            }
+            bridgeLog("Thread B iniciado — masterFd=" + masterPfd.getFd());
+            try (FileOutputStream masterOut = new FileOutputStream(masterPfd.getFileDescriptor())) {
+                while (running && !Thread.currentThread().isInterrupted()) {
+                    try {
+                        if (usbPort != null) {
+                            // Timeout 200ms para CH340G
+                            int n = usbPort.read(buf, 200);
+                            diagUsbReads++;
+                            if (n > 0) {
+                                zeroReads = 0;
+                                diagUsbBytesReceived += n;
+                                // Loggear primeros bytes recibidos del Arduino
+                                if (totalReceived < DEBUG_HEX_LIMIT) {
+                                    int logLen = Math.min(n, DEBUG_HEX_LIMIT - totalReceived);
+                                    bridgeLog("USB→PTY RECV [" + n + "B]: " + bytesToHex(buf, logLen));
+                                }
+                                totalReceived += n;
 
-                            // Escribir al master PTY usando el FD del PFD
-                            int mfd = masterPfd.getFd();
-                            int written = writeFd(mfd, buf, n);
-                            Log.d(TAG, "USB→PTY writeFd(fd=" + mfd + ", n=" + n + ") → wrote=" + written);
-                            if (written != n && running) {
-                                Log.e(TAG, "USB→PTY writeFd FALLO: wrote=" + written
-                                        + " expected=" + n + " fd=" + mfd);
-                            }
-                            totalReceived += n;
-                        } else {
-                            zeroReads++;
-                            // Log periódico cada 100 lecturas vacías
-                            if (zeroReads % 100 == 0) {
-                                Log.d(TAG, "Thread B: " + zeroReads + " lecturas vacías consecutivas (totalRecv="
-                                        + totalReceived + ")");
+                                // Escribir al master PTY usando FileOutputStream Java
+                                try {
+                                    masterOut.write(buf, 0, n);
+                                    masterOut.flush();
+                                    diagPtyWrites++;
+                                } catch (IOException we) {
+                                    diagPtyWriteErrors++;
+                                    diagLastError = "write: " + we.getMessage();
+                                    bridgeLog("USB→PTY WRITE ERROR: " + we.getMessage());
+                                }
+                            } else {
+                                zeroReads++;
+                                if (zeroReads == 50) {
+                                    bridgeLog("Thread B: 50 lecturas USB vacías (Arduino no responde?)");
+                                }
                             }
                         }
+                    } catch (IOException e) {
+                        if (running) {
+                            diagLastError = "read: " + e.getMessage();
+                            bridgeLog("USB READ ERROR: " + e.getMessage());
+                        }
                     }
-                } catch (IOException e) {
-                    if (running)
-                        Log.w(TAG, "Error leyendo USB: " + e.getMessage());
                 }
+            } catch (IOException e) {
+                bridgeLog("Thread B: FileOutputStream error: " + e.getMessage());
+                diagLastError = "stream: " + e.getMessage();
             }
-            Log.i(TAG, "Thread B finalizado — totalReceived=" + totalReceived);
+            bridgeLog("Thread B fin — usbRecv=" + totalReceived + " ptyWrites=" + diagPtyWrites + " errors="
+                    + diagPtyWriteErrors);
         }, "PtyBridge-usb-to-master");
         threadUsbToMaster.setDaemon(true);
         threadUsbToMaster.start();
