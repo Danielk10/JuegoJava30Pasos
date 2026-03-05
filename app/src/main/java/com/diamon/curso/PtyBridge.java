@@ -35,6 +35,8 @@ public class PtyBridge {
     private static final String TAG = "PtyBridge";
     private static final int USB_TIMEOUT_MS = 50;
     private static final int BUFFER_SIZE = 4096;
+    private static final int BEACON_BYTE_1 = 0xAA;
+    private static final int BEACON_BYTE_2 = 0x55;
     /** Cuántos bytes iniciales loggear en hex para diagnóstico */
     private static final int DEBUG_HEX_LIMIT = 32;
 
@@ -75,6 +77,9 @@ public class PtyBridge {
     private LogCallback logCallback = null;
 
     // Contadores de diagnóstico para Thread B
+    private volatile int diagPtyReads = 0;
+    private volatile int diagUsbBytesWritten = 0;
+    private volatile int diagUsbWriteErrors = 0;
     private volatile int diagUsbReads = 0;
     private volatile int diagUsbBytesReceived = 0;
     private volatile int diagPtyWrites = 0;
@@ -180,33 +185,79 @@ public class PtyBridge {
             return;
         }
 
-        // ── CRÍTICO: Activar DTR/RTS para que CH340G reenvíe datos UART→USB ──
-        // Sin DTR/RTS en HIGH, el CH340G no transmite los bytes recibidos por UART
-        // al endpoint USB IN, causando que usbPort.read() siempre devuelva 0.
-        //
-        // En open() los dejamos en false para no disparar el Auto-Reset del Arduino.
-        // Ahora (después de 3.5s) el bootloader ya terminó. El flanco LOW→HIGH de DTR
-        // NO causa reset en el Uno (el condensador de auto-reset solo reacciona a
-        // HIGH→LOW).
-        if (usbPort != null) {
-            try {
-                usbPort.setDTR(true);
-                usbPort.setRTS(true);
-                bridgeLog("DTR/RTS activados — CH340G habilitado para datos bidireccionales");
-                // Pequeña pausa + purge por si el cambio DTR genera basura
-                Thread.sleep(100);
-                purge();
-            } catch (IOException | InterruptedException e) {
-                Log.w(TAG, "Error seteando DTR/RTS: " + e.getMessage());
-            }
-        }
-
         running = true;
         masterToUsbReady = false;
         usbToMasterReady = false;
         startForwardingThreads();
         waitForwardingReady();
         bridgeLog("Forwarding activo — puente PTY↔USB listo");
+    }
+
+    /**
+     * Prepara la sesión serprog antes de lanzar flashrom:
+     * 1) activa DTR/RTS,
+     * 2) espera beacon 0xAA 0x55 directamente en USB (sin PTY forwarding),
+     * 3) purga buffers.
+     *
+     * @return true si se recibió beacon, false por timeout o error.
+     */
+    public boolean prepareForFlashromSession(long timeoutMs) {
+        if (usbPort == null) {
+            bridgeLog("prepareForFlashromSession: puerto USB no disponible");
+            return false;
+        }
+        if (running) {
+            bridgeLog("prepareForFlashromSession: forwarding ya activo, no se espera beacon");
+            return true;
+        }
+
+        try {
+            usbPort.setDTR(true);
+            usbPort.setRTS(true);
+            bridgeLog("DTR/RTS activados — esperando beacon 0xAA 0x55");
+        } catch (IOException e) {
+            bridgeLog("Error activando DTR/RTS: " + e.getMessage());
+            return false;
+        }
+
+        boolean beaconOk = waitForBeacon(timeoutMs);
+        if (!beaconOk) {
+            bridgeLog("Timeout esperando beacon de arranque");
+            return false;
+        }
+
+        bridgeLog("Beacon recibido — Arduino listo para serprog");
+        purge();
+        return true;
+    }
+
+    private boolean waitForBeacon(long timeoutMs) {
+        long deadlineMs = System.currentTimeMillis() + timeoutMs;
+        int state = 0;
+        byte[] buf = new byte[64];
+
+        while (System.currentTimeMillis() < deadlineMs) {
+            try {
+                int n = usbPort.read(buf, 100);
+                if (n <= 0) {
+                    continue;
+                }
+                for (int i = 0; i < n; i++) {
+                    int b = buf[i] & 0xFF;
+                    if (state == 0) {
+                        state = (b == BEACON_BYTE_1) ? 1 : 0;
+                    } else {
+                        if (b == BEACON_BYTE_2) {
+                            return true;
+                        }
+                        state = (b == BEACON_BYTE_1) ? 1 : 0;
+                    }
+                }
+            } catch (IOException e) {
+                diagLastError = "beacon-read: " + e.getMessage();
+            }
+        }
+        return false;
     }
 
     /**
@@ -244,9 +295,11 @@ public class PtyBridge {
         Log.i(TAG, "PtyBridge cerrado.");
     }
 
-    /** Reporte de diagnóstico de Thread B para depuración visible en la app */
+    /** Reporte de diagnóstico de Thread A/B para depuración visible en la app */
     public String getDiagnosticReport() {
-        return "usbReads=" + diagUsbReads + " usbBytesRecv=" + diagUsbBytesReceived
+        return "ptyReads=" + diagPtyReads + " usbBytesWritten=" + diagUsbBytesWritten
+                + " usbWriteErrors=" + diagUsbWriteErrors
+                + " usbReads=" + diagUsbReads + " usbBytesRecv=" + diagUsbBytesReceived
                 + " ptyWrites=" + diagPtyWrites + " ptyErrors=" + diagPtyWriteErrors
                 + " lastError=" + diagLastError;
     }
@@ -392,13 +445,31 @@ public class PtyBridge {
         // Hilo A: PTY master → USB (lo que flashrom escribe al puerto serie virtual)
         threadMasterToUsb = new Thread(() -> {
             int totalSent = 0;
+            int zeroReads = 0;
+            diagPtyReads = 0;
+            diagUsbBytesWritten = 0;
+            diagUsbWriteErrors = 0;
             masterToUsbReady = true;
             boolean firstWriteLogged = false;
+            bridgeLog("Thread A iniciado — masterFd=" + masterPfd.getFd());
             try (FileInputStream masterIn = new FileInputStream(masterPfd.getFileDescriptor())) {
                 byte[] buf = new byte[BUFFER_SIZE];
                 while (running && !Thread.currentThread().isInterrupted()) {
-                    int n = masterIn.read(buf);
+                    int n;
+                    try {
+                        n = masterIn.read(buf);
+                    } catch (IOException readError) {
+                        // En PTY master, EIO significa que el slave (/dev/pts/N)
+                        // todavía no fue abierto por flashrom. No es fatal: reintentar.
+                        if (running && isPtySlaveNotOpenedYet(readError)) {
+                            sleepQuietly(5);
+                            continue;
+                        }
+                        throw readError;
+                    }
+                    diagPtyReads++;
                     if (n > 0 && usbPort != null) {
+                        zeroReads = 0;
                         if (!firstWriteLogged) {
                             Log.d(TAG, "PTY→USB write " + n + " bytes");
                             firstWriteLogged = true;
@@ -411,16 +482,31 @@ public class PtyBridge {
                         totalSent += n;
                         try {
                             usbPort.write(buf, n, USB_TIMEOUT_MS);
+                            diagUsbBytesWritten += n;
                         } catch (IOException e) {
-                            if (running)
+                            diagUsbWriteErrors++;
+                            if (running) {
+                                diagLastError = "usb-write: " + e.getMessage();
                                 Log.w(TAG, "Error escribiendo a USB: " + e.getMessage());
+                                bridgeLog("Thread A USB WRITE ERROR: " + e.getMessage());
+                            }
+                        }
+                    } else if (n == 0) {
+                        zeroReads++;
+                        if (zeroReads == 50) {
+                            bridgeLog("Thread A: 50 lecturas PTY vacías (flashrom no está escribiendo?)");
                         }
                     }
                 }
             } catch (IOException e) {
-                if (running)
+                if (running) {
+                    diagLastError = "pty-read: " + e.getMessage();
                     Log.w(TAG, "Hilo master→USB terminado: " + e.getMessage());
+                    bridgeLog("Thread A READ ERROR: " + e.getMessage());
+                }
             }
+            bridgeLog("Thread A fin — ptyReads=" + diagPtyReads + " usbBytesWritten=" + diagUsbBytesWritten
+                    + " usbWriteErrors=" + diagUsbWriteErrors);
         }, "PtyBridge-master-to-usb");
         threadMasterToUsb.setDaemon(true);
         threadMasterToUsb.start();
@@ -489,6 +575,22 @@ public class PtyBridge {
         }, "PtyBridge-usb-to-master");
         threadUsbToMaster.setDaemon(true);
         threadUsbToMaster.start();
+    }
+
+    private static boolean isPtySlaveNotOpenedYet(IOException e) {
+        if (e == null || e.getMessage() == null) {
+            return false;
+        }
+        // Android típicamente entrega: "read failed: EIO (I/O error)"
+        return e.getMessage().contains("EIO");
+    }
+
+    private static void sleepQuietly(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException ignored) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     private void waitForwardingReady() {
