@@ -2,6 +2,7 @@
 .gradle
 .androidide/
 .idea/
+.vscode/
 /local.properties
 /.idea/caches
 /.idea/libraries
