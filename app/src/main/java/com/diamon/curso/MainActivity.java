@@ -1009,7 +1009,10 @@ public class MainActivity extends AppCompatActivity {
                 boolean ready = ptyBridge.prepareForFlashromSession(8000);
                 runOnUiThread(() -> {
                     if (!ready) {
-                        log("[WARN] No se recibió beacon (0xAA 0x55). Continuando con flashrom para diagnóstico.");
+                        log("[ERROR] Arduino no respondió beacon (0xAA 0x55) — abortando ejecución de flashrom.");
+                        ptyBridge.close();
+                        ptyBridge = null;
+                        return;
                     }
                     if (!ptyBridge.isForwardingActive()) {
                         ptyBridge.startForwarding();
