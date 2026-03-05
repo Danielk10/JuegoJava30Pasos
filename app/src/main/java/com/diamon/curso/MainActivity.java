@@ -447,16 +447,18 @@ public class MainActivity extends AppCompatActivity {
 
         btnProbe.setOnClickListener(v -> ensureProgrammerThenRun(() -> {
             if (isDummyProgrammer()) {
-                // Probe con dummy: si hay bios.bin del usuario, usarlo; si no, diálogo de
-                // pruebas
+                // Probe con dummy: si hay bios.bin del usuario, usarlo;
+                // si no, generar archivo de prueba automáticamente.
                 File userBios = new File(getFilesDir(), "bios.bin");
                 if (userBios.exists() && userBios.length() > 0) {
                     long size = userBios.length();
                     executeCustomFlashromCommand(
                             "-p dummy:emulate=VARIABLE_SIZE,size=" + size + ",image=bios.bin");
                 } else {
-                    log("No hay bios.bin cargado. Abriendo pruebas con archivo generado...");
-                    showDummyTestDialog();
+                    log("No hay bios.bin cargado. Generando archivo de prueba para identificación...");
+                    ensureDummyTestFile(16777216);
+                    executeCustomFlashromCommand(
+                            "-p dummy:emulate=VARIABLE_SIZE,size=16777216,image=bios_test.bin");
                 }
             } else {
                 executeFlashromTask("-p", selectedProgrammer);
