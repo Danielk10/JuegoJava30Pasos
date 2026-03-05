@@ -39,7 +39,10 @@ public class PtyBridge {
     private static final int BEACON_BYTE_2 = 0x55;
     /** Cuántos bytes iniciales loggear en hex para diagnóstico */
     private static final int DEBUG_HEX_LIMIT = 32;
-    /** Serializa los primeros bytes PTY→USB para evitar solapamiento de comandos en CH340. */
+    /**
+     * Serializa los primeros bytes PTY→USB para evitar solapamiento de comandos en
+     * CH340.
+     */
     private static final int SERPROG_PREAMBLE_GUARD_BYTES = 48;
 
     /** Callback para enviar logs al UI de la app (no sólo logcat) */
@@ -230,6 +233,39 @@ public class PtyBridge {
 
         bridgeLog("Beacon recibido — Arduino listo para serprog");
         purge();
+        return true;
+    }
+
+    /**
+     * Prepara la sesión serial para programadores que NO envían beacon
+     * (buspirate_spi, spidriver, etc.):
+     * 1) activa DTR/RTS para habilitar flujo de datos CH340/FTDI/CP2102,
+     * 2) espera breve estabilización,
+     * 3) purga buffers residuales.
+     *
+     * @return true si todo fue bien, false si hay error.
+     */
+    public boolean prepareForSerialSession() {
+        if (usbPort == null) {
+            bridgeLog("prepareForSerialSession: puerto USB no disponible");
+            return false;
+        }
+        if (running) {
+            bridgeLog("prepareForSerialSession: forwarding ya activo");
+            return true;
+        }
+
+        try {
+            usbPort.setDTR(true);
+            usbPort.setRTS(true);
+            bridgeLog("DTR/RTS activados — programador serial listo");
+            // Breve espera de estabilización sin beacon
+            Thread.sleep(500);
+            purge();
+        } catch (IOException | InterruptedException e) {
+            bridgeLog("Error preparando sesión serial: " + e.getMessage());
+            return false;
+        }
         return true;
     }
 

@@ -85,6 +85,55 @@ public class PinoutView {
         tex.dispose();
     }
 
+    /** Arduino UNO como programador serprog: pines SPI + conexión a chip flash */
+    public static void dibujarArduinoSerprog(Context ctx, ImageView target) {
+        Textura2D tex = crearTextura();
+        Graficos2D g = new Graficos2D(tex);
+        dibujarHeaderPinout(g, "Arduino UNO (serprog) — Conexión a Flash SPI");
+        dibujarChipSOIC8(g, 54, 55, new String[] { "CS", "DO", "WP", "GND", "DI", "CLK", "HOLD", "VCC" }, false);
+        dibujarFlecha(g, 270, 155);
+        dibujarTablaConexionGeneral(g, 310, 50,
+                "Flash Chip", "Arduino UNO",
+                new String[] { "1-CS", "2-DO(MISO)", "3-WP", "4-GND", "5-DI(MOSI)", "6-CLK", "7-HOLD", "8-VCC" },
+                new String[] { "Pin 10 (SS)", "Pin 12 (MISO)", "3.3V", "GND", "Pin 11 (MOSI)", "Pin 13 (SCK)", "3.3V",
+                        "3.3V" });
+        dibujarNota(g, "⚠ Arduino UNO es 5V — usar level shifter (HEF4050) a 3.3V");
+        aplicar(tex, target);
+        tex.dispose();
+    }
+
+    /** Bus Pirate como programador: pines del header a chip flash SPI */
+    public static void dibujarBusPirate(Context ctx, ImageView target) {
+        Textura2D tex = crearTextura();
+        Graficos2D g = new Graficos2D(tex);
+        dibujarHeaderPinout(g, "Bus Pirate — Conexión a Flash SPI");
+        dibujarChipSOIC8(g, 54, 55, new String[] { "CS", "DO", "WP", "GND", "DI", "CLK", "HOLD", "VCC" }, false);
+        dibujarFlecha(g, 270, 155);
+        dibujarTablaConexionGeneral(g, 310, 50,
+                "Flash Chip", "Bus Pirate",
+                new String[] { "1-CS", "2-DO(MISO)", "3-WP", "4-GND", "5-DI(MOSI)", "6-CLK", "7-HOLD", "8-VCC" },
+                new String[] { "CS", "MISO", "3.3V", "GND", "MOSI", "CLK", "3.3V", "3.3V (Vout)" });
+        dibujarNota(g, "⚠ Bus Pirate v3: max ~8MHz SPI  ⚠ Alimentar chip desde Vout");
+        aplicar(tex, target);
+        tex.dispose();
+    }
+
+    /** SPIDriver como programador: header de 6 pines a chip flash SPI */
+    public static void dibujarSPIDriver(Context ctx, ImageView target) {
+        Textura2D tex = crearTextura();
+        Graficos2D g = new Graficos2D(tex);
+        dibujarHeaderPinout(g, "SPIDriver — Conexión a Flash SPI");
+        dibujarChipSOIC8(g, 54, 55, new String[] { "CS", "DO", "WP", "GND", "DI", "CLK", "HOLD", "VCC" }, false);
+        dibujarFlecha(g, 270, 155);
+        dibujarTablaConexionGeneral(g, 310, 50,
+                "Flash Chip", "SPIDriver",
+                new String[] { "1-CS", "2-DO(MISO)", "3-WP", "4-GND", "5-DI(MOSI)", "6-CLK", "7-HOLD", "8-VCC" },
+                new String[] { "CS (A)", "MISO", "3.3V", "GND", "MOSI", "SCK", "3.3V", "3.3V" });
+        dibujarNota(g, "⚠ SPIDriver opera a 3.3V nativo — no requiere level shifter");
+        aplicar(tex, target);
+        tex.dispose();
+    }
+
     // ────────── Helpers de dibujo ────────────────────────────────────────────
 
     private static Textura2D crearTextura() {
@@ -310,6 +359,26 @@ public class PinoutView {
         g.dibujarRectangulo(x, y, col1W + col2W, rowH, 0xFF1A237E);
         g.dibujarTexto("Pin chip", x + 4, y + 15, COL_TITULO);
         g.dibujarTexto("CH341A", x + col1W + 4, y + 15, COL_TITULO);
+        for (int i = 0; i < col1.length; i++) {
+            float ry = y + (i + 1) * rowH;
+            int bg = (i % 2 == 0) ? COL_PANEL : COL_BG;
+            g.dibujarRectangulo(x, ry, col1W + col2W, rowH, bg);
+            configurarTexto(g, 10f, false);
+            g.dibujarTexto(col1[i], x + 4, ry + 15, COL_PIN_NUM);
+            g.dibujarTexto(col2[i], x + col1W + 4, ry + 15, colorPin(col2[i]));
+        }
+    }
+
+    /** Tabla de conexión chip→programador (general, con headers parametrizables) */
+    private static void dibujarTablaConexionGeneral(Graficos2D g, float x, float y,
+            String headerLeft, String headerRight,
+            String[] col1, String[] col2) {
+        float rowH = 22, col1W = 80, col2W = 110;
+        configurarTexto(g, 11f, true);
+        g.dibujarTexto(headerLeft + " → " + headerRight, x, y - 6, COL_LABEL);
+        g.dibujarRectangulo(x, y, col1W + col2W, rowH, 0xFF1A237E);
+        g.dibujarTexto("Pin chip", x + 4, y + 15, COL_TITULO);
+        g.dibujarTexto(headerRight, x + col1W + 4, y + 15, COL_TITULO);
         for (int i = 0; i < col1.length; i++) {
             float ry = y + (i + 1) * rowH;
             int bg = (i % 2 == 0) ? COL_PANEL : COL_BG;

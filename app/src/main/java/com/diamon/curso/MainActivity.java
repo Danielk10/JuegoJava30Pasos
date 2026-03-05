@@ -954,14 +954,15 @@ public class MainActivity extends AppCompatActivity {
         }
         log("Programador flashrom activo: " + selectedProgrammer);
 
-        // ── Serprog: abrir puente PTY ↔ USB-serial ──────────────────────────────
-        if ("serprog".equals(selectedProgrammer)) {
+        // ── Programadores seriales (serprog, buspirate_spi, spidriver): abrir puente
+        // PTY ↔ USB ──
+        if (needsPtyBridge(selectedProgrammer)) {
             // Cerrar puente anterior si hubiera uno activo
             if (ptyBridge != null) {
                 ptyBridge.close();
                 ptyBridge = null;
             }
-            log("Programador serprog detectado — iniciando puente PTY...");
+            log("Programador serial detectado (" + selectedProgrammer + ") — iniciando puente PTY...");
             PtyBridge bridge = new PtyBridge();
             // Callback para que los logs del bridge aparezcan en el UI
             bridge.setLogCallback(msg -> log(msg));
@@ -972,13 +973,44 @@ public class MainActivity extends AppCompatActivity {
                         + " a " + SERPROG_BAUD + " bps");
             } else {
                 log("[WARN] PtyBridge no pudo iniciarse. ¿devpts disponible? Revisa el log nativo.");
-                log("Los comandos serprog usarán -p serprog sin dev= y probablemente fallen.");
+                log("Los comandos con programador serial probablemente fallen sin PTY.");
             }
         }
     }
 
     private boolean isDummyProgrammer() {
         return selectedProgrammer != null && selectedProgrammer.startsWith("dummy");
+    }
+
+    /**
+     * ¿Este programador necesita puente PTY↔USB (comunicación serial)?
+     * - serprog: Arduino con firmware serprog
+     * - buspirate_spi: Bus Pirate vía FTDI serial
+     * - spidriver: SPIDriver vía USB-CDC serial
+     */
+    private static boolean needsPtyBridge(String prog) {
+        return "serprog".equals(prog)
+                || "buspirate_spi".equals(prog)
+                || "spidriver".equals(prog);
+    }
+
+    /**
+     * Construye el parámetro -p correcto para un programador serial con PTY.
+     * Cada programador tiene un formato ligeramente diferente:
+     * - serprog:dev=/dev/pts/N:115200 (baud inline)
+     * - buspirate_spi:dev=/dev/pts/N (baud configurable aparte)
+     * - spidriver:dev=/dev/pts/N (baud fijo interno)
+     */
+    private String buildPtyProgrammerParam(String programmer) {
+        if (ptyBridge == null || !ptyBridge.isOpen())
+            return programmer;
+        String devPath = ptyBridge.getSlavePath();
+        if ("serprog".equals(programmer)) {
+            return "serprog:dev=" + devPath + ":" + ptyBridge.getBaudRate();
+        } else {
+            // buspirate_spi, spidriver: dev=PATH sin baud inline
+            return programmer + ":dev=" + devPath;
+        }
     }
 
     private void ensureProgrammerThenRun(Runnable action) {
@@ -996,20 +1028,30 @@ public class MainActivity extends AppCompatActivity {
             log("Error: No hay dispositivo USB conectado. Conecta tu programador primero.");
             return;
         }
-        // ── Serprog (Arduino): esperar beacon antes de lanzar flashrom ──
-        if ("serprog".equals(selectedProgrammer)) {
+        // ── Programadores seriales (serprog, buspirate_spi, spidriver): iniciar PTY ──
+        if (needsPtyBridge(selectedProgrammer)) {
             if (ptyBridge == null || !ptyBridge.isOpen()) {
                 log("[WARN] PtyBridge no está listo. Se intentará ejecutar flashrom sin sincronización previa.");
                 action.run();
                 return;
             }
 
-            log("Sincronizando con Arduino... esperando beacon de arranque.");
+            final boolean isSerprog = "serprog".equals(selectedProgrammer);
+            if (isSerprog) {
+                log("Sincronizando con Arduino... esperando beacon de arranque.");
+            } else {
+                log("Preparando puente serial para " + selectedProgrammer + "...");
+            }
+
             executor.execute(() -> {
-                boolean ready = ptyBridge.prepareForFlashromSession(8000);
+                // Serprog espera beacon 0xAA 0x55 del firmware Arduino;
+                // los demás (buspirate, spidriver) solo activan DTR/RTS + purge.
+                boolean ready = isSerprog
+                        ? ptyBridge.prepareForFlashromSession(8000)
+                        : ptyBridge.prepareForSerialSession();
                 runOnUiThread(() -> {
                     if (!ready) {
-                        log("[ERROR] Arduino no respondió beacon (0xAA 0x55) — abortando ejecución de flashrom.");
+                        log("[ERROR] No se pudo preparar sesión serial — abortando.");
                         ptyBridge.close();
                         ptyBridge = null;
                         return;
@@ -1071,35 +1113,43 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        // ── Serprog: si el comando usa "-p serprog..." activar puente PTY↔USB ──
-        // Detectar si el comando manual requiere el programador serprog
-        boolean commandUsesSerprog = false;
+        // ── Programadores seriales: si el comando usa "-p
+        // serprog/buspirate_spi/spidriver"
+        // activar puente PTY↔USB ──
+        String detectedSerialProg = null;
         for (int i = 0; i < args.length; i++) {
-            if ("-p".equals(args[i]) && i + 1 < args.length && args[i + 1].startsWith("serprog")) {
-                commandUsesSerprog = true;
+            if ("-p".equals(args[i]) && i + 1 < args.length) {
+                String pVal = args[i + 1];
+                // Detectar tanto "-p serprog" como "-p serprog:dev=..."
+                if (pVal.startsWith("serprog") || pVal.startsWith("buspirate_spi")
+                        || pVal.startsWith("spidriver")) {
+                    // Extraer el nombre base del programador (antes de ":")
+                    int colon = pVal.indexOf(':');
+                    detectedSerialProg = (colon > 0) ? pVal.substring(0, colon) : pVal;
+                }
                 break;
             }
         }
 
-        if (commandUsesSerprog && ptyBridge != null && ptyBridge.isOpen()) {
+        if (detectedSerialProg != null && ptyBridge != null && ptyBridge.isOpen()) {
             // Asegurar que los hilos de forwarding estén corriendo
             if (!ptyBridge.isForwardingActive()) {
-                log("Iniciando puente PTY↔USB para serprog...");
+                log("Iniciando puente PTY↔USB para " + detectedSerialProg + "...");
                 ptyBridge.purge();
                 ptyBridge.startForwarding();
                 log("Hilos de forwarding activos.");
             }
 
-            // Solo si el usuario escribió "-p serprog" a secas (sin dev=),
+            // Solo si el usuario escribió "-p <prog>" a secas (sin dev=),
             // completar automáticamente con la ruta del PTY slave.
             // Si ya escribió "-p serprog:dev=/dev/pts/17:115200", se respeta tal cual.
-            String serprogParam = "serprog:dev=" + ptyBridge.getSlavePath() + ":" + ptyBridge.getBaudRate();
+            final String bareProgName = detectedSerialProg;
             List<String> argList = new ArrayList<>();
             for (int i = 0; i < args.length; i++) {
-                if ("-p".equals(args[i]) && i + 1 < args.length && "serprog".equals(args[i + 1])) {
+                if ("-p".equals(args[i]) && i + 1 < args.length && bareProgName.equals(args[i + 1])) {
                     argList.add("-p");
-                    argList.add(serprogParam);
-                    i++; // saltar "serprog" bare
+                    argList.add(buildPtyProgrammerParam(bareProgName));
+                    i++; // saltar el nombre bare del programador
                 } else {
                     argList.add(args[i]);
                 }
@@ -1141,16 +1191,16 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        // ── Serprog: sustituir "-p serprog" por "-p serprog:dev=/dev/pts/N:baud" ──
+        // ── Programadores seriales: sustituir "-p <prog>" por "-p
+        // <prog>:dev=/dev/pts/N[:baud]" ──
         String[] resolvedArgs = args;
         if (ptyBridge != null && ptyBridge.isOpen()) {
-            String serprogParam = "serprog:dev=" + ptyBridge.getSlavePath() + ":" + ptyBridge.getBaudRate();
             List<String> argList = new ArrayList<>();
             for (int i = 0; i < args.length; i++) {
-                if ("-p".equals(args[i]) && i + 1 < args.length && "serprog".equals(args[i + 1])) {
+                if ("-p".equals(args[i]) && i + 1 < args.length && needsPtyBridge(args[i + 1])) {
                     argList.add("-p");
-                    argList.add(serprogParam);
-                    i++; // saltar el siguiente elemento ("serprog" sin parámetros)
+                    argList.add(buildPtyProgrammerParam(args[i + 1]));
+                    i++; // saltar el nombre bare del programador
                 } else {
                     argList.add(args[i]);
                 }
@@ -1197,7 +1247,8 @@ public class MainActivity extends AppCompatActivity {
             // Serprog usa PTY (/dev/pts/N) y NO debe pasar por libusb directo.
             // Si exportamos ANDROID_USB_FD aquí, el wrapper de libusb parcheado puede
             // interferir con el mismo dispositivo USB-Serial y romper la sincronización.
-            if ("serprog".equals(selectedProgrammer)) {
+            if (needsPtyBridge(selectedProgrammer)) {
+                // Programadores seriales usan PTY, NO deben usar libusb directo
                 env.remove("ANDROID_USB_FD");
             } else if (currentFd >= 0) {
                 env.put("ANDROID_USB_FD", String.valueOf(currentFd));
@@ -1212,8 +1263,8 @@ public class MainActivity extends AppCompatActivity {
             env.put("LD_LIBRARY_PATH", jniLibs + ":" + new File(getFilesDir(), "usr/lib").getAbsolutePath());
             env.put("PATH", jniLibs + (fallbackPath != null ? ":" + fallbackPath : ""));
 
-            String fdLogValue = "serprog".equals(selectedProgrammer)
-                    ? "NO DEFINIDO (serprog por PTY)"
+            String fdLogValue = needsPtyBridge(selectedProgrammer)
+                    ? "NO DEFINIDO (" + selectedProgrammer + " por PTY)"
                     : (currentFd >= 0 ? String.valueOf(currentFd) : "NO DEFINIDO");
             log("Entorno flashrom => ANDROID_USB_FD=" + fdLogValue);
             log("Entorno flashrom => LD_LIBRARY_PATH=" + env.get("LD_LIBRARY_PATH"));
@@ -1274,7 +1325,7 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 log("[PROCESO TERMINADO] Exit Code: " + exitCode + " (ERROR)");
                 // Diagnóstico del puente PTY para serprog
-                if ("serprog".equals(selectedProgrammer) && ptyBridge != null) {
+                if (needsPtyBridge(selectedProgrammer) && ptyBridge != null) {
                     log("[DIAG PtyBridge] " + ptyBridge.getDiagnosticReport());
                 }
                 log("");
@@ -1514,6 +1565,9 @@ public class MainActivity extends AppCompatActivity {
         String[] pinoutOptions = {
                 "CH341A — Header SPI",
                 "Clip SOIC8 / DIP8 Flash",
+                "Arduino UNO (serprog) → Flash SPI",
+                "Bus Pirate → Flash SPI",
+                "SPIDriver → Flash SPI",
                 "Bus SPI (Serial Peripheral)",
                 "Bus I2C (Inter-Integrated Circuit)"
         };
@@ -1536,6 +1590,18 @@ public class MainActivity extends AppCompatActivity {
                             PinoutView.dibujarSOIC8(this, iv);
                             break;
                         case 2:
+                            title = "Arduino UNO (serprog) → Flash SPI";
+                            PinoutView.dibujarArduinoSerprog(this, iv);
+                            break;
+                        case 3:
+                            title = "Bus Pirate → Flash SPI";
+                            PinoutView.dibujarBusPirate(this, iv);
+                            break;
+                        case 4:
+                            title = "SPIDriver → Flash SPI";
+                            PinoutView.dibujarSPIDriver(this, iv);
+                            break;
+                        case 5:
                             title = "Bus SPI — Serial Peripheral Interface";
                             PinoutView.dibujarSPI(this, iv);
                             break;
