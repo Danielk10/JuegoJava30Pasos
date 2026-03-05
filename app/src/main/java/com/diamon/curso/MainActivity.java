@@ -1014,11 +1014,11 @@ public class MainActivity extends AppCompatActivity {
                         ptyBridge = null;
                         return;
                     }
+                    ptyBridge.purge();
                     if (!ptyBridge.isForwardingActive()) {
                         ptyBridge.startForwarding();
                         log("Hilos de forwarding activos.");
                     }
-                    ptyBridge.purge();
                     log("Puente PTY↔USB listo — lanzando flashrom.");
                     action.run();
                 });

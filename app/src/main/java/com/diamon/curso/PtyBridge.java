@@ -39,6 +39,8 @@ public class PtyBridge {
     private static final int BEACON_BYTE_2 = 0x55;
     /** Cuántos bytes iniciales loggear en hex para diagnóstico */
     private static final int DEBUG_HEX_LIMIT = 32;
+    /** Serializa los primeros bytes PTY→USB para evitar solapamiento de comandos en CH340. */
+    private static final int SERPROG_PREAMBLE_GUARD_BYTES = 48;
 
     /** Callback para enviar logs al UI de la app (no sólo logcat) */
     public interface LogCallback {
@@ -320,6 +322,12 @@ public class PtyBridge {
      * el ACK real del Arduino y no restos del bootloader o ruido del CH340.
      */
     public void purge() {
+        // Evitar carreras con los hilos de forwarding: drenar aquí mientras Thread A/B
+        // están activos puede duplicar/perder bytes y romper SYNC de serprog.
+        if (running) {
+            bridgeLog("Purge omitido: forwarding activo (evita carrera USB↔PTY)");
+            return;
+        }
         // Drenar buffer USB con reintentos (el bootloader puede seguir enviando)
         if (usbPort != null) {
             byte[] drain = new byte[BUFFER_SIZE];
@@ -477,12 +485,34 @@ public class PtyBridge {
                         // Debug: loggear los primeros bytes enviados por flashrom
                         if (totalSent < DEBUG_HEX_LIMIT) {
                             int logLen = Math.min(n, DEBUG_HEX_LIMIT - totalSent);
-                            Log.d(TAG, "PTY→USB [" + n + "B]: " + bytesToHex(buf, logLen));
+                            String debugMsg = "[PTY→USB] " + n + " B: " + bytesToHex(buf, logLen);
+                            Log.d(TAG, debugMsg);
+                            bridgeLog(debugMsg);
                         }
                         totalSent += n;
                         try {
-                            usbPort.write(buf, n, USB_TIMEOUT_MS);
-                            diagUsbBytesWritten += n;
+                            int preGuardRemaining = Math.max(0, SERPROG_PREAMBLE_GUARD_BYTES - (totalSent - n));
+                            if (preGuardRemaining > 0) {
+                                int guarded = Math.min(preGuardRemaining, n);
+                                for (int i = 0; i < guarded; i++) {
+                                    byte[] one = new byte[] { buf[i] };
+                                    usbPort.write(one, 1, USB_TIMEOUT_MS);
+                                    diagUsbBytesWritten += 1;
+                                    // CH340 + firmware serprog con limpieza agresiva en SYNCNOP:
+                                    // separar bytes iniciales reduce riesgo de que un comando siguiente
+                                    // llegue en el mismo burst y sea descartado por el firmware.
+                                    sleepQuietly(2);
+                                }
+                                if (n > guarded) {
+                                    byte[] tail = new byte[n - guarded];
+                                    System.arraycopy(buf, guarded, tail, 0, n - guarded);
+                                    usbPort.write(tail, tail.length, USB_TIMEOUT_MS);
+                                    diagUsbBytesWritten += tail.length;
+                                }
+                            } else {
+                                usbPort.write(buf, n, USB_TIMEOUT_MS);
+                                diagUsbBytesWritten += n;
+                            }
                         } catch (IOException e) {
                             diagUsbWriteErrors++;
                             if (running) {
