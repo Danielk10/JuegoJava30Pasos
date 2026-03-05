@@ -295,7 +295,7 @@ public class PtyBridge {
         Log.i(TAG, "PtyBridge cerrado.");
     }
 
-    /** Reporte de diagnóstico de Thread B para depuración visible en la app */
+    /** Reporte de diagnóstico de Thread A/B para depuración visible en la app */
     public String getDiagnosticReport() {
         return "ptyReads=" + diagPtyReads + " usbBytesWritten=" + diagUsbBytesWritten
                 + " usbWriteErrors=" + diagUsbWriteErrors
@@ -455,7 +455,18 @@ public class PtyBridge {
             try (FileInputStream masterIn = new FileInputStream(masterPfd.getFileDescriptor())) {
                 byte[] buf = new byte[BUFFER_SIZE];
                 while (running && !Thread.currentThread().isInterrupted()) {
-                    int n = masterIn.read(buf);
+                    int n;
+                    try {
+                        n = masterIn.read(buf);
+                    } catch (IOException readError) {
+                        // En PTY master, EIO significa que el slave (/dev/pts/N)
+                        // todavía no fue abierto por flashrom. No es fatal: reintentar.
+                        if (running && isPtySlaveNotOpenedYet(readError)) {
+                            sleepQuietly(5);
+                            continue;
+                        }
+                        throw readError;
+                    }
                     diagPtyReads++;
                     if (n > 0 && usbPort != null) {
                         zeroReads = 0;
@@ -564,6 +575,22 @@ public class PtyBridge {
         }, "PtyBridge-usb-to-master");
         threadUsbToMaster.setDaemon(true);
         threadUsbToMaster.start();
+    }
+
+    private static boolean isPtySlaveNotOpenedYet(IOException e) {
+        if (e == null || e.getMessage() == null) {
+            return false;
+        }
+        // Android típicamente entrega: "read failed: EIO (I/O error)"
+        return e.getMessage().contains("EIO");
+    }
+
+    private static void sleepQuietly(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException ignored) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     private void waitForwardingReady() {
