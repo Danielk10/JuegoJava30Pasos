@@ -77,6 +77,9 @@ public class PtyBridge {
     private LogCallback logCallback = null;
 
     // Contadores de diagnóstico para Thread B
+    private volatile int diagPtyReads = 0;
+    private volatile int diagUsbBytesWritten = 0;
+    private volatile int diagUsbWriteErrors = 0;
     private volatile int diagUsbReads = 0;
     private volatile int diagUsbBytesReceived = 0;
     private volatile int diagPtyWrites = 0;
@@ -294,7 +297,9 @@ public class PtyBridge {
 
     /** Reporte de diagnóstico de Thread B para depuración visible en la app */
     public String getDiagnosticReport() {
-        return "usbReads=" + diagUsbReads + " usbBytesRecv=" + diagUsbBytesReceived
+        return "ptyReads=" + diagPtyReads + " usbBytesWritten=" + diagUsbBytesWritten
+                + " usbWriteErrors=" + diagUsbWriteErrors
+                + " usbReads=" + diagUsbReads + " usbBytesRecv=" + diagUsbBytesReceived
                 + " ptyWrites=" + diagPtyWrites + " ptyErrors=" + diagPtyWriteErrors
                 + " lastError=" + diagLastError;
     }
@@ -440,13 +445,20 @@ public class PtyBridge {
         // Hilo A: PTY master → USB (lo que flashrom escribe al puerto serie virtual)
         threadMasterToUsb = new Thread(() -> {
             int totalSent = 0;
+            int zeroReads = 0;
+            diagPtyReads = 0;
+            diagUsbBytesWritten = 0;
+            diagUsbWriteErrors = 0;
             masterToUsbReady = true;
             boolean firstWriteLogged = false;
+            bridgeLog("Thread A iniciado — masterFd=" + masterPfd.getFd());
             try (FileInputStream masterIn = new FileInputStream(masterPfd.getFileDescriptor())) {
                 byte[] buf = new byte[BUFFER_SIZE];
                 while (running && !Thread.currentThread().isInterrupted()) {
                     int n = masterIn.read(buf);
+                    diagPtyReads++;
                     if (n > 0 && usbPort != null) {
+                        zeroReads = 0;
                         if (!firstWriteLogged) {
                             Log.d(TAG, "PTY→USB write " + n + " bytes");
                             firstWriteLogged = true;
@@ -459,16 +471,31 @@ public class PtyBridge {
                         totalSent += n;
                         try {
                             usbPort.write(buf, n, USB_TIMEOUT_MS);
+                            diagUsbBytesWritten += n;
                         } catch (IOException e) {
-                            if (running)
+                            diagUsbWriteErrors++;
+                            if (running) {
+                                diagLastError = "usb-write: " + e.getMessage();
                                 Log.w(TAG, "Error escribiendo a USB: " + e.getMessage());
+                                bridgeLog("Thread A USB WRITE ERROR: " + e.getMessage());
+                            }
+                        }
+                    } else if (n == 0) {
+                        zeroReads++;
+                        if (zeroReads == 50) {
+                            bridgeLog("Thread A: 50 lecturas PTY vacías (flashrom no está escribiendo?)");
                         }
                     }
                 }
             } catch (IOException e) {
-                if (running)
+                if (running) {
+                    diagLastError = "pty-read: " + e.getMessage();
                     Log.w(TAG, "Hilo master→USB terminado: " + e.getMessage());
+                    bridgeLog("Thread A READ ERROR: " + e.getMessage());
+                }
             }
+            bridgeLog("Thread A fin — ptyReads=" + diagPtyReads + " usbBytesWritten=" + diagUsbBytesWritten
+                    + " usbWriteErrors=" + diagUsbWriteErrors);
         }, "PtyBridge-master-to-usb");
         threadMasterToUsb.setDaemon(true);
         threadMasterToUsb.start();
