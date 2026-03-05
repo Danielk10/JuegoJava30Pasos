@@ -7,6 +7,7 @@
 [![Licencia](https://img.shields.io/badge/Licencia-GPLv3-blue)](./LICENSE.txt)
 
 Aplicación Android para lectura/escritura/verificación de memorias **SPI e I2C** usando **flashrom** y librerías nativas compiladas para **ARM64**.
+Soporta programadores **USB directos** (CH341A, FT2232, Dediprog, etc.) vía libusb parcheada y programadores **seriales** (serprog/Arduino, Bus Pirate, SPIDriver) vía puente PTY↔USB.
 
 > Nombre visible de la app: **Flash EEPROM Tool**.
 
@@ -27,13 +28,44 @@ Este proyecto empaqueta una cadena nativa completa (flashrom + dependencias) den
 
 ## 2) Arquitectura general
 
-### Capa Java (Android)
+La app tiene **dos caminos** de comunicación USB según el tipo de programador:
 
-- Enumera dispositivos USB con `UsbManager.getDeviceList()`.
-- Si hay múltiples dispositivos, muestra selector de dispositivo en UI (VID:PID + fabricante/producto).
-- Abre el dispositivo elegido con `UsbManager.openDevice(...)`.
-- Obtiene `fd = connection.getFileDescriptor()`.
-- Inyecta `ANDROID_USB_FD` al proceso nativo (`ProcessBuilder`), para que `libusb` parcheada lo use.
+```
+                  ┌─────────────────┐
+                  │  USB_AUTO_MAP   │
+                  │  (18 VID:PID)   │
+                  └───────┬─────────┘
+                          │
+              ┌───────────┴───────────┐
+              │                       │
+     Serial (PTY)              USB directo (libusb)
+              │                       │
+    ┌─────────┴─────────┐   ┌────────┴────────┐
+    │  PtyBridge.java   │   │  ANDROID_USB_FD  │
+    │  DTR/RTS + Beacon │   │  → patch_libusb  │
+    │  USB↔PTY threads  │   │  → flashrom      │
+    └─────────┬─────────┘   └────────┬────────┘
+         /dev/pts/N              libusb nativo
+              │                       │
+          flashrom               flashrom
+```
+
+### Camino A — Programadores Seriales (serprog, buspirate_spi, spidriver)
+
+- `PtyBridge.java` crea un pseudo-terminal (`/dev/pts/N`) con JNI.
+- Abre el dispositivo USB-serial con `usb-serial-for-android`.
+- Dos hilos Java envían datos en ambas direcciones: **PTY→USB** y **USB→PTY**.
+- flashrom recibe `-p serprog:dev=/dev/pts/N:115200` (o `buspirate_spi:dev=...`).
+- **No se usa** `ANDROID_USB_FD` — se remueve del entorno.
+- Para serprog (Arduino): espera beacon `0xAA 0x55` antes de lanzar flashrom.
+- Para buspirate/spidriver: activa DTR/RTS + purge sin beacon.
+
+### Camino B — Programadores USB Directos (CH341A, FT2232, Dediprog, ST-Link, etc.)
+
+- Java obtiene `fd = connection.getFileDescriptor()` del USB.
+- Inyecta `ANDROID_USB_FD=fd` al proceso nativo (`ProcessBuilder`).
+- `libusb` parcheada (`patch_libusb.py`) intercepta y usa ese FD.
+- flashrom opera normalmente con `-p ch341a_spi`, `-p ft2232_spi`, etc.
 
 ### Capa nativa / runtime
 
@@ -118,70 +150,40 @@ Con esto, flashrom/libusb usan el descriptor otorgado por Android en Java, evita
 
 ---
 
-## 6) Detección de dispositivos y soporte
+## 6) Detección de dispositivos y auto-detección
 
-La app está orientada a trabajar con el ecosistema soportado por flashrom (programadores/chips según build y drivers disponibles), incluyendo flujos SPI/I2C cuando el hardware/driver de flashrom lo soporte.
+La app detecta automáticamente el programador USB conectado usando un mapa de **18 VID:PID** y los rutea al camino correcto (PTY o libusb):
 
-La detección USB en Java usa la API nativa de Android (`UsbManager`) y permite elegir dispositivo cuando hay más de uno conectado. Además, desde el menú se puede configurar el valor de programador `-p` con dos modos: lista de soportados y modo manual legacy (texto libre). También existe una caja de comando manual en la UI principal para ejecutar parámetros directos de flashrom y ver resultados en el log.
+| Familia | VID:PID | Programador | Interfaz |
+|---------|---------|-------------|----------|
+| CH341A | `1a86:5512`, `1a86:5523` | `ch341a_spi` | libusb |
+| CH347 | `1a86:55db` | `ch347_spi` | libusb |
+| FT2232/FT232H | `0403:6010`–`6015` | `ft2232_spi` | libusb |
+| Bus Pirate | `0403:6001` | `buspirate_spi` | **PTY** |
+| ST-Link | `0483:3748`–`3754` | `stlinkv3_spi` | libusb |
+| J-Link | `1366:0101/0105`, `1fc9:000c` | `jlink_spi` | libusb |
+| Serprog | `2341:0043/0001`, `1a86:7523`, `10c4:ea60` | `serprog` | **PTY** |
 
-### Programadores soportados por esta build (logs Meson/flashrom)
-
-- asm106x
-- atavia
-- buspirate_spi
-- ch341a_spi
-- ch347_spi
-- dediprog
-- developerbox_spi
-- digilent_spi
-- dirtyjtag_spi
-- drkaiser
-- dummy
-- ft2232_spi
-- gfxnvidia
-- internal
-- it8212
-- jlink_spi
-- linux_mtd
-- linux_spi
-- parade_lspcon
-- mediatek_i2c_spi
-- mstarddc_spi
-- nicintel
-- nicintel_eeprom
-- nicintel_spi
-- nv_sma_spi
-- ogp_spi
-- pickit2_spi
-- pony_spi
-- raiden_debug_spi
-- realtek_mst_i2c_spi
-- satasii
-- serprog
-- spidriver
-- stlinkv3_spi
-- usbblaster_spi
-
-### Programadores no soportados en la plataforma reportada
-
-- atahpt
-- atapromise
-- ni845x_spi
-- nic3com
-- nicnatsemi
-- nicrealtek
-- rayer_spi
-- satamv
-
-> Nota: la app no bloquea programadores manuales. Si un comando falla, comparte el log para depuración.
-
-Flujo recomendado:
+### Flujo de detección
 
 1. Java enumera dispositivos USB con `UsbManager`.
-2. Si hay varios, el usuario selecciona cuál usar.
-3. Android concede permiso y se obtiene FD.
-4. Se exporta `ANDROID_USB_FD` al proceso nativo.
-5. flashrom opera con libusb parcheada.
+2. `USB_AUTO_MAP` busca coincidencia por VID:PID.
+3. Si es programador serial (`serprog`, `buspirate_spi`, `spidriver`): abre `PtyBridge`.
+4. Si es programador USB directo: exporta `ANDROID_USB_FD` al proceso nativo.
+5. flashrom opera con el parámetro `-p` correcto.
+
+### Programadores soportados por esta build
+
+**Funcionan en Android (USB OTG):**
+- **Vía PTY (serial):** serprog, buspirate_spi, spidriver
+- **Vía libusb:** ch341a_spi, ch347_spi, ft2232_spi, dediprog, stlinkv3_spi, jlink_spi, pickit2_spi, usbblaster_spi, digilent_spi, dirtyjtag_spi, raiden_debug_spi, developerbox_spi
+- **Emulación:** dummy
+
+**Requieren root/PCI (no funcionan en Android sin root):**
+- internal, drkaiser, gfxnvidia, nicintel, nicintel_spi, nicintel_eeprom, satasii, it8212, asm106x, atavia, ogp_spi, nv_sma_spi
+- linux_spi, linux_mtd, parade_lspcon, mediatek_i2c_spi, mstarddc_spi, realtek_mst_i2c_spi, pony_spi
+
+> Nota: la app no bloquea programadores manuales. La caja de comandos permite ejecutar cualquier parámetro.
 
 ---
 
@@ -206,19 +208,21 @@ bash ./setup-sdk.sh
 ## 8) Uso básico de la app
 
 1. Conecta el programador USB OTG.
-2. Pulsa **Detectar y Conectar Automáticamente** — la app reconoce automáticamente CH341A, FT2232, ST-LINK, Dediprog, J-Link, Bus Pirate y otros por VID:PID. Si hay múltiples dispositivos, elige en el selector.
-3. Usa los botones principales:
-   - **Identificar Chip** (`flashrom -p <programador>`)
-   - **Leer Backup** (`-r bios.bin`)
-   - **Verificar ROM** (`-v bios.bin`)
-   - **Flashear ROM** (`-w bios.bin`)
-   - **Borrar Chip** (`--erase`) — con diálogo de confirmación
-   - **Borrar ROM** — elimina archivos temporales (bios.bin, read_test.bin, bios_test.bin)
-4. **Barra de progreso en tiempo real**: durante operaciones de lectura/escritura/verificación/borrado, una barra inline muestra el porcentaje parseado del stdout de flashrom.
-5. **Consola de comandos**: ejecuta cualquier comando flashrom directamente (ej. `--version`, `-L`, `--help`, `-p ch341a_spi -r bios.bin --layout layout.txt`, offsets parciales, etc.).
-6. Importa/exporta archivos ROM desde/hacia almacenamiento usando SAF.
+2. Pulsa **Detectar y Conectar Automáticamente** — la app reconoce automáticamente el programador por VID:PID y establece el camino correcto (PTY para serprog/buspirate, libusb para CH341A/FT2232/etc.).
+3. **Cargar ROM** (si vas a escribir) — importa `.bin`, `.hex`, `.rom` desde almacenamiento.
+4. Usa los botones principales:
+   - **Identificar Chip** — detecta el chip flash conectado
+   - **Leer Backup** — lee el chip completo a `bios.bin`
+   - **Verificar ROM** — compara ROM cargada vs chip
+   - **Flashear ROM** — escribe ROM al chip
+   - **Borrar Chip** — borra todo el contenido (0xFF) con confirmación
+   - **Guardar ROM** — exporta datos leídos al almacenamiento
+   - **Borrar ROM** — limpia archivos temporales
+5. **Barra de progreso en tiempo real**: barra inline que parsea el porcentaje del stdout de flashrom.
+6. **Consola de comandos**: ejecuta cualquier comando flashrom directamente.
+7. **Visor Hex y Comparador Hex**: inspecciona y compara firmwares byte a byte.
 
-El panel de log muestra salida nativa real con prefijo `[native]`, comandos solicitados y estados de entorno/rutas.
+El panel de log muestra salida nativa real con prefijo `[native]`, diagnósticos PTY cuando aplica, y estados de entorno.
 
 ---
 
@@ -293,22 +297,34 @@ Herramienta de comparación binaria (`HexDiffActivity`) accesible desde el menú
 - Pre-carga automáticamente `bios.bin` como archivo A si existe.
 
 ### Pinouts de Hardware
-Guía de referencia rápida accesible desde el menú con diagramas ASCII:
+Guía de referencia rápida accesible desde el menú con diagramas renderizados:
 - **CH341A Mini Programmer** — pinout del header SPI y configuración de jumpers.
-- **Clip SOIC8/DIP8** — pinout del chip flash y conexión al CH341A.
+- **Clip SOIC8/DIP8** — pinout del chip flash y tabla de conexión al CH341A.
+- **Arduino UNO (serprog)** — conexión Flash SPI a pines 10-13 con nota de level shifter 5V→3.3V.
+- **Bus Pirate** — conexión Flash SPI a header Bus Pirate con alimentación Vout.
+- **SPIDriver** — conexión Flash SPI a SPIDriver (3.3V nativo).
 - **Interfaz SPI** — diagrama de conexión Master-Slave.
 - **Interfaz I2C** — diagrama de bus con pull-ups y pinout de EEPROM.
 
+### Puente PTY↔USB para Programadores Seriales
+- `PtyBridge.java` maneja la comunicación serial entre flashrom y dispositivos USB-serial.
+- Soporta: **serprog** (Arduino), **buspirate_spi** (Bus Pirate), **spidriver** (SPIDriver).
+- Sincronización: serprog espera beacon `0xAA 0x55`; buspirate/spidriver usan DTR/RTS + purge.
+- Diagnóstico integrado: contadores de bytes y errores visibles en el log.
+
+### Firmware Arduino Serprog
+Incluye `serprog_arduino_uno_ch340g.ino` — firmware para Arduino UNO que implementa el protocolo serprog:
+- 10 comandos serprog (NOP, SYNCNOP, Version, CmdMap, Name, BufSize, BusType, SetBus, SPI Op, Debug).
+- Beacon de sincronización `0xAA 0x55` para comunicación confiable vía PTY.
+- Compatible con chips CH340G y FTDI a 115200 bps.
+
 ### Consola de Comandos Avanzada
-- Ejecuta cualquier comando flashrom desde la interfaz (ej: `-p ch341a_spi -r bios.bin --layout layout.txt`).
-- Soporta operaciones parciales con offsets nativos de flashrom.
+- Ejecuta cualquier comando flashrom desde la interfaz.
+- Auto-completa `-p serprog/buspirate_spi/spidriver` con la ruta PTY correcta.
 - Funciona sin USB para comandos informativos (`--version`, `-L`, `--help`).
-- Inyecta automáticamente `ANDROID_USB_FD` y `LD_LIBRARY_PATH` cuando hay USB conectado.
 
 ### Detección Automática de Programadores USB
-La app reconoce automáticamente más de 25 modelos de programadores por VID:PID:
-- CH341A, CH347, FT2232/FT232H/FT4232H, Bus Pirate, ST-LINK (v2/v2.1/v3), J-Link, Pickit2, USB-Blaster, Dediprog, Digilent, DirtyJTAG, Serprog (Arduino/CH340/CP2102).
-- Selecciona automáticamente el parámetro `-p` correcto sin intervención del usuario.
+18 VID:PIDs cubriendo 7 familias de programadores. Auto-selecciona parámetro `-p` y ruteo (PTY vs libusb).
 
 ### Importación y Exportación Inteligente
 - **Cargar ROM**: usa el Android Storage Access Framework (SAF) para importar sin restricciones (`*/*`), detectando automáticamente el formato (binario crudo vs Intel HEX) y validando tamaños (hasta 128 MB). Incluye conversión Intel HEX → binario automática con validación de checksum.

@@ -45,11 +45,18 @@
 - Menú **Modo Prueba (Dummy)** para pruebas locales de chip virtual: OK
 - Visor Hexadecimal avanzado (`HexViewerActivity`) con soporte Intel HEX (Types 02/04) y origen de datos: OK
 - Comparador HEX (Diff) (`HexDiffActivity`) con comparación byte-a-byte y resaltado de diferencias: OK
-- Pinouts de Hardware (CH341A, SOIC8/DIP8, SPI, I2C) con diagramas ASCII monospace: OK
+- Pinouts de Hardware (CH341A, SOIC8/DIP8, Arduino serprog, Bus Pirate, SPIDriver, SPI, I2C) con diagramas renderizados: OK
+- Puente PTY↔USB (`PtyBridge.java`) para programadores seriales (serprog, buspirate_spi, spidriver): OK
+- Sincronización serprog: beacon 0xAA 0x55 + DTR/RTS + purge: OK
+- Preparación sesión serial (buspirate/spidriver): DTR/RTS + 500ms estabilización + purge (sin beacon): OK
+- Firmware Arduino serprog (`serprog_arduino_uno_ch340g.ino`): 10 comandos, verificado 9/9 tests en COM8: OK
 - Botón **Borrar Chip** (`--erase`) con diálogo de confirmación, modo real y dummy: OK
 - Barra de progreso en tiempo real (4dp inline, parseo de stdout `%`): OK
-- Detección automática de programadores USB por VID:PID (25+ modelos): OK
+- Detección automática de programadores USB por VID:PID (18 VID:PIDs, 7 familias): OK
+- Ruteo dual: PTY para serprog/buspirate/spidriver, libusb para CH341A/FT2232/etc.: OK
+- `ANDROID_USB_FD` removido del entorno para programadores PTY: OK
 - Campo de comando manual para ejecutar parámetros flashrom y ver salida en consola: OK
+- Auto-completado de `-p serprog/buspirate_spi/spidriver` con ruta PTY en comandos manuales: OK
 - Rastreo dinámico de archivos leídos (ej. usa `lastReadFile` en lugar de `bios.bin` rígido): OK
 - Comandos manuales sin USB conectado (ej. `--version`, `-L`, `--help`): OK
 - Ejecución nativa sigue usando `flashrom -p <valor_usuario>`: OK
