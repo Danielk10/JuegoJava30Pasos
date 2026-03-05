@@ -40,3 +40,12 @@ chmod +x "${PROJECT_ROOT}/gradlew"
 echo "Android SDK/NDK configurado en ${ANDROID_SDK_ROOT}"
 echo "local.properties generado en ${PROJECT_ROOT}/local.properties"
 echo "Gradle wrapper habilitado: ${PROJECT_ROOT}/gradlew"
+
+
+echo "Compilando proyecto para validar SDK/NDK..."
+(
+  cd "${PROJECT_ROOT}"
+  ./gradlew --no-daemon assembleDebug
+)
+
+echo "Compilación de verificación completada."

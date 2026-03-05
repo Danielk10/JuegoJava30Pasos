@@ -35,6 +35,8 @@ public class PtyBridge {
     private static final String TAG = "PtyBridge";
     private static final int USB_TIMEOUT_MS = 50;
     private static final int BUFFER_SIZE = 4096;
+    private static final int BEACON_BYTE_1 = 0xAA;
+    private static final int BEACON_BYTE_2 = 0x55;
     /** Cuántos bytes iniciales loggear en hex para diagnóstico */
     private static final int DEBUG_HEX_LIMIT = 32;
 
@@ -180,33 +182,79 @@ public class PtyBridge {
             return;
         }
 
-        // ── CRÍTICO: Activar DTR/RTS para que CH340G reenvíe datos UART→USB ──
-        // Sin DTR/RTS en HIGH, el CH340G no transmite los bytes recibidos por UART
-        // al endpoint USB IN, causando que usbPort.read() siempre devuelva 0.
-        //
-        // En open() los dejamos en false para no disparar el Auto-Reset del Arduino.
-        // Ahora (después de 3.5s) el bootloader ya terminó. El flanco LOW→HIGH de DTR
-        // NO causa reset en el Uno (el condensador de auto-reset solo reacciona a
-        // HIGH→LOW).
-        if (usbPort != null) {
-            try {
-                usbPort.setDTR(true);
-                usbPort.setRTS(true);
-                bridgeLog("DTR/RTS activados — CH340G habilitado para datos bidireccionales");
-                // Pequeña pausa + purge por si el cambio DTR genera basura
-                Thread.sleep(100);
-                purge();
-            } catch (IOException | InterruptedException e) {
-                Log.w(TAG, "Error seteando DTR/RTS: " + e.getMessage());
-            }
-        }
-
         running = true;
         masterToUsbReady = false;
         usbToMasterReady = false;
         startForwardingThreads();
         waitForwardingReady();
         bridgeLog("Forwarding activo — puente PTY↔USB listo");
+    }
+
+    /**
+     * Prepara la sesión serprog antes de lanzar flashrom:
+     * 1) activa DTR/RTS,
+     * 2) espera beacon 0xAA 0x55 directamente en USB (sin PTY forwarding),
+     * 3) purga buffers.
+     *
+     * @return true si se recibió beacon, false por timeout o error.
+     */
+    public boolean prepareForFlashromSession(long timeoutMs) {
+        if (usbPort == null) {
+            bridgeLog("prepareForFlashromSession: puerto USB no disponible");
+            return false;
+        }
+        if (running) {
+            bridgeLog("prepareForFlashromSession: forwarding ya activo, no se espera beacon");
+            return true;
+        }
+
+        try {
+            usbPort.setDTR(true);
+            usbPort.setRTS(true);
+            bridgeLog("DTR/RTS activados — esperando beacon 0xAA 0x55");
+        } catch (IOException e) {
+            bridgeLog("Error activando DTR/RTS: " + e.getMessage());
+            return false;
+        }
+
+        boolean beaconOk = waitForBeacon(timeoutMs);
+        if (!beaconOk) {
+            bridgeLog("Timeout esperando beacon de arranque");
+            return false;
+        }
+
+        bridgeLog("Beacon recibido — Arduino listo para serprog");
+        purge();
+        return true;
+    }
+
+    private boolean waitForBeacon(long timeoutMs) {
+        long deadlineMs = System.currentTimeMillis() + timeoutMs;
+        int state = 0;
+        byte[] buf = new byte[64];
+
+        while (System.currentTimeMillis() < deadlineMs) {
+            try {
+                int n = usbPort.read(buf, 100);
+                if (n <= 0) {
+                    continue;
+                }
+                for (int i = 0; i < n; i++) {
+                    int b = buf[i] & 0xFF;
+                    if (state == 0) {
+                        state = (b == BEACON_BYTE_1) ? 1 : 0;
+                    } else {
+                        if (b == BEACON_BYTE_2) {
+                            return true;
+                        }
+                        state = (b == BEACON_BYTE_1) ? 1 : 0;
+                    }
+                }
+            } catch (IOException e) {
+                diagLastError = "beacon-read: " + e.getMessage();
+            }
+        }
+        return false;
     }
 
     /**

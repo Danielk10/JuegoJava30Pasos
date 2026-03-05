@@ -996,28 +996,30 @@ public class MainActivity extends AppCompatActivity {
             log("Error: No hay dispositivo USB conectado. Conecta tu programador primero.");
             return;
         }
-        // ── Serprog (Arduino): esperar Auto-Reset del bootloader antes de sincronizar
-        // ──
+        // ── Serprog (Arduino): esperar beacon antes de lanzar flashrom ──
         if ("serprog".equals(selectedProgrammer)) {
-            log("Sincronizando con Arduino... espera 3.5 segundos (Auto-Reset + estabilización).");
-            new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
-                // Purgar basura del bootloader/CH340 antes de iniciar forwarding
-                if (ptyBridge != null && ptyBridge.isOpen()) {
-                    ptyBridge.purge();
-                    log("Buffer USB purgado.");
+            if (ptyBridge == null || !ptyBridge.isOpen()) {
+                log("[WARN] PtyBridge no está listo. Se intentará ejecutar flashrom sin sincronización previa.");
+                action.run();
+                return;
+            }
 
-                    // Iniciar forwarding — los hilos puentean PTY↔USB
+            log("Sincronizando con Arduino... esperando beacon de arranque.");
+            executor.execute(() -> {
+                boolean ready = ptyBridge.prepareForFlashromSession(8000);
+                runOnUiThread(() -> {
+                    if (!ready) {
+                        log("[WARN] No se recibió beacon (0xAA 0x55). Continuando con flashrom para diagnóstico.");
+                    }
                     if (!ptyBridge.isForwardingActive()) {
                         ptyBridge.startForwarding();
                         log("Hilos de forwarding activos.");
                     }
-
-                    // Purga final para arrancar flashrom con buffers limpios
                     ptyBridge.purge();
                     log("Puente PTY↔USB listo — lanzando flashrom.");
-                }
-                action.run();
-            }, 3500);
+                    action.run();
+                });
+            });
         } else {
             // CH341A y otros programadores con parche libusb son instantáneos
             action.run();
