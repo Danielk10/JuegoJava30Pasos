@@ -1546,7 +1546,7 @@ public class MainActivity extends AppCompatActivity {
                 + "• <a href='https://github.com/stefanct/ch341eeprom'>ch341eeprom</a> (GPL-3.0+)<br/>"
                 + "• <a href='https://github.com/mik3y/usb-serial-for-android'>usb-serial-for-android</a> (MIT)<br/><br/>"
                 + "<b>Proyectos Relacionados del Desarrollador:</b><br/>"
-                + "• <a href='https://github.com/Danielk10/PIC-k150-Programing'>PIC k150 Programming</a> — Programador de PIC vía Android con protocolo P018<br/>";
+                + "• <a href='https://github.com/Danielk10/PIC-k150-Programing'>PIC k150 Programming</a> — Programador de PIC vía Android con protocolo P018A<br/>";
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             aboutText.setText(Html.fromHtml(aboutHtml, Html.FROM_HTML_MODE_COMPACT));
