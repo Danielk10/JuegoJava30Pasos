@@ -261,7 +261,7 @@
                 android:fontFamily="monospace"
                 android:textIsSelectable="true"
                 android:lineSpacingExtra="3dp"
-                android:longClickable="true"
+                android:saveEnabled="false"
                 android:textColor="#00FF00"
                 android:textSize="12sp"
                 android:text="--- Log ---" />

@@ -620,105 +620,69 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void importRomFile(Uri uri) {
-        try (InputStream in = getContentResolver().openInputStream(uri)) {
-            if (in == null) {
-                throw new IllegalStateException("No se pudo abrir el archivo seleccionado para lectura.");
+        // Obtener metadatos del archivo (nombre y tamaño)
+        String fileName = "archivo.bin";
+        long fileSize = -1;
+        try (android.database.Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {
+            if (cursor != null && cursor.moveToFirst()) {
+                int nameIdx = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME);
+                int sizeIdx = cursor.getColumnIndex(android.provider.OpenableColumns.SIZE);
+                if (nameIdx >= 0) fileName = cursor.getString(nameIdx);
+                if (sizeIdx >= 0) fileSize = cursor.getLong(sizeIdx);
             }
+        } catch (Exception ignored) {}
 
-            // Leer todo el contenido primero para validar
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            byte[] buffer = new byte[8192];
-            int read;
-            while ((read = in.read(buffer)) != -1) {
-                baos.write(buffer, 0, read);
-            }
-            byte[] data = baos.toByteArray();
+        File biosFile = new File(getFilesDir(), "bios.bin");
+        
+        // Si el archivo es pequeño (< 10MB), podemos intentar detección de Intel HEX en memoria
+        boolean possibleIntelHex = fileName.toLowerCase().endsWith(".hex") || (fileSize > 0 && fileSize < 10L * 1024 * 1024);
 
-            // Validación de tamaño
-            if (data.length == 0) {
-                log("Error: El archivo seleccionado está vacío. No es un binario válido.");
-                return;
-            }
-            long maxSize = 128L * 1024 * 1024; // 128 MB
-            if (data.length > maxSize) {
-                log("Error: El archivo es demasiado grande (" + (data.length / 1024 / 1024)
-                        + " MB). Máximo soportado: 128 MB.");
-                return;
-            }
-
-            // Detección de formato
-            String fileName = "archivo";
-            try {
-                android.database.Cursor cursor = getContentResolver().query(uri, null, null, null, null);
-                if (cursor != null && cursor.moveToFirst()) {
-                    int idx = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME);
-                    if (idx >= 0)
-                        fileName = cursor.getString(idx);
-                    cursor.close();
+        if (possibleIntelHex) {
+            try (InputStream in = getContentResolver().openInputStream(uri)) {
+                if (in == null) return;
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                byte[] buffer = new byte[8192];
+                int read;
+                while ((read = in.read(buffer)) != -1) {
+                    baos.write(buffer, 0, read);
+                    if (baos.size() > 16L * 1024 * 1024) break; // Límite de seguridad para Intel HEX en RAM
                 }
-            } catch (Exception ignored) {
-            }
-
-            boolean isIntelHex = fileName.toLowerCase().endsWith(".hex") ||
-                    (data.length > 0 && data[0] == ':');
-
-            // Validación de contenido sospechoso (archivos de texto no-hex)
-            if (!isIntelHex) {
-                // Verificar que no sea un archivo de texto común
-                boolean looksLikeText = true;
-                int checkLen = Math.min(data.length, 512);
-                for (int i = 0; i < checkLen; i++) {
-                    int b = data[i] & 0xFF;
-                    if (b < 0x09 || (b > 0x0D && b < 0x20 && b != 0x1A)) {
-                        looksLikeText = false;
-                        break;
+                byte[] data = baos.toByteArray();
+                if (data.length > 0 && data[0] == ':') {
+                    byte[] decoded = parseIntelHex(data);
+                    if (decoded.length > 0) {
+                        clearTransientRomState(false);
+                        try (OutputStream out = new FileOutputStream(biosFile)) {
+                            out.write(decoded);
+                        }
+                        log("Éxito: Intel HEX '" + fileName + "' importado y convertido correctamente.");
+                        return;
                     }
                 }
-                if (looksLikeText && data.length < 1024) {
-                    log("[AVISO] El archivo '" + fileName + "' parece ser texto plano, no un binario de firmware.");
-                    log("Formatos esperados: .bin, .rom, .img (binario crudo) o .hex (Intel HEX).");
-                }
+                // Si no era Intel HEX o falló la conversión, seguimos con el flujo normal (copiar como binario)
+            } catch (Exception e) {
+                log("Error procesando Intel HEX: " + e.getMessage());
             }
+        }
 
-            byte[] dataToStore = data;
-            if (isIntelHex) {
-                dataToStore = parseIntelHex(data);
-                if (dataToStore.length == 0) {
-                    log("Error: El Intel HEX no contiene datos útiles para convertir a binario.");
-                    return;
-                }
+        // Caso General: Streaming directo a disco para archivos binarios (soporta GBs)
+        try (InputStream in = getContentResolver().openInputStream(uri);
+             OutputStream out = new FileOutputStream(biosFile)) {
+            if (in == null) throw new Exception("No se pudo abrir el archivo.");
+            
+            byte[] buffer = new byte[65536]; // Buffer de 64KB para mayor velocidad
+            int read;
+            long totalCopied = 0;
+            while ((read = in.read(buffer)) != -1) {
+                out.write(buffer, 0, read);
+                totalCopied += read;
             }
-
-            // Limpiar datos anteriores antes de cargar un nuevo archivo
+            
             clearTransientRomState(false);
-
-            // Escribir datos validados
-            try (OutputStream out = new FileOutputStream(new File(getFilesDir(), "bios.bin"))) {
-                out.write(dataToStore);
-            }
-
-            String sizeStr;
-            if (dataToStore.length >= 1024 * 1024) {
-                sizeStr = String.format(java.util.Locale.US, "%.2f MB", dataToStore.length / (1024.0 * 1024.0));
-            } else {
-                sizeStr = String.format(java.util.Locale.US, "%.1f KB", dataToStore.length / 1024.0);
-            }
-
-            log("ROM importada: '" + fileName + "' (" + sizeStr + ", " + (isIntelHex ? "Intel HEX" : "binario crudo")
-                    + ")");
-            if (isIntelHex) {
-                log("Conversión Intel HEX → binario aplicada correctamente.");
-            }
-            log("Archivo guardado como 'bios.bin' — listo para Flashear o Verificar.");
-            log("(Para exportar, usa 'Leer Backup' para leer datos del chip primero.)");
-
-            // Guardar origen del archivo para el visor HEX
-            SharedPreferences.Editor editor = getSharedPreferences(PREFS, MODE_PRIVATE).edit();
-            editor.putString(KEY_BIOS_SOURCE, "Importado: " + fileName + " (" + sizeStr + ")");
-            editor.putString(KEY_LAST_READ_FILE, "bios.bin");
-            editor.apply();
+            log("Éxito: Archivo '" + fileName + "' (" + (totalCopied / 1024) + " KB) cargado correctamente.");
+            
         } catch (Exception e) {
-            log("Error copiando ROM desde almacenamiento: " + e.getMessage());
+            log("Error importando binario: " + e.getMessage());
         }
     }
 
