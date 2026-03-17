@@ -9,7 +9,7 @@ constraintlayout = "2.2.1"
 usbSerialForAndroid = "3.10.0"
 documentfile = "1.1.0"
 appCenterSdkVersion = "5.0.6"
-playServicesAds = "25.0.0"
+playServicesAds = "25.1.0"
 
 
 
