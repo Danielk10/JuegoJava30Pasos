@@ -1,4 +1,4 @@
-# Notas de Lanzamiento - Flash-EEPROM-Tool v1.8.9 (versionCode 84)
+# Notas de Lanzamiento - Flash-EEPROM-Tool v1.8.9 (versionCode 85)
 
 ## 🌐 Notas para Google Play Console (Bilingüe)
 
