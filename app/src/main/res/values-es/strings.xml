@@ -234,4 +234,5 @@
     <string name="str_serprog_transport_title">Modo de Transporte Serial (Serprog)</string>
     <string name="str_transport_socket_desc">Socket TCP Local (127.0.0.1) - Recomendado (Mayor velocidad y estabilidad)</string>
     <string name="str_transport_pty_desc">Pseudoterminal PTY (/dev/pts) - Modo clásico (Motor C++ optimizado)</string>
+    <string name="str_err_usb_host_not_supported">El servicio USB Host no está soportado o no está disponible en este dispositivo.</string>
 </resources>

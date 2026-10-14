@@ -156,7 +156,15 @@ public class UsbController {
         return currentFd >= 0;
     }
 
+    public boolean isUsbHostSupported() {
+        return usbManager != null;
+    }
+
     public void searchAndRequestProgrammer(String currentProgrammer, OnProgrammerSelectedListener onProgrammerAutoSelected) {
+        if (usbManager == null) {
+            callback.log(activity.getString(R.string.str_error) + ": " + activity.getString(R.string.str_err_usb_host_not_supported));
+            return;
+        }
         Map<String, UsbDevice> devices = usbManager.getDeviceList();
         if (devices == null || devices.isEmpty()) {
             callback.log(activity.getString(R.string.str_error) + ": " + activity.getString(R.string.str_no_usb_detected));
@@ -216,6 +224,10 @@ public class UsbController {
     }
 
     public void requestUsbPermission(UsbDevice device) {
+        if (usbManager == null) {
+            callback.log(activity.getString(R.string.str_error) + ": " + activity.getString(R.string.str_err_usb_host_not_supported));
+            return;
+        }
         String deviceName = device.getProductName() == null ? activity.getString(R.string.str_usb_device) : device.getProductName();
         callback.log(activity.getString(R.string.str_device_detected_requesting, deviceName));
         callback.log(activity.getString(R.string.str_vid_pid_detected,
@@ -249,6 +261,11 @@ public class UsbController {
     }
 
     private void connectToDevice(UsbDevice device) {
+        if (usbManager == null) {
+            callback.log(activity.getString(R.string.str_error) + ": " + activity.getString(R.string.str_err_usb_host_not_supported));
+            callback.onDeviceConnectionFailed(device.getProductName());
+            return;
+        }
         currentDevice = device;
         currentConnection = usbManager.openDevice(device);
         if (currentConnection == null) {

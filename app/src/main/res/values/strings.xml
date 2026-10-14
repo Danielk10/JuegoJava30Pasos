@@ -234,4 +234,5 @@
     <string name="str_serprog_transport_title">Serial Transport Mode (Serprog)</string>
     <string name="str_transport_socket_desc">Local TCP Socket (127.0.0.1) - Recommended (High speed, zero latency)</string>
     <string name="str_transport_pty_desc">Pseudoterminal PTY (/dev/pts) - Classic mode (Optimized C++ engine)</string>
+    <string name="str_err_usb_host_not_supported">USB Host service is not supported or available on this device.</string>
 </resources>
