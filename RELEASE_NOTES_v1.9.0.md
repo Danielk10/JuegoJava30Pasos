@@ -71,4 +71,9 @@ Esta versión mayor (v1.9.0, código de versión 86) introduce la arquitectura *
 ---
 
 ## 📦 Artefactos de la Versión
-• **APK Debug generado:** `/tmp/flashrom/outputs/apk/debug/app-debug.apk`
+• **APK Release:** `/tmp/flashrom/outputs/apk/release/app-release.apk` (18 MB)  
+  *SHA-256:* `206b6762d0ab672404bf108064f0c2f239cb5e369a7ec5b0d9f8b95986d2caed`  
+• **AAB Release (Google Play Bundle):** `/tmp/flashrom/outputs/bundle/release/app-release.aab` (17 MB)  
+  *SHA-256:* `e36a9922ec53eb9ef32d9ab3b7676a3564b6f16f812a5db1339641b172f7bdea`  
+• **APK Debug:** `/tmp/flashrom/outputs/apk/debug/app-debug.apk` (23 MB)  
+• **Firma Digital:** Certificado oficial RSA 2048-bit (Esquema v2 verificado con `apksigner`)
