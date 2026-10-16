@@ -1,9 +1,9 @@
-# Flash SPI Tool v1.9.0
+# Flash SPI Tool v1.9.1
 
-[![Release](https://img.shields.io/badge/Release-v1.9.0%20(Build%2086)-007ACC?logo=github&logoColor=white)](https://github.com/danielk10/Flash-EEPROM-Tool)
+[![Release](https://img.shields.io/badge/Release-v1.9.1%20(Build%2087)-007ACC?logo=github&logoColor=white)](https://github.com/danielk10/Flash-EEPROM-Tool)
 [![Android](https://img.shields.io/badge/Android-7.0%2B%20(API%2024%20a%20API%2037)-3DDC84?logo=android&logoColor=white)](https://developer.android.com/)
 [![minSdk](https://img.shields.io/badge/minSdk-24%20(Nougat)-brightgreen?logo=android)](https://developer.android.com/)
-[![Architecture](https://img.shields.io/badge/Architecture-Pro%20Suite%20%7C%20Zero--OOM-FF6F00?logo=materialdesignicons&logoColor=white)](./RELEASE_NOTES_v1.9.0.md)
+[![Architecture](https://img.shields.io/badge/Architecture-Pro%20Suite%20%7C%20Zero--OOM-FF6F00?logo=materialdesignicons&logoColor=white)](./RELEASE_NOTES_v1.9.1.md)
 [![ABI](https://img.shields.io/badge/ABI-arm64--v8a%20(16KB%20Aligned)-0091EA?logo=arm&logoColor=white)](https://developer.android.com/ndk/guides/abis)
 [![NDK](https://img.shields.io/badge/NDK-r30--rc1-4CAF50?logo=android&logoColor=white)](https://developer.android.com/ndk)
 [![AGP](https://img.shields.io/badge/AGP-9.2.1-blue?logo=android)](https://developer.android.com/studio/releases/gradle-plugin)
@@ -20,8 +20,8 @@
 Diseñada tanto para ingenieros de hardware y laboratorios de reparación técnica como para entusiastas de la electrónica, la suite integra el poder del motor nativo de **flashrom** y una capa de transporte de alto rendimiento en C++ (`usb_bridge.cpp`) con una interfaz gráfica moderna, segura y optimizada para dispositivos táctiles.
 
 > **Información de la Versión Actual:**
-> - **Versión de la App:** `v1.9.0`
-> - **Código de Versión (`versionCode`):** `86`
+> - **Versión de la App:** `v1.9.1`
+> - **Código de Versión (`versionCode`):** `87`
 > - **Rango de Compatibilidad:** Android 7.0 Nougat (API 24) hasta Android 17 (API 37)
 > - **Arquitectura de Procesador:** ARM64 (`arm64-v8a`) con alineación de páginas de memoria de 16KB para compatibilidad total con Android 15+.
 > - **Seguridad:** Operación 100% en espacio de usuario mediante Android USB Host API; no requiere root.
@@ -35,7 +35,7 @@ Flash SPI Tool implementa una arquitectura de comunicación dual de alta fidelid
 | Programador | Modo de Conexión | Identificador USB (VID:PID) | Descripción Técnica y Características |
 |---|---|---|---|
 | **CH341A (Black / Green)** | TCP Bridge Socket / USB Directo | `1a86:5512`<br>`1a86:5523`<br>`1a86:55db` (CH347) | Clásico programador SPI/I2C de bajo costo. Utiliza un bridge nativo con sockets TCP locales y descriptores `libusb` inyectados vía `ANDROID_USB_FD` con herencia despojada de `O_CLOEXEC`. |
-| **Serprog (RP2040, Arduino, STM32)** | Pseudo-Terminal PTY / Socket TCP | `2341:0043` / `0001` (Arduino)<br>`1a86:7523` (CH340)<br>`10c4:ea60` (CP2102)<br>`067b:2303` (PL2303) | Protocolo serie de alta velocidad. Soporta **Velocidades Turbo a 1.000.000 y 2.000.000 baudios** para Raspberry Pi Pico y microcontroladores rápidos, con sincronización de beacon `0xAA 0x55`. |
+| **Serprog (RP2040, Arduino, STM32)** | Pseudo-Terminal PTY / Socket TCP | `2341:0043` / `0001` (Arduino)<br>`1a86:7523` (CH340)<br>`10c4:ea60` (CP2102)<br>`067b:2303` (PL2303) | Protocolo serie estándar configurado de forma fija y transparente a **115.200 baudios** para compatibilidad 100% garantizada con el firmware Arduino oficial (`frser-arduino`), Raspberry Pi Pico y microcontroladores compatibles, con sincronización de beacon `0xAA 0x55`. |
 | **Bus Pirate (v3 / v4)** | PTY Serial Bridge | `0403:6001` (FTDI) | Dispositivo multiprotocolo. Conmutación automática a modo binario `BBIO` y control directo de líneas SPI mediante pseudo-terminales dedicados. |
 | **SPIDriver** | PTY Serial Bridge | `0403:6015` / FTDI Serial | Herramienta de desarrollo SPI a 460.800 baudios con soporte de protocolo binario/ASCII, validación de eco `e` y control granular de Chip Select. |
 | **Programadores USB Directos Adicionales** | libusb Nativa Parcheada | FTDI FT2232H/FT4232H/FT232H, ST-Link v3, Segger J-Link, Dediprog SF100/SF600, Pickit2, USB-Blaster | Operación directa mediante invocación nativa y bypass de permisos de kernel. |
@@ -95,43 +95,47 @@ Todas las funciones indispensables para el trabajo con chips flash y recuperaci�
 
 ## 💎 Flash SPI Tool Pro Suite (Monetización Ética & Híbrida)
 
-Para respaldar el mantenimiento continuo del proyecto sin comprometer las operaciones básicas de silicio, la versión 1.9.0 incluye la suite de ingeniería avanzada **Flash SPI Tool PRO** con un esquema de monetización justo, transparente y accesible:
+Para respaldar el mantenimiento continuo del proyecto sin comprometer las operaciones básicas de silicio, la versión 1.9.1 incluye la suite de ingeniería avanzada **Flash SPI Tool PRO** con un esquema de monetización justo, transparente y accesible:
 
 ### Esquema de Acceso Flexible y Justo
 1. **Pase Pro Gratuito de 12 Horas**: Cualquier usuario puede desbloquear la suite Pro completa de forma 100% gratuita durante 12 horas continuas con solo visualizar un anuncio de video bonificado (Rewarded Video de Google AdMob). Puede renovarse indefinidamente.
 2. **Desbloqueo Permanente In-App ($5.00 USD)**: Compra única de por vida mediante Google Play Billing (`remove_ads_pro`) con reconocimiento permanente de licencia para técnicos profesionales.
-3. **Cero Publicidad**: Tanto con el Pase de 12 horas como con la compra de por vida, se suprimen en su totalidad los banners e intersticiales publicitarios.
+3. **Sin anuncios de por vida**: Tanto con el Pase de 12 horas como con la compra de por vida, se suprimen en su totalidad los banners e intersticiales publicitarios.
 
 ### Herramientas Avanzadas de la Suite Pro
-- ✏️ **Editor Hexadecimal en Vivo con Modificación Byte a Byte**:
+- 🛡️ **Bóveda de Seguridad y Respaldo Pre-Flash Antibrick**:
+  - **Snapshot Automático Pre-Flash**: Respaldo instantáneo del chip con hash SHA-256 en la bóveda de seguridad antes de cualquier operación destructiva de escritura (`-w`) o borrado (`--erase`).
+  - **Rollback de Emergencia en 1 Clic**: Restauración instantánea del último volcado funcional garantizado en caso de interrupción de energía o corrupción de firmware.
+- 🔐 **Verificador Criptográfico de Integridad MD5, SHA-256 y CRC32 (Streaming Zero-OOM)**:
+  - **Acceso Directo desde el Menú Principal**: Opción dedicada **"Verificar Integridad MD5 / SHA-256"** para auditar y certificar el volcado cargado en cualquier instante.
+  - **Cálculo multialgoritmo en streaming**: Generación en streaming (MD5, SHA-1, SHA-256 y CRC32) sobre canales NIO para archivos de hasta 64 MB o más sin sobrecargar la memoria RAM del teléfono.
+  - **Cotejo inteligente con portapapeles**: Comparación automática en tiempo real contra hashes del portapapeles con confirmación visual de coincidencia.
+  - **Copia instantánea y Sidecars GNU**: Botones rápidos para copiar hashes MD5 o SHA-256 al portapapeles con un solo toque y exportación de archivos sidecar estándar GNU (`.sha256` y `.md5`) compatibles con la utilidad de consola `sha256sum -c`.
+- ✏️ **Editor Hexadecimal en Vivo con Parcheo In-Place**:
   - Inspección celda a celda con diálogo interactivo en múltiples bases (Hexadecimal, Decimal, Binario, ASCII y selección de Endianness).
-  - Resaltado visual ámbar (`#FFB300`) para identificar de inmediato todos los bytes que hayan sido alterados.
+  - Resaltado visual ámbar (`#FFB300`) para identificar de inmediato todos los bytes alterados.
   - Pila completa de **Deshacer/Rehacer (Undo/Redo)** basada en transacciones atómicas (`PatchTransaction`).
   - Capacidad de **Guardar y Flashear** directamente el archivo modificado a la memoria en un solo paso.
-- 🌐 **Inyector de Dirección MAC Intel GbE**:
+- 🌐 **Inyector MAC Intel GbE LAN con Checksum NVM 0xBABA**:
   - Detección automática de la región LAN de Intel en BIOS de placas base.
   - Asistente para reemplazar la dirección MAC física (EUI-48).
-  - **Recálculo criptográfico automático de la suma de comprobación NVM (`0xBABA`)** para prevenir errores de tarjeta de red no operativa (`PXE-E05`).
-- 🔑 **Extractor de Licencia Digital OEM Windows (MSDM)**:
+  - **Recálculo criptográfico automático de la suma de comprobación NVM `0xBABA`** para prevenir errores de tarjeta de red no operativa (`PXE-E05`).
+- 🔑 **Extractor de Clave Windows OEM desde Tablas MSDM ACPI**:
   - Escaneo automático de tablas ACPI en el firmware de la BIOS.
   - Decodificación del algoritmo Base24 para recuperar la clave de producto original de 25 caracteres de Windows instalada de fábrica.
-- 🏷️ **Modificador de Números de Serie y UUID SMBIOS/DMI**:
+- 🏷️ **Modificador de Números de Serie y UUID SMBIOS y DMI**:
   - Búsqueda y reemplazo quirúrgico de cadenas de número de serie y UUID GUID de 16 bytes (en formato little-endian SMBIOS o RFC-4122) para clonación o restauración de tarjetas madre.
-- 🧩 **Analizador de Particiones Intel ME / CSME**:
+- 🧩 **Analizador de Particiones Intel ME y CSME**:
   - Decodificación profunda de la tabla de particiones `$FPT` del Intel Management Engine.
   - Verificación de versiones, integridad y estado de los módulos ME.
-- 🛡️ **Bóveda de Seguridad Antibrick (Safety Vault)**:
-  - **Snapshot Automático Pre-Flash**: Antes de cualquier operación destructiva de escritura (`-w`) o borrado (`--erase`), la app toma un respaldo instantáneo del chip y lo almacena con su hash SHA-256 en la bóveda de seguridad.
-  - **Rollback de Emergencia en 1 Clic**: Restaura instantáneamente el último volcado funcional garantizado en caso de interrupción de energía o corrupción de firmware.
-- 🔐 **Suite de Integridad Criptográfica en Streaming (Zero-OOM)**:
-  - Generación en streaming multialgoritmo (MD5, SHA-1, SHA-256 y CRC32) sobre canales NIO para archivos de hasta 64 MB o más sin sobrecargar la memoria RAM del teléfono.
-  - Comparación en tiempo real contra hashes del portapapeles con confirmación visual de coincidencia.
-  - Exportación de archivos de suma de comprobación sidecar estándar GNU (`.sha256` y `.md5`) compatibles con la utilidad de consola `sha256sum -c`.
-- 🔥 **Comparador Hex Diff con Mapa de Calor**:
-  - Herramienta de comparación visual byte a byte con cinta de calor (`DiffHeatmapView`) dividida en sectores de 4 KB.
-  - Navegación instantánea hacia las diferencias exactas de firmware (`A → B`).
-- ⚡ **Modo Turbo Serprog**:
-  - Selector de velocidad para enlaces Serprog que permite operar a **1.000.000 y 2.000.000 baudios**, reduciendo el tiempo de lectura de un chip de 16MB de varios minutos a escasos segundos.
+- 🔓 **Desbloqueo de Registros SPI SR1, SR2 y SR3 en 1 Clic**:
+  - Desactivación con un solo clic de los bits de protección contra escritura de hardware (`--wp-disable`) en registros de estado.
+- ⚡ **Flasheo Delta Selectivo de Sectores de 4KB de Alta Velocidad**:
+  - Reprogramación optimizada que actualiza únicamente los bloques con cambios detectados, minimizando tiempos de escritura y desgaste del silicio.
+- 🔥 **Comparador Hex Diff con Detección Estricta y Mapa de Calor**:
+  - **Detección Estricta en Tamaños Diferentes**: Identificación rigurosa byte a byte al comparar volcados de diferente tamaño (ej. 16 MB frente a 1 MB relleno de `0xFF`), descartando falsos positivos de archivos idénticos y señalando bytes excedentes con notación explícita (`XX→--` / `--→XX`).
+  - **Cotejo Side-by-Side de Hashes MD5**: Cálculo simultáneo y visualización en paralelo de sumas de verificación MD5 y tamaños exactos en bytes de ambos archivos seleccionados.
+  - **Cinta de Calor Visual (`DiffHeatmapView`)**: Mapeo dinámico por sectores de 4 KB con navegación instantánea hacia las diferencias exactas de firmware (`A → B`).
 
 ---
 

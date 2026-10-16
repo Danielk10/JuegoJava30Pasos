@@ -239,6 +239,27 @@ Bus Pirate/Serprog/CH341A/SPIDriver shutdown completed.
 
 ---
 
+## 🔐 Validación Criptográfica y Cotejo de Volcados (MD5 / SHA-256 y Hex Diff)
+
+Una vez realizada una operación de lectura o flasheo con el emulador (ej. `./flashrom_local.sh -p ch341a_spi -r backup.bin`), el flujo de desarrollo y pruebas permite certificar la integridad de los datos simulados mediante las mismas herramientas de ingeniería integradas en **Flash SPI Tool**:
+
+1. **Verificación Criptográfica MD5 / SHA-256**:
+   - **En consola Linux de desarrollo:**
+     ```bash
+     md5sum backup.bin
+     sha256sum backup.bin
+     ```
+   - **En la aplicación móvil:** Mediante la opción del menú principal **"🔒 Verificar Integridad MD5 / SHA-256"**, se ejecuta el motor de cálculo en streaming NIO multialgoritmo (MD5, SHA-1, SHA-256 y CRC32) con verificación contra el portapapeles y exportación de sidecars `.sha256` y `.md5`.
+
+2. **Comparador Hex Diff con Hashes MD5**:
+   - **En la aplicación móvil:** Mediante la opción **"Comparar Archivos Hex (Diff)"**, se pueden cotejar dos volcados (por ejemplo, el firmware de fábrica `original_data.bin` frente al volcado simulado `backup.bin`).
+   - El visor de diferencias realiza un cálculo simultáneo de las **sumas de verificación MD5** de ambos archivos, reportando el porcentaje de discrepancia exacto, los bytes agregados o removidos (`XX→--` / `--→XX`), y mapeando las divergencias sobre una cinta de calor interactiva (`DiffHeatmapView`) dividida en sectores de 4 KB.
+
+3. **Integración con la Suite Pro**:
+   - Los volcados obtenidos del emulador son 100% compatibles con las utilidades de laboratorio de la suite Pro (Bóveda Antibrick con snapshot previo, Editor Hexadecimal en Vivo con modificación in-place, inyector MAC Intel GbE con checksum NVM `0xBABA`, extractor de licencias OEM Windows MSDM y desbloqueo de registros SPI SR1/SR2/SR3), disponibles mediante el Pase Libre de 12 horas o la compra in-app permanente con **"Sin anuncios de por vida"**.
+
+---
+
 ## 🔬 Detalles de Arquitectura Avanzada e Integración (Lecciones de Lector-De-Memorias y K150)
 
 Para asegurar la máxima compatibilidad de las herramientas y evitar los errores comunes detectados en los proyectos emuladores previos (como `Lector-De-Memorias` y el emulador de `K150`), se documentan las siguientes soluciones arquitectónicas aplicadas en este proyecto:

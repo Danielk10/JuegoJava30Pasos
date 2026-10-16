@@ -16,7 +16,7 @@ El emulador implementa un modelo de silicio en C++ para el chip **GigaDevice GD2
 2. **Serprog (RP2040 / Arduino / STM32)**:
    - Crea un pseudo-terminal maestro/esclavo PTY virtual (`./serprog_pty`).
    - Implementa el protocolo binario `serprog` completo (SYNCNOP, Version, CmdMap, BufSize, BusType, SPI Operation).
-   - Compatible con velocidades estándar y **velocidades Turbo (1.000.000 y 2.000.000 baudios)** con respuesta de sincronización de beacon `0xAA 0x55`.
+   - Compatible con velocidades estándar y altas velocidades de comunicación (1.000.000 y 2.000.000 baudios) con respuesta de sincronización de beacon `0xAA 0x55`.
 
 3. **Bus Pirate (v3 / v4)**:
    - Expone un PTY virtual en `./buspirate_pty`.
@@ -60,6 +60,15 @@ kill %1
 ./flashrom_local.sh -p spidriver:dev=./spidriver_pty -r backup.bin
 kill %1
 ```
+
+---
+
+## 🔐 Validación de Volcados e Integridad (MD5 / SHA-256 & Hex Diff)
+
+Los archivos `.bin` generados durante las pruebas con el emulador pueden auditarse de inmediato:
+- **Verificación Criptográfica:** Mediante `md5sum backup.bin` y `sha256sum backup.bin` en terminal o con la opción **"🔒 Verificar Integridad MD5 / SHA-256"** de la app.
+- **Comparador Hex Diff con Hashes MD5:** Comparación side-by-side de archivos en **"Comparar Archivos Hex (Diff)"**, mostrando sumas MD5, discrepancias byte a byte y mapa de calor visual por sectores de 4 KB.
+- **Suite Pro:** Los volcados son compatibles con las herramientas de la suite Pro (Bóveda Antibrick, Editor Hexadecimal en Vivo con parcheo in-place, inyector MAC Intel GbE `0xBABA`, extractor Windows MSDM y registros SPI), disponibles con el Pase Libre de 12 horas o compra permanente con **"Sin anuncios de por vida"**.
 
 ---
 

@@ -315,6 +315,7 @@
     <string name="str_btn_generate_sidecars">📄 Generate Sidecars</string>
     <string name="str_toast_sidecars_success">.sha256 and .md5 sidecar files generated successfully.</string>
     <string name="str_toast_sidecars_error">Error generating sidecars: %1$s</string>
+    <string name="str_err_compute_hash">Error computing hashes: %1$s</string>
     <string name="str_no_pending_modifications">No pending modifications to save.</string>
     <string name="str_dialog_save_and_flash_title">💾 Save &amp; Flash to SPI Chip</string>
     <string name="str_dialog_save_and_flash_msg">%1$d modifications applied to %2$s.\n\nDo you want to write directly to the SPI chip now?</string>

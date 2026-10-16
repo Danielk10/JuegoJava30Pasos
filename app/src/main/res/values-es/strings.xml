@@ -315,6 +315,7 @@
     <string name="str_btn_generate_sidecars">📄 Generar Sidecars</string>
     <string name="str_toast_sidecars_success">Archivos .sha256 y .md5 generados exitosamente.</string>
     <string name="str_toast_sidecars_error">Error generando sidecars: %1$s</string>
+    <string name="str_err_compute_hash">Error al calcular hashes: %1$s</string>
     <string name="str_no_pending_modifications">No hay modificaciones pendientes para guardar.</string>
     <string name="str_dialog_save_and_flash_title">💾 Guardar y Grabar en Chip SPI</string>
     <string name="str_dialog_save_and_flash_msg">Se han aplicado %1$d modificaciones en %2$s.\n\n¿Deseas disparar la grabación directa en el chip SPI ahora?</string>

@@ -10,7 +10,7 @@ Google Play Console reporta dos tipos de avisos con niveles de prioridad muy dis
 
 | Aviso en Play Console | Estado de Obligatoriedad | Fecha Límite | Estado en Flash-SPI-Tool |
 | :--- | :--- | :--- | :--- |
-| **Biblioteca de Facturación (Play Billing v8.0+)** | **Bloqueante** (Impide publicar/actualizar si no se cumple) | Inmediata | ✅ **Resuelto** (Actualizado a v8.3.0) |
+| **Biblioteca de Facturación (Play Billing v8.0+ / v9.0+)** | **Bloqueante** (Impide publicar/actualizar si no se cumple) | Inmediata | ✅ **Resuelto** (Actualizado a v9.1.0) |
 | **Optimización / Ofuscación (< 25%)** | **Informativo / Calidad** (Recomendación de catálogo) | **Febrero de 2027** | ⚠️ Atendido mediante esta guía |
 
 > [!IMPORTANT]
@@ -125,7 +125,7 @@ buildTypes {
 -keepclassmembers class com.microsoft.appcenter.** { *; }
 -dontwarn com.microsoft.appcenter.**
 
-# 8. Google Play Billing Library v8.3.0
+# 8. Google Play Billing Library v9.1.0
 -keep class com.android.billingclient.** { *; }
 -keepclassmembers class com.android.billingclient.** { *; }
 -keep class com.diamon.curso.billing.** { *; }
@@ -158,7 +158,11 @@ Antes de subir cualquier archivo a Google Play, se ejecutan las siguientes compr
    * Abrir la app (debe iniciar inmediatamente sin cerrarse).
    * Conectar un programador USB (CH341A / FTDI) y pulsar **Connect / Detectar**.
    * Verificar que la terminal PTY / C++ muestre texto y que la extracción de assets funcione.
-   * Abrir el menú y comprobar que el diálogo de Donación (Pizza) se despliegue.
+   * Abrir el menú de opciones y verificar las herramientas avanzadas:
+     - Comprobar que el diálogo de la suite Pro (**Flash SPI Tool Pro**) se despliegue con la opción de Pase Libre de 12 horas y compra permanente con **"Sin anuncios de por vida"**.
+     - Comprobar la opción **"🔒 Verificar Integridad MD5 / SHA-256"** para el cálculo multialgoritmo en streaming y cotejo con el portapapeles.
+     - Comprobar la herramienta **"Comparar Archivos Hex (Diff)"** con detección estricta, cotejo side-by-side de hashes MD5 y mapa de calor visual por sectores de 4 KB.
+     - Comprobar el diálogo de **Desbloqueo de Registros SPI SR1/SR2/SR3**, **Quad Enable (QE)** y **Bóveda Antibrick con Rollback de Emergencia**.
 
 ---
 
@@ -170,6 +174,6 @@ Antes de subir cualquier archivo a Google Play, se ejecutan las siguientes compr
 4. Sube el paquete:
    `/tmp/flashrom/outputs/bundle/release/app-release.aab`
 5. Google Play analizará el AAB:
-   * Detectará la librería Billing 8.3.0 (requisito obligatorio superado).
+   * Detectará la librería Google Play Billing v9.1.0 (requisito obligatorio superado).
    * Detectará los metadatos de ofuscación R8 generados en el bundle.
 6. Guarda y envía a revisión.

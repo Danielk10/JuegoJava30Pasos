@@ -1589,7 +1589,7 @@ public class MainActivity extends AppCompatActivity {
             builder.setNegativeButton(R.string.str_close, null);
             builder.show();
         } catch (Exception e) {
-            Toast.makeText(this, "Error al calcular hashes: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, getString(R.string.str_err_compute_hash, e.getMessage()), Toast.LENGTH_LONG).show();
         }
     }
 

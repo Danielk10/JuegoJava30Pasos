@@ -1,5 +1,5 @@
 # Guía de Configuración de Monetización y Google Play Console 🚀
-## Flash SPI Tool — Flash Pro & Pase Libre de 12 Horas
+## Flash SPI Tool — Suite Pro & Pase Libre de 12 Horas
 
 Esta guía documenta en detalle el modelo de monetización híbrido ético para **Flash SPI Tool** (`com.diamon.curso`), explicando paso a paso cómo dar de alta o modificar el producto in-app en **Google Play Console**, cómo configurar las licencias de prueba y cómo enlazar los bloques de anuncios en **Google AdMob**.
 
@@ -25,16 +25,15 @@ La aplicación implementa un modelo **100% ético, técnico y respetuoso**: toda
 │ • Exportación Firmware Serprog       │ • Editor DMI/SMBIOS (UUID y Serial)  │
 │ • Importación / Exportación Dumps    │ • Extractor Clave Windows OEM MSDM   │
 │ • Visor Hexadecimal Mapeado (mmap)   │ • Desbloqueo Registros SR1/SR2/SR3   │
-│ • Comparador Hex Diff Básico         │ • Activador Quad Enable (Bit QE)     │
+│ • Comparador Hex Diff con Hashes MD5 │ • Activador Quad Enable (Bit QE)     │
 │                                      │ • Flasheo Delta Selectivo 4KB Sectors│
-│                                      │ • Turbo Baudrate Serprog a 2M Baud   │
-│                                      │ • Cero Publicidad (12h o Permanente) │
+│                                      │ • Sin anuncios de por vida           │
 └──────────────────────────────────────┴──────────────────────────────────────┘
 ```
 
 El usuario puede desbloquear las herramientas Pro de dos formas:
 1. 🎬 **Ver un Video Recompensado (Pase Libre de 12 Horas):** Al terminar de ver el video de Google AdMob, se otorga acceso ilimitado a todas las funciones Pro y se ocultan los anuncios durante 12 horas completas.
-2. 👑 **Compra In-App Permanente:** Pago único que desbloquea para siempre todas las herramientas Pro y elimina la publicidad sin volver a requerir anuncios.
+2. 👑 **Compra In-App Permanente:** Pago único que desbloquea para siempre todas las herramientas Pro y otorga **Sin anuncios de por vida** en toda la aplicación sin volver a requerir anuncios.
 
 ---
 
@@ -55,26 +54,26 @@ Tienes **dos opciones totalmente válidas** para configurar la compra permanente
 | Campo | Valor Requerido | Explicación |
 | :--- | :--- | :--- |
 | **ID de producto \*** | `remove_ads_pro` | Identificador único en Google Play |
-| **Nombre \*** | `Flash SPI Tool Pro (Sin Anuncios + Herramientas)` | Visible para el usuario |
+| **Nombre \*** | `Flash SPI Tool Pro (Sin Anuncios de por Vida + Herramientas)` | Visible para el usuario |
 | **Descripción \*** | Ver plantilla abajo | Detalla beneficios Pro |
 
 ---
 
-### 🟡 Opción B: Modificar y Reutilizar el Producto Existente `donacion_pizza`
+### 🟡 Opción B: Modificar y Reutilizar el Identificador de Producto Existente (`donacion_pizza`)
 
-Si ya tienes creado el producto con ID `donacion_pizza` en Google Play Console:
+Si en versiones previas diste de alta el identificador técnico `donacion_pizza` en Google Play Console:
 1. Ve a **Monetizar con Play** ➔ **Productos** ➔ **Productos integrados en la aplicación**.
-2. Haz clic sobre el producto `donacion_pizza` para editarlo.
+2. Haz clic sobre el producto `donacion_pizza` para editar sus metadatos.
 3. **¿Qué puedes cambiar libremente?**
-   - **Nombre:** Cámbialo a `Flash SPI Tool Pro (Sin Anuncios + Herramientas)`.
-   - **Descripción:** Actualízala con los beneficios Pro.
-   - **Precio:** Cámbialo a `$4.99 USD` (o el valor que prefieras).
+   - **Nombre:** Cámbialo a `Flash SPI Tool Pro (Sin Anuncios de por Vida + Herramientas)`.
+   - **Descripción:** Actualízala con los beneficios Pro y la garantía de Sin anuncios de por vida.
+   - **Precio:** Configúralo en `$4.99 USD` (o el valor que prefieras).
    - **Etiquetas:** Puedes colocar `flash-spi-pro`.
    - **Ícono:** Puedes subir el ícono de la app o de herramientas.
 4. **¿Qué NO se puede cambiar?**
-   - El texto del **ID del producto** (`donacion_pizza`), ya que es la clave primaria fija en los servidores de Google.
+   - El texto del **ID del producto** (`donacion_pizza`), ya que es la clave primaria fija en los servidores de Google Play.
 5. **¿Cómo lo maneja la app?**
-   - El nuevo `BillingManager` incluye soporte dual y reconocerá `donacion_pizza` mediante `acknowledgePurchase` (compra permanente de por vida) en lugar de consumirlo, activando el estado Pro para siempre.
+   - El motor `BillingManager` de la aplicación incluye soporte dual y reconocerá `donacion_pizza` mediante `acknowledgePurchase` (compra permanente de por vida) en lugar de consumirlo, activando el estado Pro de por vida y la eliminación permanente de anuncios.
 
 ---
 
@@ -95,21 +94,21 @@ En la interfaz moderna de Google Play Console:
 #### 🇪🇸 Español (es-419 / es-ES) — Idioma Principal:
 * **Nombre:**
   ```text
-  Flash SPI Tool Pro (Sin Anuncios + Herramientas)
+  Flash SPI Tool Pro (Sin Anuncios de por Vida + Herramientas)
   ```
 * **Descripción:**
   ```text
-  Desbloquea permanentemente todas las funciones Pro de laboratorio (Bóveda Antibrick con backup previo automático, Verificador Criptográfico MD5/SHA-256, Editor Hexadecimal en Vivo, inyector MAC Intel GbE con checksum 0xBABA, editor DMI/UUID, desbloqueo de registros SR1/SR2/SR3, activación de Quad Enable y flasheo delta por sectores 4K) y elimina completamente la publicidad de la aplicación.
+  Desbloquea permanentemente todas las funciones Pro de laboratorio (Bóveda Antibrick con backup previo automático, Verificador Criptográfico MD5/SHA-256, Editor Hexadecimal en Vivo, inyector MAC Intel GbE con checksum 0xBABA, editor DMI/UUID, desbloqueo de registros SR1/SR2/SR3, activación de Quad Enable y flasheo delta por sectores 4K) y disfruta de Sin anuncios de por vida en toda la aplicación.
   ```
 
 #### 🇺🇸 Inglés (en-US):
 * **Name:**
   ```text
-  Flash SPI Tool Pro (Ad-Free + Lab Tools)
+  Flash SPI Tool Pro (Ad-Free for Life + Lab Tools)
   ```
 * **Description:**
   ```text
-  Permanently unlock all Pro lab tools (Antibrick Safety Vault with automatic pre-flash backup, MD5/SHA-256 Cryptographic Verifier, Live Hex Editor, Intel GbE MAC injector with 0xBABA checksum, DMI/UUID editor, Status Register SR1/SR2/SR3 unlock, Quad Enable activation, and 4K sector delta flashing) with zero ads across the entire app.
+  Permanently unlock all Pro lab tools (Antibrick Safety Vault with automatic pre-flash backup, MD5/SHA-256 Cryptographic Verifier, Live Hex Editor, Intel GbE MAC injector with 0xBABA checksum, DMI/UUID editor, Status Register SR1/SR2/SR3 unlock, Quad Enable activation, and 4K sector delta flashing) with ad-free for life across the entire app.
   ```
 
 ---
@@ -154,9 +153,9 @@ La aplicación utiliza anuncios bonificados (**Rewarded Ads**) para otorgar el *
 
 ---
 
-## ⚡ 5. Supresión Absoluta de Anuncios (Zero Ads Policy)
+## ⚡ 5. Supresión Absoluta de Anuncios (Zero Ads / Sin anuncios de por vida)
 
-Cuando el usuario tiene el **Pase Pro activo** (sea por compra permanente o por video de 12 horas):
+Cuando el usuario tiene el **Pase Pro activo** (sea por compra in-app permanente con **Sin anuncios de por vida** o mediante el pase temporal de 12 horas por video bonificado):
 1. **Banner Adaptativo:** Se oculta de inmediato (`View.GONE`) y se detiene la recarga.
 2. **Interstitials:** Se suprimen al 100% (el método `mostrarInterstitialConCooldown()` retorna `false` sin abrir anuncios entre operaciones).
 3. **Menú Dinámico:** Muestra el tiempo restante con insignia de estado:
@@ -167,10 +166,11 @@ Cuando el usuario tiene el **Pase Pro activo** (sea por compra permanente o por 
 
 ## ✅ 6. Checklist de Validación Final
 
-- [ ] Producto `remove_ads_pro` (o `donacion_pizza`) creado y en estado **Activo** en Google Play Console.
-- [ ] Opción de compra configurada como `Comprar` (precio ~$4.99 USD).
+- [ ] Producto `remove_ads_pro` (o ID legacy `donacion_pizza`) creado y en estado **Activo** en Google Play Console.
+- [ ] Opción de compra configurada como `Comprar` (precio ~$4.99 USD) para otorgar **Sin anuncios de por vida** y la suite Pro completa.
 - [ ] Tu correo de Google registrado en **Evaluadores con acceso a licencias**.
-- [ ] Bloque bonificado AdMob (`9025351389`) activo y enlazado.
+- [ ] Bloque bonificado AdMob (`9025351389`) activo y enlazado para el Pase Pro de 12 horas.
 - [ ] Al ver video bonificado: se activa el temporizador de 12 horas, se oculta el banner y se desbloquean las herramientas Pro.
 - [ ] Al pulsar compra permanente: se abre la pasarela de Google Play, confirma sin consumir y persiste de por vida tras reinstalar.
+- [ ] Verificación Criptográfica MD5 / SHA-256 (`🔒 Verificar Integridad MD5 / SHA-256`) y Comparador Hex Diff con hashes MD5 operativos desde el menú principal.
 - [ ] Todas las funciones básicas de flasheo de silicio (lectura, escritura, borrado, verificación, detección) continúan operando de forma 100% gratuita y sin anuncios forzados.
