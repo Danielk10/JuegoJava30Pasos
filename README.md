@@ -156,15 +156,18 @@ Para respaldar el mantenimiento continuo del proyecto sin comprometer las operac
 ### 1. Manejo Seguro de Permisos y Descriptores USB en Android
 Android protege el acceso directo a los nodos de `/dev/bus/usb/` mediante permisos de Linux en el sandbox de cada aplicación. Flash SPI Tool supera esta limitación técnica mediante dos estrategias de puente nativo:
 
-- **Estrategia para Programadores Seriales (Camino A):** La app crea un par de pseudo-terminales maestro/esclavo (`/dev/pts/N`) mediante llamadas JNI (`openpty`). El puerto serie físico es controlado por `usb-serial-for-android` y transferido bidireccionalmente por un motor nativo C++ (`usb_bridge.cpp`) de alto rendimiento hacia el esclavo PTY que consume `flashrom`.
-- **Estrategia para Programadores USB Directos (Camino B):** La aplicación solicita autorización formal al usuario mediante `UsbManager.requestPermission()`. Tras la confirmación, obtiene el descriptor de archivo de la conexión con `connection.getFileDescriptor()`. Debido a que Android activa por defecto el flag `O_CLOEXEC` en dicho descriptor, una rutina JNI ejecuta `dup()` y remueve el flag con `fcntl(newFd, F_SETFD, flags & ~FD_CLOEXEC)`, inyectando el nuevo descriptor en el entorno con `ANDROID_USB_FD`. Una versión modificada de `libusb` intercepta este descriptor y lo conecta con las llamadas de `flashrom`.
+- **Estrategia para Programadores Seriales (Camino A):** La app crea un par de pseudo-terminales maestro/esclavo (`/dev/pts/N`) mediante llamadas JNI (`openpty`) blindadas con la técnica del **Dummy Slave FD** para evitar la reversión a modo cooked del kernel. El puerto serie físico es transferido bidireccionalmente por un motor nativo C++ multihilo (`usb_bridge.cpp`) con prioridad `-8` y llamadas directas `ioctl(USBDEVFS_BULK)` o mediante un **Socket TCP local (`127.0.0.1`)** de latencia ultra baja.  
+  👉 *Documentación completa:* Consulta la [Guía Técnica del Parche PTY USB](./GUIA_TECNICA_PARCHE_PTY_USB.md).
+
+- **Estrategia para Programadores USB Directos (Camino B):** La aplicación solicita autorización formal al usuario mediante `UsbManager.requestPermission()`. Tras la confirmación, obtiene el descriptor de archivo de la conexión con `connection.getFileDescriptor()`. Debido a que Android activa por defecto el flag `O_CLOEXEC` en dicho descriptor, una rutina JNI ejecuta `dup()` y remueve el flag con `fcntl(newFd, F_SETFD, flags & ~FD_CLOEXEC)`, inyectando el nuevo descriptor en el entorno con `ANDROID_USB_FD`. Para eludir el cierre sistemático de descriptores de archivo en Android 10+ (`ProcessBuilder`), el proceso se bifurca en C++ (`fork()` + `execv()`). Una versión modificada de `libusb` intercepta este descriptor con `usbi_alloc_device()` y `libusb_wrap_sys_device()`.  
+  👉 *Documentación completa:* Consulta la [Guía Técnica del Parche Libusb en Android](./GUIA_TECNICA_PARCHE_LIBUSB_ANDROID.md).
 
 ### 2. Rutas del Sistema y Runtime
 Para garantizar que las librerías dinámicas y binarios nativos resuelvan sus dependencias sin errores de reubicación, la aplicación crea enlaces simbólicos en tiempo de ejecución:
 
 - **Ruta de compilación canónica:** `/data/data/com.diamon.curso/files/usr`
 - **Ruta en tiempo de ejecución:** `/data/user/0/com.diamon.curso/files/usr`
-- **Binarios nativos:** Empaquetados en `jniLibs/arm64-v8a` con nombres terminados en `.so` para satisfacer las políticas de empaquetado del instalador de paquetes de Android.
+- **Binarios nativos:** Empaquetados en `jniLibs/arm64-v8a` con nombres terminados en `.so` para satisfacer las políticas de empaquetado del instalador de paquetes de Android, compilados con alineación de páginas de 16KB (`-Wl,-z,max-page-size=16384`) para Android 15+.
 
 ---
 
@@ -252,6 +255,24 @@ La aplicación integra diagramas interactivos accesibles desde el menú principa
 
 > **¡ADVERTENCIA IMPORTANTE DE VOLTAJE!**
 > La gran mayoría de memorias modernas de la serie 25Q operan a **3.3V** o **1.8V**. Muchos programadores CH341A comerciales genéricos ("Black Edition") tienen una falla de diseño de fábrica que alimenta las líneas de datos SPI con 5V a pesar del jumper de 3.3V. Utiliza siempre un multímetro para verificar el voltaje en el pin 8 (VCC) o conecta un adaptador de nivel para evitar daños permanentes en el chip de memoria.
+
+---
+
+## 📚 Índice de Documentación Técnica y Arquitectura
+
+Para facilitar la auditoría, mantenimiento y extensión del proyecto, se detallan a continuación las guías especializadas disponibles en el repositorio:
+
+| Documento | Temática Principal | Audiencia y Utilidad |
+|---|---|---|
+| [**Guía Técnica del Parche PTY USB**](./GUIA_TECNICA_PARCHE_PTY_USB.md) | Análisis del bug de Line Discipline en terminales Linux, solución con **Dummy Slave FD**, prevención de overrun en CH340 y arquitectura del motor en C++ multihilo (`usb_bridge.cpp`). | Desarrolladores de firmware, programadores seriales (Serprog, Bus Pirate, SPIDriver). |
+| [**Guía Técnica del Parche Libusb en Android**](./GUIA_TECNICA_PARCHE_LIBUSB_ANDROID.md) | Bypass de restricciones SELinux en Android sin root, inyección `ANDROID_USB_FD`, lecturas atómicas de descriptor con `ioctl` y preservación de FDs en Android 10+ vía JNI `fork()`/`execv()`. | Ingenieros de bajo nivel trabajando con `libusb` y herramientas de silicio nativas. |
+| [**Especificación de Optimización de Velocidad USB**](./PROPUESTAS_OPTIMIZACION_USB_VELOCIDAD.md) | Especificación del transporte dual Socket TCP Loopback (`127.0.0.1`) vs PTY, eliminación del Garbage Collector del flujo en tiempo real y memoria `mmap` Zero-Copy. | Optimización de rendimiento y benchmarks. |
+| [**Reporte Solución PTY Serprog / Bus Pirate**](./REPORTE_SOLUCION_PTY_SERPROG_BUSPIRATE_SPIDRIVER.md) | Informe histórico y técnico de resolución de corrupción de bytes `0x11` y `0x13` (`S_CMD_O_SPIOP`). | Diagnóstico de comunicaciones serie. |
+| [**Reporte Parche Libusb Android**](./REPORTE_PARCHE_LIBUSB_ANDROID.md) | Informe técnico del cambio de enfoque destructivo (`*ctx = NULL`) a quirúrgico (`core.c` + `usbi_alloc_device`). | Historial de portabilidad nativa. |
+| [**Reporte Optimización PTY Asíncrono**](./REPORTE_OPTIMIZACION_PTY_USB_ASYNC.md) | Implementación de `poll()` JNI, colas `UsbRequest` y beacons de sincronización `0xAA 0x55`. | Mitigación de timeouts de hardware. |
+| [**Guía de Uso del Emulador Flashrom**](./GUIA_USO_EMULADOR.md) | Manual interactivo para ejecutar la suite de emulación de hardware sin dispositivos físicos conectados. | Pruebas locales y CI/CD. |
+| [**Guía de Configuración de Monetización**](./GUIA_CONFIGURACION_PLAY_CONSOLE_MONETIZACION.md) | Pasos de Google Play Console para el producto `donacion_pizza`, AdMob Rewarded Video y persistencia Firestore. | Administración y publicación en Play Store. |
+| [**Notas de Lanzamiento v1.9.2**](./RELEASE_NOTES_v1.9.2.md) | Registro de cambios completo, hashes SHA-256 de binarios y notas bilingües de la versión 1.9.2 (Build 88). | Registro de versiones y auditoría de seguridad. |
 
 ---
 
