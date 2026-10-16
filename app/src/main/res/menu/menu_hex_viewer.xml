@@ -18,6 +18,12 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/action_export_storage"
+        android:title="@string/menu_hex_export_file"
+        android:icon="@android:drawable/ic_menu_share"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_undo"
         android:title="@string/menu_hex_undo"
         android:icon="@android:drawable/ic_menu_revert"

@@ -38,15 +38,21 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.diamon.curso.utils.FileManager;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -63,6 +69,16 @@ public class HexViewerActivity extends AppCompatActivity {
     private final PatchTransaction patchTransaction = new PatchTransaction();
     private ProPassManager proPassManager;
     private BillingManager billingManager;
+
+    private final ActivityResultLauncher<Intent> exportFileLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    Uri uri = result.getData().getData();
+                    if (uri != null) {
+                        exportDumpToUri(uri);
+                    }
+                }
+            });
 
     public interface HexDataSource extends java.io.Closeable {
         long size();
@@ -206,6 +222,9 @@ public class HexViewerActivity extends AppCompatActivity {
             return true;
         } else if (id == R.id.action_verify_integrity) {
             handleProTool(this::showIntegrityDialog);
+            return true;
+        } else if (id == R.id.action_export_storage) {
+            promptExportToStorage();
             return true;
         } else if (id == R.id.action_save_and_flash) {
             saveAndFlash();
@@ -785,6 +804,8 @@ public class HexViewerActivity extends AppCompatActivity {
                 File targetDir = getFilesDir();
                 File binFile = (currentLoadedFile != null) ? currentLoadedFile : new File(targetDir, "bios.bin");
                 IntegrityManager.generateSidecars(binFile, hashes);
+                FileManager.exportToDownloads(this, binFile.getName() + ".sha256");
+                FileManager.exportToDownloads(this, binFile.getName() + ".md5");
                 Toast.makeText(this, R.string.str_toast_sidecars_success, Toast.LENGTH_LONG).show();
             } catch (Exception ex) {
                 Toast.makeText(this, getString(R.string.str_toast_sidecars_error, ex.getMessage()), Toast.LENGTH_LONG).show();
@@ -826,11 +847,43 @@ public class HexViewerActivity extends AppCompatActivity {
                 finish();
             });
 
+            builder.setNeutralButton(R.string.str_btn_export_storage, (dialog, which) -> {
+                promptExportToStorage();
+            });
+
             builder.setNegativeButton(R.string.str_btn_save_only, (dialog, which) -> {
                 Toast.makeText(this, getString(R.string.str_toast_changes_saved, biosFile.getName()), Toast.LENGTH_SHORT).show();
             });
 
             builder.show();
+        } catch (Exception e) {
+            Toast.makeText(this, getString(R.string.str_toast_save_error, e.getMessage()), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void promptExportToStorage() {
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("application/octet-stream");
+        String exportName = (currentLoadedFile != null) ? currentLoadedFile.getName() : "bios.bin";
+        if ("bios.bin".equals(exportName) && patchTransaction.getModifiedCount() > 0) {
+            exportName = "bios_modified.bin";
+        }
+        if (!exportName.contains(".")) {
+            exportName += ".bin";
+        }
+        intent.putExtra(Intent.EXTRA_TITLE, exportName);
+        exportFileLauncher.launch(intent);
+    }
+
+    private void exportDumpToUri(Uri uri) {
+        try (OutputStream out = getContentResolver().openOutputStream(uri)) {
+            if (out == null) {
+                throw new IOException(getString(R.string.str_err_open_file));
+            }
+            byte[] fullDump = getAllDumpBytes();
+            out.write(fullDump);
+            Toast.makeText(this, R.string.str_export_success_toast, Toast.LENGTH_LONG).show();
         } catch (Exception e) {
             Toast.makeText(this, getString(R.string.str_toast_save_error, e.getMessage()), Toast.LENGTH_LONG).show();
         }

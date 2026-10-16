@@ -269,6 +269,8 @@
     <string name="menu_hex_patch_gbe">🌐 Inject Intel GbE MAC</string>
     <string name="menu_hex_extract_msdm">🔑 Extract MSDM Key</string>
     <string name="menu_hex_verify_integrity">🔒 Verify Integrity</string>
+    <string name="menu_hex_export_file">📥 Export to Storage</string>
+    <string name="str_btn_export_storage">Export to Storage</string>
     <string name="menu_hex_undo">↩️ Undo</string>
     <string name="menu_hex_save_and_flash">💾 Save &amp; Flash</string>
     <string name="str_menu_save_mods">💾 Save (%1$d)</string>
@@ -313,7 +315,7 @@
     <string name="str_btn_copy_sha256">📋 Copy SHA-256</string>
     <string name="str_toast_sha256_copied">SHA-256 copied to clipboard</string>
     <string name="str_btn_generate_sidecars">📄 Generate Sidecars</string>
-    <string name="str_toast_sidecars_success">.sha256 and .md5 sidecar files generated successfully.</string>
+    <string name="str_toast_sidecars_success">.sha256 and .md5 sidecars generated and exported to Downloads/FlashromApp.</string>
     <string name="str_toast_sidecars_error">Error generating sidecars: %1$s</string>
     <string name="str_err_compute_hash">Error computing hashes: %1$s</string>
     <string name="str_no_pending_modifications">No pending modifications to save.</string>

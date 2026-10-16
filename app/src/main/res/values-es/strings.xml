@@ -269,6 +269,8 @@
     <string name="menu_hex_patch_gbe">🌐 Inyectar MAC GbE</string>
     <string name="menu_hex_extract_msdm">🔑 Extraer Clave MSDM</string>
     <string name="menu_hex_verify_integrity">🔒 Verificar Integridad</string>
+    <string name="menu_hex_export_file">📥 Exportar al Teléfono</string>
+    <string name="str_btn_export_storage">Exportar al Teléfono</string>
     <string name="menu_hex_undo">↩️ Deshacer</string>
     <string name="menu_hex_save_and_flash">💾 Guardar y Grabar</string>
     <string name="str_menu_save_mods">💾 Guardar (%1$d)</string>
@@ -313,7 +315,7 @@
     <string name="str_btn_copy_sha256">📋 Copiar SHA-256</string>
     <string name="str_toast_sha256_copied">SHA-256 copiado al portapapeles</string>
     <string name="str_btn_generate_sidecars">📄 Generar Sidecars</string>
-    <string name="str_toast_sidecars_success">Archivos .sha256 y .md5 generados exitosamente.</string>
+    <string name="str_toast_sidecars_success">Archivos .sha256 y .md5 generados y exportados a Descargas/FlashromApp.</string>
     <string name="str_toast_sidecars_error">Error generando sidecars: %1$s</string>
     <string name="str_err_compute_hash">Error al calcular hashes: %1$s</string>
     <string name="str_no_pending_modifications">No hay modificaciones pendientes para guardar.</string>
