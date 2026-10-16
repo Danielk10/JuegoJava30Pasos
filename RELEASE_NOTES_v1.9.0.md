@@ -43,30 +43,22 @@ Esta versión mayor (v1.9.0, código de versión 86) introduce la arquitectura *
 ## 🌐 Notas de Versión para Google Play (Bilingüe Obligatorio)
 
 ### 🇪🇸 Español (`es-419` / `es-ES`)
-- Suite Flash SPI Tool Pro con herramientas avanzadas para técnicos y reparadores.
-- Pase Pro Libre de 12 horas mediante video bonificado y compra permanente in-app.
-- Bóveda de seguridad antibrick con respaldo automático pre-flash y rollback en 1 clic.
-- Verificador criptográfico de integridad (MD5, SHA-256, CRC32) y cotejo con portapapeles.
+- Nueva suite Flash SPI Tool Pro con herramientas avanzadas para técnicos.
+- Pase Pro gratis de 12h mediante video bonificado y compra in-app permanente.
+- Bóveda de seguridad antibrick con respaldo automático y rollback en 1 clic.
 - Editor hexadecimal en vivo con historial deshacer/rehacer y resaltado de cambios.
-- Inyector de dirección MAC Intel GbE con corrección automática de checksum 0xBABA.
-- Extractor de licencia digital OEM Windows desde tablas ACPI MSDM.
-- Desbloqueo de registros de estado SPI (SR1/SR2/SR3) y activación de Quad Enable (QE).
-- Modo turbo Serprog a 1M y 2M baudios para lecturas y grabaciones ultrarrápidas.
-- Mapa de calor de sectores de 4KB en el comparador Hex Diff con soporte mmap.
-- Integración de Firebase Crashlytics para máxima estabilidad.
+- Inyector MAC GbE con checksum 0xBABA y extractor de claves OEM Windows MSDM.
+- Desbloqueo de registros SPI (SR1/2/3) y Quad Enable.
+- Firebase Crashlytics integrado.
 
 ### 🇺🇸 English (`en-US`)
-- Flash SPI Tool Pro suite with advanced utilities for technicians and repairers.
+- New Flash SPI Tool Pro suite with advanced firmware repair utilities.
 - 12-Hour Free Pro Pass via rewarded video and lifetime in-app purchase.
-- Antibrick safety vault with automatic pre-flash backup and 1-click emergency rollback.
-- Cryptographic integrity verifier (MD5, SHA-256, CRC32) with clipboard hash match.
+- Antibrick safety vault with automatic pre-flash backup and 1-click rollback.
 - Live in-place hex editor with undo/redo history and modified byte highlighting.
-- Intel GbE MAC address injector with automatic 0xBABA NVM checksum recalculation.
-- Windows OEM digital license product key extractor from ACPI MSDM tables.
-- SPI status registers unlock (SR1/SR2/SR3) and Quad Enable (QE bit) toggle.
-- Turbo Serprog baudrate presets at 1M and 2M baud for high-speed flashing.
-- 4KB sector heatmap ribbon in Hex Diff viewer with zero-OOM mmap support.
-- Firebase Crashlytics integration for highest crash-free stability.
+- Intel GbE MAC injector with 0xBABA checksum and Windows OEM MSDM key extractor.
+- SPI status registers unlock (SR1/2/3) and Quad Enable toggle.
+- Firebase Crashlytics integrated.
 
 ---
 
