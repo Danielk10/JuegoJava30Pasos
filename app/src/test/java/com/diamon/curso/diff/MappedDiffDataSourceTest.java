@@ -100,4 +100,51 @@ public class MappedDiffDataSourceTest {
             assertEquals((byte) 0x00, ds.getByteA(0));
         }
     }
+
+    @Test
+    public void testDifferentFileSizesWithPureFF() throws IOException {
+        // Reproduce el caso exacto reportado: binarios de distinto tamaño con 0xFF no deben considerarse iguales
+        File fileA = folder.newFile("file_4k_ff.bin");
+        File fileB = folder.newFile("file_8k_ff.bin");
+
+        byte[] a = new byte[4096];
+        java.util.Arrays.fill(a, (byte) 0xFF);
+        byte[] b = new byte[8192];
+        java.util.Arrays.fill(b, (byte) 0xFF);
+
+        try (FileOutputStream fosA = new FileOutputStream(fileA);
+             FileOutputStream fosB = new FileOutputStream(fileB)) {
+            fosA.write(a);
+            fosB.write(b);
+        }
+
+        try (MappedDiffDataSource ds = new MappedDiffDataSource(fileA, fileB)) {
+            assertEquals(2, ds.getSectorCount());
+            ds.scan(null);
+
+            assertFalse("Archivos de diferente tamaño nunca deben ser idénticos", ds.isIdentical());
+            assertEquals(4096, ds.getTotalDiffBytes());
+            assertEquals(1, ds.getModifiedSectorsCount());
+            assertTrue(ds.isSectorModified(1));
+            assertFalse(ds.isSectorModified(0));
+        }
+    }
+
+    @Test
+    public void testDifferentBufferSizesWithPureFF() {
+        byte[] a = new byte[1024];
+        java.util.Arrays.fill(a, (byte) 0xFF);
+        byte[] b = new byte[4096];
+        java.util.Arrays.fill(b, (byte) 0xFF);
+
+        try (MappedDiffDataSource ds = new MappedDiffDataSource(a, b)) {
+            assertEquals(1, ds.getSectorCount());
+            ds.scan(null);
+
+            assertFalse(ds.isIdentical());
+            assertEquals(3072, ds.getTotalDiffBytes());
+            assertEquals(1, ds.getModifiedSectorsCount());
+        }
+    }
 }
+

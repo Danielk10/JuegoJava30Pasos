@@ -22,9 +22,10 @@
         android:title="@string/menu_quad_enable"
         app:showAsAction="never" />
 
+
     <item
-        android:id="@+id/action_turbo_serprog"
-        android:title="@string/menu_turbo_serprog"
+        android:id="@+id/action_verify_integrity"
+        android:title="@string/menu_verify_integrity"
         app:showAsAction="never" />
 
     <item
@@ -67,11 +68,6 @@
         android:title="@string/str_polticas_de_pri"
         app:showAsAction="never" />
 
-    <item
-        android:id="@+id/action_donate_pizza"
-        android:icon="@drawable/ic_pizza"
-        android:title="@string/menu_donate_pizza"
-        app:showAsAction="never" />
 
     <item
         android:id="@+id/action_about"

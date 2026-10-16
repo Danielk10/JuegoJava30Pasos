@@ -8,9 +8,11 @@ import com.diamon.curso.core.UsbController;
 import com.diamon.curso.core.FlashromExecutor;
 import com.diamon.curso.ui.views.PinoutView;
 import com.diamon.curso.utils.AssetHelper;
+import com.diamon.curso.binary.IntegrityManager;
 import com.diamon.curso.managers.ProAccessDialog;
 import com.diamon.curso.managers.ProPassManager;
 import com.diamon.curso.managers.SafetyVaultManager;
+import android.graphics.Typeface;
 
 import java.util.Locale;
 
@@ -482,9 +484,7 @@ public class MainActivity extends AppCompatActivity {
         proPassManager = new ProPassManager(this);
         proPassManager.setOnPassRestoredListener(expireTime -> runOnUiThread(this::invalidateOptionsMenu));
 
-        int savedSerprogBaud = getSharedPreferences(PREFS, MODE_PRIVATE)
-                .getInt("serprog_baud", UsbController.DEFAULT_SERPROG_BAUD);
-        UsbController.setSerprogBaud(savedSerprogBaud);
+        UsbController.setSerprogBaud(UsbController.DEFAULT_SERPROG_BAUD);
 
         mostrarPublicidad = new MostrarPublicidad(this);
         mostrarPublicidad.setAdsDisabledChecker(() -> proPassManager.isProActive(billingManager));
@@ -1382,8 +1382,8 @@ public class MainActivity extends AppCompatActivity {
         } else if (id == R.id.action_quad_enable) {
             handleProFeature("Quad Enable (Bit QE)", this::showQuadEnableDialog);
             return true;
-        } else if (id == R.id.action_turbo_serprog) {
-            showTurboSerprogDialog();
+        } else if (id == R.id.action_verify_integrity) {
+            handleProFeature(getString(R.string.menu_verify_integrity), this::showIntegrityDialog);
             return true;
         } else if (id == R.id.action_hex_viewer) {
             hexViewerLauncher.launch(new Intent(this, HexViewerActivity.class));
@@ -1412,9 +1412,6 @@ public class MainActivity extends AppCompatActivity {
             return true;
         } else if (id == R.id.action_export_serprog) {
             exportSerprogFirmware();
-            return true;
-        } else if (id == R.id.action_donate_pizza) {
-            ProAccessDialog.show(this, mostrarPublicidad, billingManager, proPassManager, this::invalidateOptionsMenu);
             return true;
         }
 
@@ -1518,43 +1515,82 @@ public class MainActivity extends AppCompatActivity {
         builder.show();
     }
 
-    private void showTurboSerprogDialog() {
-        final int[] bauds = {115200, 1000000, 2000000};
-        final String[] options = {
-                getString(R.string.str_serprog_baud_115200),
-                getString(R.string.str_serprog_baud_1m),
-                getString(R.string.str_serprog_baud_2m)
-        };
 
-        int currentBaud = UsbController.getSerprogBaud();
-        int selectedIndex = 0;
-        for (int i = 0; i < bauds.length; i++) {
-            if (bauds[i] == currentBaud) {
-                selectedIndex = i;
-                break;
-            }
+
+    private void showIntegrityDialog() {
+        File binFile = new File(getFilesDir(), "bios.bin");
+        if (!binFile.exists() || binFile.length() == 0) {
+            Toast.makeText(this, R.string.str_integrity_no_data, Toast.LENGTH_SHORT).show();
+            return;
         }
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(R.string.str_dialog_turbo_serprog_title);
-        builder.setSingleChoiceItems(options, selectedIndex, (dialog, which) -> {
-            dialog.dismiss();
-            final int chosenBaud = bauds[which];
-            if (chosenBaud > 115200) {
-                handleProFeature("Turbo Baudrate Serprog", () -> applySerprogBaud(chosenBaud));
-            } else {
-                applySerprogBaud(chosenBaud);
-            }
-        });
-        builder.setNegativeButton(R.string.str_cancelar, null);
-        builder.show();
-    }
+        try {
+            final IntegrityManager.HashResult hashes = IntegrityManager.computeHashes(binFile);
+            final String clipText = IntegrityManager.getClipboardText(this);
+            final IntegrityManager.ClipboardMatchResult matchResult = IntegrityManager.checkClipboardMatch(clipText, hashes);
 
-    private void applySerprogBaud(int baud) {
-        UsbController.setSerprogBaud(baud);
-        getSharedPreferences(PREFS, MODE_PRIVATE).edit().putInt("serprog_baud", baud).apply();
-        log(getString(R.string.str_log_serprog_baud_set, baud));
-        Toast.makeText(this, getString(R.string.str_toast_serprog_baud, baud), Toast.LENGTH_SHORT).show();
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle(R.string.str_dialog_integrity_title);
+
+            ScrollView sv = new ScrollView(this);
+            LinearLayout layout = new LinearLayout(this);
+            layout.setOrientation(LinearLayout.VERTICAL);
+            layout.setPadding(36, 20, 36, 16);
+            layout.setBackgroundColor(0xFF1E1E2C);
+
+            // Insignia de coincidencia con portapapeles
+            TextView tvBadge = new TextView(this);
+            tvBadge.setTextSize(14);
+            tvBadge.setTypeface(null, Typeface.BOLD);
+            tvBadge.setPadding(16, 12, 16, 12);
+            if (matchResult.isMatched()) {
+                tvBadge.setBackgroundColor(0xFF1B5E20);
+                tvBadge.setTextColor(0xFF00E676);
+                tvBadge.setText(getString(R.string.str_integrity_match_success, matchResult.getMatchedAlgorithm()));
+            } else if (matchResult.hasClipboardHash()) {
+                tvBadge.setBackgroundColor(0xFFB71C1C);
+                tvBadge.setTextColor(0xFFFF5252);
+                tvBadge.setText(R.string.str_integrity_mismatch_warning);
+            } else {
+                tvBadge.setBackgroundColor(0xFF263238);
+                tvBadge.setTextColor(0xFF90A4AE);
+                tvBadge.setText(R.string.str_integrity_no_clipboard_hash);
+            }
+            layout.addView(tvBadge);
+
+            TextView tvHashes = new TextView(this);
+            tvHashes.setTextSize(12);
+            tvHashes.setTypeface(Typeface.MONOSPACE);
+            tvHashes.setTextColor(0xFFECEFF1);
+            tvHashes.setPadding(0, 16, 0, 16);
+            tvHashes.setTextIsSelectable(true);
+            tvHashes.setText(hashes.formatSummary());
+            layout.addView(tvHashes);
+
+            sv.addView(layout);
+            builder.setView(sv);
+
+            builder.setPositiveButton(R.string.str_btn_copy_md5, (d, w) -> {
+                ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                if (cm != null) {
+                    cm.setPrimaryClip(ClipData.newPlainText("MD5 Hash", hashes.getMd5()));
+                    Toast.makeText(this, R.string.str_toast_md5_copied, Toast.LENGTH_SHORT).show();
+                }
+            });
+
+            builder.setNeutralButton(R.string.str_btn_copy_sha256, (d, w) -> {
+                ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                if (cm != null) {
+                    cm.setPrimaryClip(ClipData.newPlainText("SHA256 Hash", hashes.getSha256()));
+                    Toast.makeText(this, R.string.str_toast_sha256_copied, Toast.LENGTH_SHORT).show();
+                }
+            });
+
+            builder.setNegativeButton(R.string.str_close, null);
+            builder.show();
+        } catch (Exception e) {
+            Toast.makeText(this, "Error al calcular hashes: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 
     private void exportSerprogFirmware() {
@@ -1592,7 +1628,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void mostrarDialogoAgradecimiento() {
         new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-                .setIcon(R.drawable.ic_pizza)
+                .setIcon(R.mipmap.ic_launcher)
                 .setTitle(R.string.donate_thank_you_title)
                 .setMessage(R.string.donate_thank_you_message)
                 .setPositiveButton(android.R.string.ok, null)

@@ -214,10 +214,19 @@ public class MappedDiffDataSource implements Closeable {
 
             int sDiffs = 0;
             for (int i = 0; i < len; i++) {
-                byte a = i < readA ? bufA[i] : (byte) 0xFF;
-                byte b = i < readB ? bufB[i] : (byte) 0xFF;
-                if (a != b) {
+                long currentOffset = off + i;
+                boolean inA = currentOffset < sizeA;
+                boolean inB = currentOffset < sizeB;
+
+                if (inA != inB) {
+                    // Un archivo llegó a EOF mientras el otro continúa con datos: diferencia estricta
                     sDiffs++;
+                } else if (inA && inB) {
+                    byte a = bufA[i];
+                    byte b = bufB[i];
+                    if (a != b) {
+                        sDiffs++;
+                    }
                 }
             }
 
@@ -285,7 +294,7 @@ public class MappedDiffDataSource implements Closeable {
     }
 
     public boolean isIdentical() {
-        return scanned && totalDiffBytes == 0;
+        return scanned && sizeA == sizeB && totalDiffBytes == 0;
     }
 
     @Override

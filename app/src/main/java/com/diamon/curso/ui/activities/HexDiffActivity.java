@@ -18,6 +18,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.diamon.curso.binary.IntegrityManager;
 import com.diamon.curso.diff.DiffHeatmapView;
 import com.diamon.curso.diff.MappedDiffDataSource;
 
@@ -88,7 +89,9 @@ public class HexDiffActivity extends AppCompatActivity {
         }
 
         tvDiffSummary = findViewById(R.id.tvDiffSummary);
+        tvDiffSummary.setTextIsSelectable(true);
         tvDiffStats = findViewById(R.id.tvDiffStats);
+        tvDiffStats.setTextIsSelectable(true);
         diffHeatmapView = findViewById(R.id.diffHeatmapView);
         recyclerDiff = findViewById(R.id.recyclerDiff);
         final LinearLayoutManager layoutManager = new LinearLayoutManager(this);
@@ -172,7 +175,12 @@ public class HexDiffActivity extends AppCompatActivity {
         currentDiffSource = new MappedDiffDataSource(dataA, dataB);
         final MappedDiffDataSource diffSource = currentDiffSource;
 
-        tvDiffSummary.setText(getString(R.string.str_compare_summary, nameA, dataA.length, nameB, dataB.length));
+        final IntegrityManager.HashResult hashA = IntegrityManager.computeHashes(dataA);
+        final IntegrityManager.HashResult hashB = IntegrityManager.computeHashes(dataB);
+
+        tvDiffSummary.setText(getString(R.string.str_diff_summary_hashes,
+                nameA, dataA.length, hashA.getMd5(),
+                nameB, dataB.length, hashB.getMd5()));
         tvDiffStats.setVisibility(View.VISIBLE);
         tvDiffStats.setText(R.string.str_scanning_sectors);
 
@@ -182,13 +190,21 @@ public class HexDiffActivity extends AppCompatActivity {
                 if (isFinishing() || isDestroyed()) return;
                 long diffCount = diffSource.getTotalDiffBytes();
                 long maxLen = diffSource.getMaxLen();
+                boolean sameSize = (dataA.length == dataB.length);
+                boolean sameMd5 = hashA.getMd5().equalsIgnoreCase(hashB.getMd5());
 
-                if (diffCount == 0) {
-                    tvDiffStats.setText(R.string.str_files_identical);
+                if (sameSize && sameMd5 && diffCount == 0) {
+                    tvDiffStats.setText(getString(R.string.str_files_identical_with_hash, hashA.getMd5()));
                     tvDiffStats.setTextColor(0xFF4CAF50);
                 } else {
-                    double pct = (diffCount * 100.0) / maxLen;
-                    tvDiffStats.setText(getString(R.string.str_files_different, (int) diffCount, pct, (int) maxLen));
+                    double pct = (diffCount * 100.0) / Math.max(1, maxLen);
+                    if (!sameSize) {
+                        tvDiffStats.setText(getString(R.string.str_diff_different_sizes,
+                                dataA.length, dataB.length, (int) diffCount, pct, hashA.getMd5(), hashB.getMd5()));
+                    } else {
+                        tvDiffStats.setText(getString(R.string.str_files_different_with_hash,
+                                (int) diffCount, pct, (int) maxLen, hashA.getMd5(), hashB.getMd5()));
+                    }
                     tvDiffStats.setTextColor(0xFFFF5252);
                 }
 
@@ -288,23 +304,42 @@ public class HexDiffActivity extends AppCompatActivity {
             for (int i = 0; i < 16; i++) {
                 if (i < length) {
                     int idx = rowStart + i;
-                    byte a = idx < dataA.length ? dataA[idx] : (byte) 0xFF;
-                    byte b = idx < dataB.length ? dataB[idx] : (byte) 0xFF;
-                    boolean isDiff = (a != b);
-                    if (isDiff)
+                    boolean inA = idx < dataA.length;
+                    boolean inB = idx < dataB.length;
+
+                    if (inA && inB) {
+                        byte a = dataA[idx];
+                        byte b = dataB[idx];
+                        boolean isDiff = (a != b);
+                        if (isDiff) {
+                            rowHasDiff = true;
+                            hexBuilder.append(String.format("%02X→%02X ", a & 0xFF, b & 0xFF));
+                        } else {
+                            hexBuilder.append(String.format("%02X     ", a & 0xFF));
+                        }
+                        if (a >= 32 && a <= 126) {
+                            asciiBuilder.append((char) a);
+                        } else {
+                            asciiBuilder.append(".");
+                        }
+                    } else if (inA) {
+                        byte a = dataA[idx];
                         rowHasDiff = true;
-
-                    // Muestra: A→B si difieren, solo A si iguales
-                    if (isDiff) {
-                        hexBuilder.append(String.format("%02X→%02X ", a & 0xFF, b & 0xFF));
-                    } else {
-                        hexBuilder.append(String.format("%02X     ", a & 0xFF));
-                    }
-
-                    if (a >= 32 && a <= 126) {
-                        asciiBuilder.append((char) a);
-                    } else {
-                        asciiBuilder.append(".");
+                        hexBuilder.append(String.format("%02X→-- ", a & 0xFF));
+                        if (a >= 32 && a <= 126) {
+                            asciiBuilder.append((char) a);
+                        } else {
+                            asciiBuilder.append(".");
+                        }
+                    } else if (inB) {
+                        byte b = dataB[idx];
+                        rowHasDiff = true;
+                        hexBuilder.append(String.format("--→%02X ", b & 0xFF));
+                        if (b >= 32 && b <= 126) {
+                            asciiBuilder.append((char) b);
+                        } else {
+                            asciiBuilder.append(".");
+                        }
                     }
                 } else {
                     hexBuilder.append("       ");

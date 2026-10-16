@@ -163,10 +163,6 @@
     <string name="str_dummy_opt_select">Seleccionar chip predefinido</string>
     <string name="str_dummy_opt_info">Chips válidos para emulación</string>
     <string name="str_about_html"><![CDATA[<h2>Flash SPI Tool</h2><p>Aplicación avanzada para lectura, verificación y programación de Firmware en <b>Memorias Flash SPI</b> utilizando el motor nativo <b>flashrom</b>.</p><hr/><h3>Compatibilidad de Memorias</h3><p><b>✔ Chips Compatibles:</b><br/>• <b>Memorias Flash SPI (serie 25xx):</b> Winbond (W25Q, W25X), Macronix (MX25L), GigaDevice (GD25Q), Spansion/Cypress (S25FL), EON (EN25), etc.<br/>• Chips SPI, LPC, FWH y MTD soportados oficialmente por flashrom.</p><p><b>❌ Memorias NO Compatibles (EEPROMs I2C serie 24C):</b><br/>• Las memorias <b>EEPROM de la serie 24C</b> (24C02, 24C04, 24C08, 24C16, 24C32, 24C64, 24C128, 24C256, etc.) utilizan el protocolo <b>I2C</b> (2 hilos: SDA y SCL), no el protocolo SPI.<br/>• <b>flashrom</b> opera exclusivamente sobre el bus SPI con el controlador <code>ch341a_spi</code> y <b>no soporta el protocolo I2C</b>.<br/>• Las memorias 24C no disponen de comando de auto-identificación electrónica (JEDEC ID 0x9F), por lo que el proceso de detección indicará siempre que el chip no fue detectado.</p><hr/><h3>Configuración del Programador CH341A</h3><p>• <b>Modo Programador (Jumper en pines 1-2):</b> Requerido para que la app y el sistema lo detecten como programador USB (VID 0x1A86, PID 0x5512). En este modo opera la interfaz SPI para la serie 25xx.<br/>• <b>Modo Serial TTL/UART (Jumper en pines 2-3):</b> El hardware pasa a modo puerto serie COM (PID 0x5523) y no funcionará para programar memorias Flash.<br/>• <b>Zócalo ZIF:</b> Aunque el programador físico CH341A tiene serigrafiado un lado para 24xx y otro para 25xx, en esta app únicamente deben colocarse memorias en la sección <b>25 SPI FLASH</b>.</p><hr/><h3>Licencia y Librerías de Código Abierto</h3><p><b>Licencia del proyecto:</b> GNU GPLv3.<br/><br/><b>Dependencias y Librerías:</b><br/>• <a href="https://github.com/flashrom/flashrom">flashrom</a> (GPL-2.0)<br/>• <a href="https://github.com/mik3y/usb-serial-for-android">usb-serial-for-android</a> (MIT)<br/>• <a href="https://github.com/libusb/libusb">libusb</a> (LGPL-2.1+)<br/>• <a href="https://github.com/pciutils/pciutils">pciutils</a> (GPL-2.0+)<br/>• <a href="https://developer.intra2net.com/git/libftdi">libftdi</a> (LGPL-2.1+)<br/>• <a href="https://gitlab.zapb.de/libjaylink/libjaylink">libjaylink</a> (GPL-2.0+)<br/><br/><b>Proyectos Relacionados del Desarrollador:</b><br/>• <a href="https://github.com/Danielk10/PIC-k150-Programing">PIC k150 Programming</a> — Programador de PIC vía Android con protocolo P018A<br/></p>]]></string>
-    <string name="menu_donate_pizza">Invitar una Pizza 🍕 $5</string>
-    <string name="donate_dialog_title">Apoyar el proyecto</string>
-    <string name="donate_dialog_message">¿Te gustó mi trabajo o te resultó útil Flash SPI Tool? Puedes invitarle una pizza al desarrollador para apoyar el mantenimiento continuo y futuras mejoras.</string>
-    <string name="donate_dialog_btn">Invitar una Pizza 🍕 %1$s</string>
     <string name="donate_thank_you_title">¡Muchas Gracias! ❤️</string>
     <string name="donate_thank_you_message">¡Tu apoyo es enormemente apreciado! Gracias por respaldar Flash SPI Tool.</string>
     <string name="str_hint_programmer_param">Ej: ch341a_spi o ft2232_spi:type=2232H</string>
@@ -239,14 +235,14 @@
     <!-- Suite Pro y Pase de 12 Horas -->
     <string name="pro_access_title">⭐ %1$s Pro</string>
     <string name="pro_access_subtitle">Desbloquea la suite técnica avanzada para %1$s</string>
-    <string name="pro_feature_antibrick_vault">Bóveda de Seguridad (Backup Pre-Flash Antibrick)</string>
-    <string name="pro_feature_crypto_checker">Verificador Criptográfico (MD5, SHA-256, CRC32)</string>
+    <string name="pro_feature_antibrick_vault">Bóveda de Seguridad y Respaldo Pre-Flash Antibrick</string>
+    <string name="pro_feature_crypto_checker">Verificador Criptográfico de Integridad MD5, SHA-256 y CRC32</string>
     <string name="pro_feature_live_hex_editor">Editor Hexadecimal en Vivo con Parcheo In-Place</string>
-    <string name="pro_feature_intel_gbe_mac">Inyector MAC Intel GbE LAN (Checksum NVM 0xBABA)</string>
-    <string name="pro_feature_msdm_extractor">Extractor de Clave Windows OEM (MSDM / ACPI)</string>
-    <string name="pro_feature_spi_registers">Desbloqueo de Registros SPI SR1/SR2/SR3 en 1 Clic</string>
-    <string name="pro_feature_delta_flashing">Flasheo Delta Selectivo de Sectores 4KB (Ahorro 90% tiempo)</string>
-    <string name="pro_feature_zero_ads">Cero Publicidad (Sin Banners ni Anuncios Intersticiales)</string>
+    <string name="pro_feature_intel_gbe_mac">Inyector MAC Intel GbE LAN con Checksum NVM 0xBABA</string>
+    <string name="pro_feature_msdm_extractor">Extractor de Clave Windows OEM desde Tablas MSDM ACPI</string>
+    <string name="pro_feature_spi_registers">Desbloqueo de Registros SPI SR1, SR2 y SR3 en 1 Clic</string>
+    <string name="pro_feature_delta_flashing">Flasheo Delta Selectivo de Sectores de 4KB de Alta Velocidad</string>
+    <string name="pro_feature_zero_ads">Sin anuncios de por vida</string>
     <string name="pro_btn_watch_rewarded_video">🎬 Ver Video - Pase Gratis de 12 Horas</string>
     <string name="pro_pass_activated_toast">⭐ ¡Pase %1$s Pro activado por 12 horas!</string>
     <string name="pro_ads_not_available">Publicidad no disponible en este momento</string>
@@ -312,6 +308,8 @@
     <string name="str_integrity_match_success">🟢 MATCH CERTIFIED (%1$s)\nCoincide al 100%% con el portapapeles.</string>
     <string name="str_integrity_mismatch_warning">🔴 ADVERTENCIA DE INTEGRIDAD\nEl hash del volcado no coincide con el portapapeles.</string>
     <string name="str_integrity_no_clipboard_hash">⚪ Sin hash reconocido en portapapeles para cotejo.</string>
+    <string name="str_btn_copy_md5">📋 Copiar MD5</string>
+    <string name="str_toast_md5_copied">MD5 copiado al portapapeles</string>
     <string name="str_btn_copy_sha256">📋 Copiar SHA-256</string>
     <string name="str_toast_sha256_copied">SHA-256 copiado al portapapeles</string>
     <string name="str_btn_generate_sidecars">📄 Generar Sidecars</string>
@@ -329,7 +327,6 @@
     <string name="menu_emergency_rollback">🚨 Rollback de Emergencia</string>
     <string name="menu_unlock_status_registers">🔓 Desbloquear Registros SPI (SR1/SR2/SR3)</string>
     <string name="menu_quad_enable">⚡ Activar/Verificar Quad Enable (Bit QE)</string>
-    <string name="menu_turbo_serprog">🏎️ Turbo Baudrate Serprog (1M / 2M)</string>
     <string name="str_log_hex_flash_requested">[HEX EDITOR] 🔥 Grabación en chip SPI solicitada desde el Visor Hexadecimal.</string>
     <string name="str_log_vault_snapshot_saved">[BÓVEDA ANTIBRICK] 🛡️ Snapshot pre-flash automático guardado: %1$s</string>
     <string name="str_log_vault_snapshot_error">[BÓVEDA ANTIBRICK] ⚠️ Error creando snapshot: %1$s</string>
@@ -350,10 +347,9 @@
     <string name="str_log_configuring_spi_sr">[HARDWARE SPI] ⚡ Configurando y desbloqueando registros SPI...</string>
     <string name="str_btn_check_wp_status">Verificar Estado WP</string>
     <string name="str_log_querying_wp_status">[HARDWARE SPI] 🔍 Consultando registros de estado y protección (flashrom --wp-status)...</string>
-    <string name="str_dialog_turbo_serprog_title">🏎️ Turbo Baudrate Serprog</string>
-    <string name="str_serprog_baud_115200">115,200 baudios (Estándar / Arduino UNO)</string>
-    <string name="str_serprog_baud_1m">1,000,000 baudios (Turbo 1M - CH340 / CP2102 / RP2040) 💎 PRO</string>
-    <string name="str_serprog_baud_2m">2,000,000 baudios (Ultra Turbo 2M - Optiboot / RP2040) 💎 PRO</string>
-    <string name="str_log_serprog_baud_set">[SERPROG] 🏎️ Velocidad serie configurada a %1$d bps.</string>
-    <string name="str_toast_serprog_baud">Serprog Baudrate: %1$d bps</string>
+    <string name="menu_verify_integrity">🔒 Verificar Integridad MD5 / SHA-256</string>
+    <string name="str_diff_summary_hashes">Archivo A: %1$s (%2$d B) | MD5: %3$s\nArchivo B: %4$s (%5$d B) | MD5: %6$s</string>
+    <string name="str_diff_different_sizes">⚠️ Tamaños y hashes diferentes:\nArchivo A: %1$d B (MD5: %5$s)\nArchivo B: %2$d B (MD5: %6$s)\nDiferencias: %3$d bytes (%4$.1f%%)</string>
+    <string name="str_files_identical_with_hash">✅ Archivos 100%% idénticos (Mismo tamaño y hash MD5: %1$s)</string>
+    <string name="str_files_different_with_hash">❌ Archivos diferentes (%1$d bytes distintos, %2$.2f%% de %3$d B)\nMD5 A: %4$s\nMD5 B: %5$s</string>
 </resources>

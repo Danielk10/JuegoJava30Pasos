@@ -163,10 +163,6 @@
     <string name="str_dummy_opt_select">Select predefined chip</string>
     <string name="str_dummy_opt_info">Valid emulation chips</string>
     <string name="str_about_html"><![CDATA[<h2>Flash SPI Tool</h2><p>Advanced application for reading, verifying, and writing Firmware in <b>SPI Flash Memories</b> using the native <b>flashrom</b> engine.</p><hr/><h3>Memory and Chip Compatibility</h3><p><b>✔ Supported Chips:</b><br/>• <b>SPI Flash Memories (25xx series):</b> Winbond (W25Q, W25X), Macronix (MX25L), GigaDevice (GD25Q), Spansion/Cypress (S25FL), EON (EN25), etc.<br/>• SPI, LPC, FWH, and MTD bus chips officially supported by flashrom.</p><p><b>❌ Unsupported Memories (24C series I2C EEPROMs):</b><br/>• The <b>24C series EEPROMs</b> (24C02, 24C04, 24C08, 24C16, 24C32, 24C64, 24C128, 24C256, etc.) use the <b>I2C</b> protocol (2 wires: SDA and SCL), not SPI.<br/>• <b>flashrom</b> operates exclusively on the SPI bus via the <code>ch341a_spi</code> driver and <b>does not support the I2C protocol</b>.<br/>• Furthermore, 24C EEPROMs lack a universal electronic identification command (JEDEC ID 0x9F), which is why chip detection will always report that the IC was not detected.</p><hr/><h3>CH341A Programmer Configuration</h3><p>• <b>Programmer Mode (Jumper on pins 1-2):</b> Required for the app to recognize the device as a USB programmer (VID 0x1A86, PID 0x5512). In this mode, the SPI interface operates for the 25xx series.<br/>• <b>Serial TTL/UART Mode (Jumper on pins 2-3):</b> The hardware switches to COM serial port mode (PID 0x5523) and will not work for programming Flash memories.<br/>• <b>ZIF Socket:</b> Even though the physical CH341A board has silk-screened markings for 24xx and 25xx, with this app, chips must only be inserted into the <b>25 SPI FLASH</b> section.</p><hr/><h3>Licenses and Open Source Libraries</h3><p><b>Project License:</b> GNU GPLv3.<br/><br/><b>Dependencies and Libraries:</b><br/>• <a href="https://github.com/flashrom/flashrom">flashrom</a> (GPL-2.0)<br/>• <a href="https://github.com/mik3y/usb-serial-for-android">usb-serial-for-android</a> (MIT)<br/>• <a href="https://github.com/libusb/libusb">libusb</a> (LGPL-2.1+)<br/>• <a href="https://github.com/pciutils/pciutils">pciutils</a> (GPL-2.0+)<br/>• <a href="https://developer.intra2net.com/git/libftdi">libftdi</a> (LGPL-2.1+)<br/>• <a href="https://gitlab.zapb.de/libjaylink/libjaylink">libjaylink</a> (GPL-2.0+)<br/><br/><b>Developer Related Projects:</b><br/>• <a href="https://github.com/Danielk10/PIC-k150-Programing">PIC k150 Programming</a> — PIC programmer via Android with P018A protocol<br/></p>]]></string>
-    <string name="menu_donate_pizza">Buy a Pizza 🍕 $5</string>
-    <string name="donate_dialog_title">Support the Project</string>
-    <string name="donate_dialog_message">Did you like my work or find Flash SPI Tool helpful? You can buy the developer a pizza to support continuous development and updates.</string>
-    <string name="donate_dialog_btn">Buy a Pizza 🍕 %1$s</string>
     <string name="donate_thank_you_title">Thank You So Much! ❤️</string>
     <string name="donate_thank_you_message">Your support means a lot! Thank you for backing Flash SPI Tool.</string>
     <string name="str_hint_programmer_param">e.g. ch341a_spi or ft2232_spi:type=2232H</string>
@@ -239,14 +235,14 @@
     <!-- Pro Suite & 12-Hour Pass -->
     <string name="pro_access_title">⭐ %1$s Pro</string>
     <string name="pro_access_subtitle">Unlock advanced technical suite for %1$s</string>
-    <string name="pro_feature_antibrick_vault">Safety Vault (Antibrick Pre-Flash Backup)</string>
-    <string name="pro_feature_crypto_checker">Cryptographic Integrity Verifier (MD5, SHA-256, CRC32)</string>
+    <string name="pro_feature_antibrick_vault">Antibrick Safety Vault and Pre-Flash Backup</string>
+    <string name="pro_feature_crypto_checker">Cryptographic Integrity Verifier MD5, SHA-256 and CRC32</string>
     <string name="pro_feature_live_hex_editor">Live Hexadecimal Editor &amp; In-Place Byte Patching</string>
     <string name="pro_feature_intel_gbe_mac">Intel GbE LAN MAC Injector with 0xBABA Checksum</string>
-    <string name="pro_feature_msdm_extractor">Windows OEM Digital License Key Extractor (MSDM)</string>
-    <string name="pro_feature_spi_registers">1-Click SPI Status Register Unlock (SR1/SR2/SR3)</string>
-    <string name="pro_feature_delta_flashing">Selective 4KB Sector Delta Flashing (90% faster)</string>
-    <string name="pro_feature_zero_ads">Zero Advertising (No Banners or Interstitials)</string>
+    <string name="pro_feature_msdm_extractor">Windows OEM Digital License Key Extractor from MSDM ACPI</string>
+    <string name="pro_feature_spi_registers">1-Click SPI Status Register Unlock for SR1, SR2 and SR3</string>
+    <string name="pro_feature_delta_flashing">High-Speed Selective 4KB Sector Delta Flashing</string>
+    <string name="pro_feature_zero_ads">Ad-free for life</string>
     <string name="pro_btn_watch_rewarded_video">🎬 Watch Video - 12-Hour Free Pass</string>
     <string name="pro_pass_activated_toast">⭐ %1$s Pro pass activated for 12 hours!</string>
     <string name="pro_ads_not_available">Rewarded video not available at this moment</string>
@@ -312,6 +308,8 @@
     <string name="str_integrity_match_success">🟢 MATCH CERTIFIED (%1$s)\n100%% matches the clipboard.</string>
     <string name="str_integrity_mismatch_warning">🔴 INTEGRITY WARNING\nDump hash does not match clipboard.</string>
     <string name="str_integrity_no_clipboard_hash">⚪ No recognized hash found in clipboard for comparison.</string>
+    <string name="str_btn_copy_md5">📋 Copy MD5</string>
+    <string name="str_toast_md5_copied">MD5 copied to clipboard</string>
     <string name="str_btn_copy_sha256">📋 Copy SHA-256</string>
     <string name="str_toast_sha256_copied">SHA-256 copied to clipboard</string>
     <string name="str_btn_generate_sidecars">📄 Generate Sidecars</string>
@@ -329,7 +327,6 @@
     <string name="menu_emergency_rollback">🚨 Emergency Rollback</string>
     <string name="menu_unlock_status_registers">🔓 Unlock SPI Registers (SR1/SR2/SR3)</string>
     <string name="menu_quad_enable">⚡ Enable/Verify Quad Enable (Bit QE)</string>
-    <string name="menu_turbo_serprog">🏎️ Turbo Baudrate Serprog (1M / 2M)</string>
     <string name="str_log_hex_flash_requested">[HEX EDITOR] 🔥 SPI chip write requested from Hex Viewer.</string>
     <string name="str_log_vault_snapshot_saved">[SAFETY VAULT] 🛡️ Automatic pre-flash snapshot saved: %1$s</string>
     <string name="str_log_vault_snapshot_error">[SAFETY VAULT] ⚠️ Error creating snapshot: %1$s</string>
@@ -350,10 +347,9 @@
     <string name="str_log_configuring_spi_sr">[HARDWARE SPI] ⚡ Configuring and unlocking SPI registers...</string>
     <string name="str_btn_check_wp_status">Check WP Status</string>
     <string name="str_log_querying_wp_status">[HARDWARE SPI] 🔍 Checking status and protection registers (flashrom --wp-status)...</string>
-    <string name="str_dialog_turbo_serprog_title">🏎️ Serprog Turbo Baudrate</string>
-    <string name="str_serprog_baud_115200">115,200 baud (Standard / Arduino UNO)</string>
-    <string name="str_serprog_baud_1m">1,000,000 baud (Turbo 1M - CH340 / CP2102 / RP2040) 💎 PRO</string>
-    <string name="str_serprog_baud_2m">2,000,000 baud (Ultra Turbo 2M - Optiboot / RP2040) 💎 PRO</string>
-    <string name="str_log_serprog_baud_set">[SERPROG] 🏎️ Serial baudrate configured to %1$d bps.</string>
-    <string name="str_toast_serprog_baud">Serprog Baudrate: %1$d bps</string>
+    <string name="menu_verify_integrity">🔒 Verify Integrity MD5 / SHA-256</string>
+    <string name="str_diff_summary_hashes">File A: %1$s (%2$d B) | MD5: %3$s\nFile B: %4$s (%5$d B) | MD5: %6$s</string>
+    <string name="str_diff_different_sizes">⚠️ Different sizes and hashes:\nFile A: %1$d B (MD5: %5$s)\nFile B: %2$d B (MD5: %6$s)\nDifferences: %3$d bytes (%4$.1f%%)</string>
+    <string name="str_files_identical_with_hash">✅ Files 100%% identical (Same size and MD5 hash: %1$s)</string>
+    <string name="str_files_different_with_hash">❌ Files are different (%1$d different bytes, %2$.2f%% of %3$d B)\nMD5 A: %4$s\nMD5 B: %5$s</string>
 </resources>
