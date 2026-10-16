@@ -61,7 +61,11 @@ public class ProAccessDialog {
         if (activity.isFinishing() || activity.isDestroyed()) return;
 
         if (billingManager != null && billingManager.isProPurchased()) {
-            Toast.makeText(activity, activity.getString(R.string.pro_permanent_active_desc), Toast.LENGTH_LONG).show();
+            new AlertDialog.Builder(activity)
+                    .setTitle(activity.getString(R.string.pro_permanent_active_title))
+                    .setMessage(activity.getString(R.string.pro_permanent_active_desc))
+                    .setPositiveButton(R.string.str_ok, null)
+                    .show();
             if (onProUnlocked != null) {
                 onProUnlocked.run();
             }

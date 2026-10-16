@@ -1,5 +1,7 @@
 #include <jni.h>
 #include <string>
+#include <vector>
+#include <cstdint>
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -160,11 +162,14 @@ Java_com_diamon_curso_core_PtyBridge_readFd(JNIEnv *env, jclass clazz, jint fd, 
     if (ready == 0) return 0; // Timeout
 
     jsize arrLen = env->GetArrayLength(data);
+    if (arrLen <= 0) return 0;
+
     jbyte *buf = env->GetByteArrayElements(data, nullptr);
+    if (buf == nullptr) return -1;
     
     ssize_t n = read(fd, buf, static_cast<size_t>(arrLen));
     
-    env->ReleaseByteArrayElements(data, buf, 0);
+    env->ReleaseByteArrayElements(data, buf, n > 0 ? 0 : JNI_ABORT);
     
     if (n < 0) {
         if (errno == EAGAIN || errno == EWOULDBLOCK) return 0;
@@ -199,10 +204,10 @@ Java_com_diamon_curso_core_PtyBridge_writeFd(JNIEnv *env, jclass clazz, jint fd,
     if (len > arrLen) {
         len = arrLen;
     }
+    if (len <= 0) return 0;
 
-    std::string buf;
-    buf.resize(static_cast<size_t>(len));
-    env->GetByteArrayRegion(data, 0, len, reinterpret_cast<jbyte *>(&buf[0]));
+    std::vector<uint8_t> buf(static_cast<size_t>(len));
+    env->GetByteArrayRegion(data, 0, len, reinterpret_cast<jbyte *>(buf.data()));
 
     struct pollfd pfd;
     pfd.fd = fd;
@@ -228,7 +233,13 @@ Java_com_diamon_curso_core_PtyBridge_writeFd(JNIEnv *env, jclass clazz, jint fd,
  */
 extern "C" JNIEXPORT jstring JNICALL
 Java_com_diamon_curso_core_PtyBridge_nativeTestRoundTrip(JNIEnv *env, jclass clazz, jstring jSlavePath) {
+    if (jSlavePath == nullptr) {
+        return env->NewStringUTF("[ERROR] Slave path nulo");
+    }
     const char *slavePath = env->GetStringUTFChars(jSlavePath, nullptr);
+    if (slavePath == nullptr) {
+        return env->NewStringUTF("[ERROR] No se pudo obtener slave path");
+    }
 
     // Abrir slave exactamente como flashrom: O_RDWR | O_NOCTTY
     int fd = open(slavePath, O_RDWR | O_NOCTTY);
@@ -294,12 +305,11 @@ Java_com_diamon_curso_core_PtyBridge_nativeTestRoundTrip(JNIEnv *env, jclass cla
         return env->NewStringUTF(msg);
     }
 
-    // Formatear hex
+    // Formatear hex de forma segura
     char hex[128] = {0};
-    for (int i = 0; i < n && i < 32; i++) {
-        char h[4];
-        snprintf(h, sizeof(h), "%02X ", buf[i]);
-        strcat(hex, h);
+    int pos = 0;
+    for (int i = 0; i < n && i < 32 && pos + 4 < (int) sizeof(hex); i++) {
+        pos += snprintf(hex + pos, sizeof(hex) - pos, "%02X ", buf[i]);
     }
 
     LOGI("testRoundTrip: recibido [%s] (%zd bytes)", hex, n);
@@ -330,40 +340,75 @@ Java_com_diamon_curso_core_FlashromExecutor_startNativeProcess(
         jstring jMiniproData,
         jstring jWorkingDir) {
 
+    if (jExecutable == nullptr || jArgs == nullptr || jLdLibraryPath == nullptr || jMiniproData == nullptr || jWorkingDir == nullptr) {
+        return nullptr;
+    }
+
     const char *execPath = env->GetStringUTFChars(jExecutable, nullptr);
     const char *ldLibPath = env->GetStringUTFChars(jLdLibraryPath, nullptr);
     const char *miniproData = env->GetStringUTFChars(jMiniproData, nullptr);
     const char *workingDir = env->GetStringUTFChars(jWorkingDir, nullptr);
 
+    if (!execPath || !ldLibPath || !miniproData || !workingDir) {
+        if (execPath) env->ReleaseStringUTFChars(jExecutable, execPath);
+        if (ldLibPath) env->ReleaseStringUTFChars(jLdLibraryPath, ldLibPath);
+        if (miniproData) env->ReleaseStringUTFChars(jMiniproData, miniproData);
+        if (workingDir) env->ReleaseStringUTFChars(jWorkingDir, workingDir);
+        return nullptr;
+    }
+
     // Preparar argumentos (argv)
     int argc = env->GetArrayLength(jArgs);
     std::vector<char*> argv;
-    std::vector<const char*> stringsToRelease;
+    struct ArgEntry {
+        jstring jstr;
+        const char *chars;
+    };
+    std::vector<ArgEntry> argEntries;
     argv.push_back(const_cast<char*>(execPath)); // argv[0] debe ser el nombre del ejecutable
     for (int i = 0; i < argc; i++) {
         jstring argStr = (jstring) env->GetObjectArrayElement(jArgs, i);
-        const char *arg = env->GetStringUTFChars(argStr, nullptr);
-        argv.push_back(const_cast<char*>(arg));
-        stringsToRelease.push_back(arg);
+        if (argStr != nullptr) {
+            const char *arg = env->GetStringUTFChars(argStr, nullptr);
+            if (arg != nullptr) {
+                argv.push_back(const_cast<char*>(arg));
+                argEntries.push_back({argStr, arg});
+            } else {
+                env->DeleteLocalRef(argStr);
+            }
+        }
     }
     argv.push_back(nullptr);
+
+    auto releaseAllStrings = [&]() {
+        env->ReleaseStringUTFChars(jExecutable, execPath);
+        env->ReleaseStringUTFChars(jLdLibraryPath, ldLibPath);
+        env->ReleaseStringUTFChars(jMiniproData, miniproData);
+        env->ReleaseStringUTFChars(jWorkingDir, workingDir);
+        for (const auto &entry : argEntries) {
+            env->ReleaseStringUTFChars(entry.jstr, entry.chars);
+            env->DeleteLocalRef(entry.jstr);
+        }
+        argEntries.clear();
+    };
 
     // Crear pipe para capturar stdout y stderr
     int pipefds[2];
     if (pipe(pipefds) < 0) {
         LOGE("startNativeProcess: pipe falló, errno=%d", errno);
-        env->ReleaseStringUTFChars(jExecutable, execPath);
-        env->ReleaseStringUTFChars(jLdLibraryPath, ldLibPath);
-        env->ReleaseStringUTFChars(jMiniproData, miniproData);
-        env->ReleaseStringUTFChars(jWorkingDir, workingDir);
-        for (int i = 0; i < argc; i++) {
-            jstring argStr = (jstring) env->GetObjectArrayElement(jArgs, i);
-            env->ReleaseStringUTFChars(argStr, stringsToRelease[i]);
-        }
+        releaseAllStrings();
         return nullptr;
     }
 
     pid_t pid = fork();
+    if (pid < 0) {
+        LOGE("startNativeProcess: fork falló, errno=%d", errno);
+        close(pipefds[0]);
+        close(pipefds[1]);
+        releaseAllStrings();
+        return nullptr;
+    }
+
     if (pid == 0) {
         // --- PROCESO HIJO ---
         // Redirigir stdout y stderr al write-end del pipe
@@ -397,7 +442,7 @@ Java_com_diamon_curso_core_FlashromExecutor_startNativeProcess(
 
         // Ejecutar el binario
         execv(execPath, argv.data());
-        exit(127);
+        _exit(127);
     }
 
     // --- PROCESO PADRE ---
@@ -405,19 +450,14 @@ Java_com_diamon_curso_core_FlashromExecutor_startNativeProcess(
     close(pipefds[1]);
 
     // Liberar memoria JNI
-    env->ReleaseStringUTFChars(jExecutable, execPath);
-    env->ReleaseStringUTFChars(jLdLibraryPath, ldLibPath);
-    env->ReleaseStringUTFChars(jMiniproData, miniproData);
-    env->ReleaseStringUTFChars(jWorkingDir, workingDir);
-    for (int i = 0; i < argc; i++) {
-        jstring argStr = (jstring) env->GetObjectArrayElement(jArgs, i);
-        env->ReleaseStringUTFChars(argStr, stringsToRelease[i]);
-    }
+    releaseAllStrings();
 
     jintArray result = env->NewIntArray(2);
     if (result != nullptr) {
         jint arr[2] = { (jint) pid, (jint) pipefds[0] };
         env->SetIntArrayRegion(result, 0, 2, arr);
+    } else {
+        close(pipefds[0]);
     }
     return result;
 }

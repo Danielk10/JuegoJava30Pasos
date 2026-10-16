@@ -397,6 +397,13 @@ void destroyBridge(Bridge *b) {
     if (b->listenFd >= 0) close(b->listenFd);
     if (b->wakePipe[0] >= 0) close(b->wakePipe[0]);
     if (b->wakePipe[1] >= 0) close(b->wakePipe[1]);
+    {
+        std::lock_guard<std::mutex> lk(b->clientMutex);
+        if (b->clientIsSocket && b->clientFd >= 0) {
+            close(b->clientFd);
+            b->clientFd = -1;
+        }
+    }
     delete b;
 }
 

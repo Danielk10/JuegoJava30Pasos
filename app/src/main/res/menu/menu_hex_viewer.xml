@@ -4,28 +4,28 @@
 
     <item
         android:id="@+id/action_patch_gbe"
-        android:title="🌐 Inyectar MAC GbE"
+        android:title="@string/menu_hex_patch_gbe"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/action_extract_msdm"
-        android:title="🔑 Extraer Clave MSDM"
+        android:title="@string/menu_hex_extract_msdm"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/action_verify_integrity"
-        android:title="🔒 Verificar Integridad"
+        android:title="@string/menu_hex_verify_integrity"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/action_undo"
-        android:title="↩️ Deshacer"
+        android:title="@string/menu_hex_undo"
         android:icon="@android:drawable/ic_menu_revert"
         app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/action_save_and_flash"
-        android:title="💾 Guardar y Grabar"
+        android:title="@string/menu_hex_save_and_flash"
         android:icon="@android:drawable/ic_menu_save"
         app:showAsAction="ifRoom" />
 

@@ -265,7 +265,7 @@ public class BillingManager implements PurchasesUpdatedListener {
         if (!billingClient.isReady()) {
             startConnection();
             if (listener != null) {
-                listener.onPurchaseError(context.getString(R.string.pro_billing_not_available));
+                listener.onPurchaseError(context.getString(R.string.str_billing_connecting));
             }
             return;
         }
@@ -277,7 +277,7 @@ public class BillingManager implements PurchasesUpdatedListener {
 
         if (pd == null) {
             if (listener != null) {
-                listener.onPurchaseError(context.getString(R.string.pro_billing_not_available));
+                listener.onPurchaseError(context.getString(R.string.str_billing_not_ready));
             }
             queryProducts();
             return;

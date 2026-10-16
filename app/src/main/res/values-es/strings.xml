@@ -259,4 +259,101 @@
     <string name="menu_pro_mode">⭐ Modo Pro</string>
     <string name="menu_pro_permanent">👑 Pro Permanente</string>
     <string name="menu_pro_timer">⭐ Pro %1$s</string>
+
+    <!-- Hex Diff Activity -->
+    <string name="str_scanning_sectors">Escaneando sectores…</string>
+
+    <!-- General Common Action -->
+    <string name="str_ok">Aceptar</string>
+    <string name="str_btn_apply">Aplicar</string>
+    <string name="str_btn_undo">Deshacer</string>
+    <string name="str_btn_redo">Rehacer</string>
+
+    <!-- Hex Viewer Activity -->
+    <string name="menu_hex_patch_gbe">🌐 Inyectar MAC GbE</string>
+    <string name="menu_hex_extract_msdm">🔑 Extraer Clave MSDM</string>
+    <string name="menu_hex_verify_integrity">🔒 Verificar Integridad</string>
+    <string name="menu_hex_undo">↩️ Deshacer</string>
+    <string name="menu_hex_save_and_flash">💾 Guardar y Grabar</string>
+    <string name="str_menu_save_mods">💾 Guardar (%1$d)</string>
+    <string name="str_toast_mod_undone">Modificación deshecha (%1$d restantes)</string>
+    <string name="str_edit_byte_title">✏️ Editar Byte: 0x%1$08X [%2$d]</string>
+    <string name="str_byte_original">Original: 0x%1$02X (%2$d)\n</string>
+    <string name="str_byte_current">Actual:   0x%1$02X (%2$d)   Bin: %3$s   ASCII: \'%4$c\'</string>
+    <string name="str_byte_word16_header">• Palabra de 16 bits:\n</string>
+    <string name="str_byte_dword32_header">• Dword de 32 bits:\n</string>
+    <string name="str_byte_endian_val">   LE: 0x%1$04X (%2$d)  |  BE: 0x%3$04X (%4$d)\n</string>
+    <string name="str_byte_dword_endian_val">   LE: 0x%1$08X (%2$d)\n   BE: 0x%3$08X (%4$d)</string>
+    <string name="str_new_hex_value_label">Nuevo Valor Hex (00 - FF):</string>
+    <string name="str_byte_modified_success">Byte modificado correctamente</string>
+    <string name="str_invalid_hex">Hexadecimal no válido: %1$s</string>
+    <string name="str_no_dump_loaded">No hay volcado cargado</string>
+    <string name="str_dialog_gbe_title">🌐 Inyector de MAC Intel GbE</string>
+    <string name="str_gbe_info_format">• Región GbE Detectada: 0x%1$08X\n• MAC Actual: %2$s\n• Checksum 0xBABA: %3$s\n• Respaldo NVM: %4$s\n\nIntroduce la nueva dirección MAC de la etiqueta:</string>
+    <string name="str_gbe_checksum_valid">VÁLIDO (0xBABA)</string>
+    <string name="str_gbe_checksum_invalid">INVÁLIDO/DESCONOCIDO</string>
+    <string name="str_gbe_backup_present">PRESENTE</string>
+    <string name="str_gbe_backup_none">NO DETECTADO</string>
+    <string name="str_gbe_btn_inject">Inyectar y Recalcular Checksum</string>
+    <string name="str_invalid_mac_format">Formato MAC inválido (ej: AA:BB:CC:DD:EE:FF)</string>
+    <string name="str_gbe_patch_desc">Inyección MAC Intel GbE</string>
+    <string name="str_gbe_inject_success">✅ MAC GbE inyectada y checksum 0xBABA corregido.</string>
+    <string name="str_gbe_inject_error">Error al inyectar MAC: %1$s</string>
+    <string name="str_dialog_msdm_title">🔑 Licencia Digital Windows OEM (MSDM)</string>
+    <string name="str_msdm_not_found">No se detectó ninguna tabla ACPI MSDM con clave de producto Windows en este volcado de BIOS.</string>
+    <string name="str_btn_copy_key">📋 Copiar Clave</string>
+    <string name="str_btn_goto_offset">🔍 Ir a Offset</string>
+    <string name="str_msdm_copied_toast">Clave copiada al portapapeles: %1$s</string>
+    <string name="str_msdm_details_format">• Fabricante (OEM ID): %1$s\n• Tabla ACPI: %2$s\n• Offset en Flash: 0x%3$08X\n• Checksum ACPI: %4$s</string>
+    <string name="str_status_valid">VÁLIDO</string>
+    <string name="str_status_invalid">INVÁLIDO</string>
+    <string name="str_integrity_no_data">No hay datos para calcular hashes</string>
+    <string name="str_dialog_integrity_title">🔒 Verificador de Integridad Criptográfica</string>
+    <string name="str_integrity_match_success">🟢 MATCH CERTIFIED (%1$s)\nCoincide al 100%% con el portapapeles.</string>
+    <string name="str_integrity_mismatch_warning">🔴 ADVERTENCIA DE INTEGRIDAD\nEl hash del volcado no coincide con el portapapeles.</string>
+    <string name="str_integrity_no_clipboard_hash">⚪ Sin hash reconocido en portapapeles para cotejo.</string>
+    <string name="str_btn_copy_sha256">📋 Copiar SHA-256</string>
+    <string name="str_toast_sha256_copied">SHA-256 copiado al portapapeles</string>
+    <string name="str_btn_generate_sidecars">📄 Generar Sidecars</string>
+    <string name="str_toast_sidecars_success">Archivos .sha256 y .md5 generados exitosamente.</string>
+    <string name="str_toast_sidecars_error">Error generando sidecars: %1$s</string>
+    <string name="str_no_pending_modifications">No hay modificaciones pendientes para guardar.</string>
+    <string name="str_dialog_save_and_flash_title">💾 Guardar y Grabar en Chip SPI</string>
+    <string name="str_dialog_save_and_flash_msg">Se han aplicado %1$d modificaciones en %2$s.\n\n¿Deseas disparar la grabación directa en el chip SPI ahora?</string>
+    <string name="str_btn_write_to_chip">🔥 Grabar en Chip</string>
+    <string name="str_btn_save_only">Solo Guardar</string>
+    <string name="str_toast_changes_saved">Cambios guardados en %1$s</string>
+    <string name="str_toast_save_error">Error al guardar: %1$s</string>
+
+    <!-- Main Menu & Hardware Dialogs -->
+    <string name="menu_emergency_rollback">🚨 Rollback de Emergencia</string>
+    <string name="menu_unlock_status_registers">🔓 Desbloquear Registros SPI (SR1/SR2/SR3)</string>
+    <string name="menu_quad_enable">⚡ Activar/Verificar Quad Enable (Bit QE)</string>
+    <string name="menu_turbo_serprog">🏎️ Turbo Baudrate Serprog (1M / 2M)</string>
+    <string name="str_log_hex_flash_requested">[HEX EDITOR] 🔥 Grabación en chip SPI solicitada desde el Visor Hexadecimal.</string>
+    <string name="str_log_vault_snapshot_saved">[BÓVEDA ANTIBRICK] 🛡️ Snapshot pre-flash automático guardado: %1$s</string>
+    <string name="str_log_vault_snapshot_error">[BÓVEDA ANTIBRICK] ⚠️ Error creando snapshot: %1$s</string>
+    <string name="str_vault_no_backups">No hay respaldos disponibles en la Bóveda de Seguridad.</string>
+    <string name="str_dialog_emergency_rollback_title">🚨 Rollback de Emergencia (Antibrick)</string>
+    <string name="str_dialog_emergency_rollback_msg">Se restaurará el último snapshot seguro de la Bóveda:\n\n• Archivo: %1$s\n• Fecha: %2$s\n• Tamaño: %3$s\n• Chip: %4$s\n• SHA-256: %5$s\n\n¿Deseas restaurar este archivo como bios.bin y disparar la grabación inmediata en el chip conectado?</string>
+    <string name="str_btn_restore_and_flash">🔥 Restaurar y Grabar</string>
+    <string name="str_log_rollback_restored">[ROLLBACK] 🔄 Volcado restaurado a bios.bin: %1$s</string>
+    <string name="str_log_rollback_error">[ROLLBACK] ❌ Error al restaurar el respaldo de emergencia.</string>
+    <string name="str_toast_rollback_restored">bios.bin restaurado desde la bóveda.</string>
+    <string name="str_dialog_unlock_sr_title">🔓 Desbloquear Registros de Estado (SR1/SR2/SR3)</string>
+    <string name="str_dialog_unlock_sr_msg">Muchas memorias SPI (Winbond, Macronix, Micron, GigaDevice) fallan al borrar o escribir porque los bits de protección contra escritura (BP0..BP3, SRP0, SEC, TB) están activos.\n\nEsta acción ejecutará flashrom con la opción --wp-disable para desbloquear todos los bloques protegidos por hardware y software.\n\n¿Deseas ejecutar el desbloqueo ahora?</string>
+    <string name="str_btn_unlock_chip">🔓 Desbloquear Chip</string>
+    <string name="str_log_unlocking_sr">[HARDWARE SPI] 🔓 Desbloqueando registros de estado (flashrom --wp-disable)...</string>
+    <string name="str_dialog_quad_enable_title">⚡ Configuración Quad Enable (Bit QE)</string>
+    <string name="str_dialog_quad_enable_msg">Las placas madre y tarjetas gráficas que arrancan en modo Quad-SPI (4 líneas IO) no dan video si el bit QE en el registro de estado SR2 del chip SPI se borra o desactiva.\n\nSelecciona una acción:</string>
+    <string name="str_btn_enable_qe">Habilitar / Desbloquear QE</string>
+    <string name="str_log_configuring_spi_sr">[HARDWARE SPI] ⚡ Configurando y desbloqueando registros SPI...</string>
+    <string name="str_btn_check_wp_status">Verificar Estado WP</string>
+    <string name="str_log_querying_wp_status">[HARDWARE SPI] 🔍 Consultando registros de estado y protección (flashrom --wp-status)...</string>
+    <string name="str_dialog_turbo_serprog_title">🏎️ Turbo Baudrate Serprog</string>
+    <string name="str_serprog_baud_115200">115,200 baudios (Estándar / Arduino UNO)</string>
+    <string name="str_serprog_baud_1m">1,000,000 baudios (Turbo 1M - CH340 / CP2102 / RP2040) 💎 PRO</string>
+    <string name="str_serprog_baud_2m">2,000,000 baudios (Ultra Turbo 2M - Optiboot / RP2040) 💎 PRO</string>
+    <string name="str_log_serprog_baud_set">[SERPROG] 🏎️ Velocidad serie configurada a %1$d bps.</string>
+    <string name="str_toast_serprog_baud">Serprog Baudrate: %1$d bps</string>
 </resources>

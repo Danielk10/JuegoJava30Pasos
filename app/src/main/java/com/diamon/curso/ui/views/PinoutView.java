@@ -217,21 +217,6 @@ public class PinoutView {
         }
     }
 
-    private static void dibujarPinHeader(Canvas g, float x, float y, String label, String[] etiquetas) {
-        float pH = 20, pW = 14, espacio = 4;
-        configurarTexto(11f, true);
-        dibujarTexto(g, label, x, y - 6, COL_LABEL);
-        for (int i = 0; i < 8; i++) {
-            float py = y + i * (pH + espacio);
-            dibujarRectangulo(g, x, py, pW, pH, COL_PANEL);
-            bordes(g, x, py, pW, pH, COL_BORDE);
-            configurarTexto(9f, false);
-            dibujarTexto(g, String.valueOf(i + 1), x + 3, py + pH - 4, COL_PIN_NUM);
-            int col = colorPin(etiquetas[i]);
-            dibujarTexto(g, etiquetas[i], x + pW + 6, py + pH - 4, col);
-        }
-    }
-
     private static void dibujarBusSPI(Context ctx, Canvas g) {
         float mx = 60, sy = 70, bW = 140, bH = 160;
 

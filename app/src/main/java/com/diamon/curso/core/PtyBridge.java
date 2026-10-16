@@ -15,11 +15,9 @@ import com.hoho.android.usbserial.driver.UsbSerialPort;
 import com.hoho.android.usbserial.driver.UsbSerialProber;
 
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
-import java.util.concurrent.TimeoutException;
 
 /**
  * PtyBridge: Puente entre el pseudo-terminal (PTY) que usa flashrom (-p
@@ -826,7 +824,11 @@ public class PtyBridge {
                                 // MODO ASÍNCRONO: UsbRequest.queue() + requestWait()
                                 if (!isQueued) {
                                     buffer.clear();
-                                    isQueued = request.queue(buffer, BUFFER_SIZE);
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                        isQueued = request.queue(buffer);
+                                    } else {
+                                        isQueued = request.queue(buffer, BUFFER_SIZE);
+                                    }
                                     if (!isQueued) {
                                         bridgeLog(getString(R.string.str_log_usb_request_failed));
                                         sleepQuietly(100);
@@ -931,14 +933,6 @@ public class PtyBridge {
         }, "PtyBridge-usb-to-master");
         threadUsbToMaster.setDaemon(true);
         threadUsbToMaster.start();
-    }
-
-    private static boolean isPtySlaveNotOpenedYet(IOException e) {
-        if (e == null || e.getMessage() == null) {
-            return false;
-        }
-        // Android típicamente entrega: "read failed: EIO (I/O error)"
-        return e.getMessage().contains("EIO");
     }
 
     private static void sleepQuietly(long millis) {

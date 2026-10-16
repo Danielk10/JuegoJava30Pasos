@@ -18,11 +18,9 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
-import android.text.Editable;
 import android.text.InputFilter;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
-import android.text.TextWatcher;
 import android.text.style.BackgroundColorSpan;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
@@ -181,7 +179,7 @@ public class HexViewerActivity extends AppCompatActivity {
         MenuItem saveItem = menu.findItem(R.id.action_save_and_flash);
         if (saveItem != null) {
             int mods = patchTransaction.getModifiedCount();
-            saveItem.setTitle(mods > 0 ? "💾 Guardar (" + mods + ")" : "💾 Guardar y Grabar");
+            saveItem.setTitle(mods > 0 ? getString(R.string.str_menu_save_mods, mods) : getString(R.string.menu_hex_save_and_flash));
         }
         return true;
     }
@@ -196,7 +194,7 @@ public class HexViewerActivity extends AppCompatActivity {
             if (patchTransaction.undo()) {
                 if (hexAdapter != null) hexAdapter.notifyDataSetChanged();
                 invalidateOptionsMenu();
-                Toast.makeText(this, "Modificación deshecha (" + patchTransaction.getModifiedCount() + " restantes)", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.str_toast_mod_undone, patchTransaction.getModifiedCount()), Toast.LENGTH_SHORT).show();
             }
             return true;
         } else if (id == R.id.action_patch_gbe) {
@@ -428,7 +426,7 @@ public class HexViewerActivity extends AppCompatActivity {
 
         // 1. TÍTULO CON OFFSET HEX Y DECIMAL
         TextView tvTitle = new TextView(this);
-        tvTitle.setText(String.format(Locale.US, "✏️ Editar Byte: 0x%08X [%d]", offset, offset));
+        tvTitle.setText(getString(R.string.str_edit_byte_title, offset, offset));
         tvTitle.setTextSize(18);
         tvTitle.setTypeface(null, Typeface.BOLD);
         tvTitle.setTextColor(0xFF00B0FF);
@@ -457,9 +455,8 @@ public class HexViewerActivity extends AppCompatActivity {
             char asciiChar = (curByte >= 32 && curByte <= 126) ? (char) curByte : '.';
 
             StringBuilder sbVal = new StringBuilder();
-            sbVal.append(String.format(Locale.US, "Original: 0x%02X (%d)\n", origByte & 0xFF, origByte & 0xFF));
-            sbVal.append(String.format(Locale.US, "Actual:   0x%02X (%d)   Bin: %s   ASCII: '%c'",
-                    curByte & 0xFF, curByte & 0xFF, binStr, asciiChar));
+            sbVal.append(getString(R.string.str_byte_original, origByte & 0xFF, origByte & 0xFF));
+            sbVal.append(getString(R.string.str_byte_current, curByte & 0xFF, curByte & 0xFF, binStr, asciiChar));
             tvValues.setText(sbVal.toString());
 
             // Lectura de 4 bytes con parches aplicados para desglose de endianness
@@ -474,10 +471,10 @@ public class HexViewerActivity extends AppCompatActivity {
             int be32 = ((b0 & 0xFF) << 24) | ((b1 & 0xFF) << 16) | ((b2 & 0xFF) << 8) | (b3 & 0xFF);
 
             StringBuilder sbEnd = new StringBuilder();
-            sbEnd.append("• 16-bit Word:\n");
-            sbEnd.append(String.format(Locale.US, "   LE: 0x%04X (%d)  |  BE: 0x%04X (%d)\n", le16, le16, be16, be16));
-            sbEnd.append("• 32-bit Dword:\n");
-            sbEnd.append(String.format(Locale.US, "   LE: 0x%08X (%d)\n   BE: 0x%08X (%d)", le32, le32, be32, be32));
+            sbEnd.append(getString(R.string.str_byte_word16_header));
+            sbEnd.append(getString(R.string.str_byte_endian_val, le16, le16, be16, be16));
+            sbEnd.append(getString(R.string.str_byte_dword32_header));
+            sbEnd.append(getString(R.string.str_byte_dword_endian_val, le32, le32, be32, be32));
             tvEndian.setText(sbEnd.toString());
         };
 
@@ -485,7 +482,7 @@ public class HexViewerActivity extends AppCompatActivity {
 
         // 4. CAMPO EDITTEXT PARA NUEVO VALOR EN HEXADECIMAL
         TextView tvInputLabel = new TextView(this);
-        tvInputLabel.setText("Nuevo Valor Hex (00 - FF):");
+        tvInputLabel.setText(R.string.str_new_hex_value_label);
         tvInputLabel.setTextColor(0xFFFFB300);
         tvInputLabel.setTextSize(14);
         layout.addView(tvInputLabel);
@@ -506,7 +503,7 @@ public class HexViewerActivity extends AppCompatActivity {
         btnRow.setPadding(0, 24, 0, 8);
 
         Button btnApply = new Button(this);
-        btnApply.setText("Aplicar");
+        btnApply.setText(R.string.str_btn_apply);
         btnApply.setBackgroundColor(0xFF00C853);
         btnApply.setTextColor(Color.WHITE);
         LinearLayout.LayoutParams p1 = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
@@ -514,7 +511,7 @@ public class HexViewerActivity extends AppCompatActivity {
         btnRow.addView(btnApply, p1);
 
         final Button btnUndo = new Button(this);
-        btnUndo.setText("Deshacer");
+        btnUndo.setText(R.string.str_btn_undo);
         btnUndo.setBackgroundColor(0xFF455A64);
         btnUndo.setTextColor(Color.WHITE);
         btnUndo.setEnabled(patchTransaction.canUndo());
@@ -523,7 +520,7 @@ public class HexViewerActivity extends AppCompatActivity {
         btnRow.addView(btnUndo, p2);
 
         final Button btnRedo = new Button(this);
-        btnRedo.setText("Rehacer");
+        btnRedo.setText(R.string.str_btn_redo);
         btnRedo.setBackgroundColor(0xFF455A64);
         btnRedo.setTextColor(Color.WHITE);
         btnRedo.setEnabled(patchTransaction.canRedo());
@@ -534,7 +531,7 @@ public class HexViewerActivity extends AppCompatActivity {
         layout.addView(btnRow);
         scrollView.addView(layout);
         builder.setView(scrollView);
-        builder.setNegativeButton("Cerrar", null);
+        builder.setNegativeButton(R.string.str_close, null);
 
         final AlertDialog dialog = builder.create();
 
@@ -550,9 +547,9 @@ public class HexViewerActivity extends AppCompatActivity {
                 btnRedo.setEnabled(patchTransaction.canRedo());
                 if (hexAdapter != null) hexAdapter.notifyItemChanged((int) (offset / 16));
                 invalidateOptionsMenu();
-                Toast.makeText(this, "Byte modificado correctamente", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.str_byte_modified_success, Toast.LENGTH_SHORT).show();
             } catch (Exception ex) {
-                Toast.makeText(this, "Hexadecimal no válido: " + hexStr, Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.str_invalid_hex, hexStr), Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -587,7 +584,7 @@ public class HexViewerActivity extends AppCompatActivity {
     private void showGbePatcherDialog() {
         final byte[] dump = getAllDumpBytes();
         if (dump.length == 0) {
-            Toast.makeText(this, "No hay volcado cargado", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.str_no_dump_loaded, Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -596,7 +593,7 @@ public class HexViewerActivity extends AppCompatActivity {
         final String currentMac = (region != null) ? region.getMacAddress() : "00:1B:21:88:99:AA";
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("🌐 Inyector de MAC Intel GbE");
+        builder.setTitle(R.string.str_dialog_gbe_title);
 
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
@@ -607,15 +604,13 @@ public class HexViewerActivity extends AppCompatActivity {
         tvInfo.setTextColor(0xFFE0E0E0);
         tvInfo.setTextSize(13);
         tvInfo.setTypeface(Typeface.MONOSPACE);
-        String info = String.format(Locale.US,
-                "• Región GbE Detectada: 0x%08X\n" +
-                "• MAC Actual: %s\n" +
-                "• Checksum 0xBABA: %s\n" +
-                "• Respaldo NVM: %s\n\n" +
-                "Introduce la nueva dirección MAC de la etiqueta:",
-                gbeOffset, currentMac,
-                (region != null && region.isChecksumValid()) ? "VÁLIDO (0xBABA)" : "INVÁLIDO/DESCONOCIDO",
-                (region != null && region.hasBackupRegion()) ? "PRESENTE" : "NO DETECTADO");
+        String checksumStatus = (region != null && region.isChecksumValid())
+                ? getString(R.string.str_gbe_checksum_valid)
+                : getString(R.string.str_gbe_checksum_invalid);
+        String backupStatus = (region != null && region.hasBackupRegion())
+                ? getString(R.string.str_gbe_backup_present)
+                : getString(R.string.str_gbe_backup_none);
+        String info = getString(R.string.str_gbe_info_format, gbeOffset, currentMac, checksumStatus, backupStatus);
         tvInfo.setText(info);
         layout.addView(tvInfo);
 
@@ -628,10 +623,10 @@ public class HexViewerActivity extends AppCompatActivity {
         layout.addView(etMac);
 
         builder.setView(layout);
-        builder.setPositiveButton("Inyectar y Recalcular Checksum", (dialog, which) -> {
+        builder.setPositiveButton(R.string.str_gbe_btn_inject, (dialog, which) -> {
             String newMacStr = etMac.getText().toString().trim();
             if (!GbeMacPatcher.isValidMacString(newMacStr)) {
-                Toast.makeText(this, "Formato MAC inválido (ej: AA:BB:CC:DD:EE:FF)", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, R.string.str_invalid_mac_format, Toast.LENGTH_LONG).show();
                 return;
             }
 
@@ -645,17 +640,17 @@ public class HexViewerActivity extends AppCompatActivity {
                 byte[] newBlock = new byte[nvmLen];
                 System.arraycopy(patchedDump, (int) gbeOffset, newBlock, 0, nvmLen);
 
-                patchTransaction.modifyBytes(gbeOffset, originalBlock, newBlock, "Inyección MAC Intel GbE");
+                patchTransaction.modifyBytes(gbeOffset, originalBlock, newBlock, getString(R.string.str_gbe_patch_desc));
                 if (hexAdapter != null) hexAdapter.notifyDataSetChanged();
                 recyclerHex.scrollToPosition((int) (gbeOffset / 16));
                 invalidateOptionsMenu();
 
-                Toast.makeText(this, "✅ MAC GbE inyectada y checksum 0xBABA corregido.", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, R.string.str_gbe_inject_success, Toast.LENGTH_LONG).show();
             } catch (Exception e) {
-                Toast.makeText(this, "Error al inyectar MAC: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                Toast.makeText(this, getString(R.string.str_gbe_inject_error, e.getMessage()), Toast.LENGTH_LONG).show();
             }
         });
-        builder.setNegativeButton("Cancelar", null);
+        builder.setNegativeButton(R.string.str_cancelar, null);
         builder.show();
     }
 
@@ -667,11 +662,11 @@ public class HexViewerActivity extends AppCompatActivity {
         MsdmExtractor.MsdmResult result = MsdmExtractor.extractKey(dump);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("🔑 Licencia Digital Windows OEM (MSDM)");
+        builder.setTitle(R.string.str_dialog_msdm_title);
 
         if (!result.isFound()) {
-            builder.setMessage("No se detectó ninguna tabla ACPI MSDM con clave de producto Windows en este volcado de BIOS.");
-            builder.setPositiveButton("Aceptar", null);
+            builder.setMessage(R.string.str_msdm_not_found);
+            builder.setPositiveButton(R.string.str_ok, null);
             builder.show();
             return;
         }
@@ -697,31 +692,28 @@ public class HexViewerActivity extends AppCompatActivity {
         tvDetails.setTextColor(0xFFB0BEC5);
         tvDetails.setTextSize(13);
         tvDetails.setTypeface(Typeface.MONOSPACE);
-        String details = String.format(Locale.US,
-                "• Fabricante (OEM ID): %s\n" +
-                "• Tabla ACPI: %s\n" +
-                "• Offset en Flash: 0x%08X\n" +
-                "• Checksum ACPI: %s",
+        String checksumValidStr = result.isChecksumValid() ? getString(R.string.str_status_valid) : getString(R.string.str_status_invalid);
+        String details = getString(R.string.str_msdm_details_format,
                 result.getOemId(), result.getOemTableId(),
                 tableOffset,
-                result.isChecksumValid() ? "VÁLIDO" : "INVÁLIDO");
+                checksumValidStr);
         tvDetails.setText(details);
         layout.addView(tvDetails);
 
         builder.setView(layout);
-        builder.setPositiveButton("📋 Copiar Clave", (dialog, which) -> {
+        builder.setPositiveButton(R.string.str_btn_copy_key, (dialog, which) -> {
             ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
             if (cm != null) {
                 cm.setPrimaryClip(ClipData.newPlainText("Windows OEM Key", productKey));
-                Toast.makeText(this, "Clave copiada al portapapeles: " + productKey, Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.str_msdm_copied_toast, productKey), Toast.LENGTH_SHORT).show();
             }
         });
-        builder.setNeutralButton("🔍 Ir a Offset", (dialog, which) -> {
+        builder.setNeutralButton(R.string.str_btn_goto_offset, (dialog, which) -> {
             if (recyclerHex != null) {
                 recyclerHex.scrollToPosition((int) (tableOffset / 16));
             }
         });
-        builder.setNegativeButton("Cerrar", null);
+        builder.setNegativeButton(R.string.str_close, null);
         builder.show();
     }
 
@@ -731,7 +723,7 @@ public class HexViewerActivity extends AppCompatActivity {
     private void showIntegrityDialog() {
         final byte[] dump = getAllDumpBytes();
         if (dump.length == 0) {
-            Toast.makeText(this, "No hay datos para calcular hashes", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.str_integrity_no_data, Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -740,7 +732,7 @@ public class HexViewerActivity extends AppCompatActivity {
         final IntegrityManager.ClipboardMatchResult matchResult = IntegrityManager.checkClipboardMatch(clipText, hashes);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("🔒 Verificador de Integridad Criptográfica");
+        builder.setTitle(R.string.str_dialog_integrity_title);
 
         ScrollView sv = new ScrollView(this);
         LinearLayout layout = new LinearLayout(this);
@@ -756,15 +748,15 @@ public class HexViewerActivity extends AppCompatActivity {
         if (matchResult.isMatched()) {
             tvBadge.setBackgroundColor(0xFF1B5E20);
             tvBadge.setTextColor(0xFF00E676);
-            tvBadge.setText(String.format("🟢 MATCH CERTIFIED (%s)\nCoincide al 100%% con el portapapeles.", matchResult.getMatchedAlgorithm()));
+            tvBadge.setText(getString(R.string.str_integrity_match_success, matchResult.getMatchedAlgorithm()));
         } else if (matchResult.hasClipboardHash()) {
             tvBadge.setBackgroundColor(0xFFB71C1C);
             tvBadge.setTextColor(0xFFFF5252);
-            tvBadge.setText("🔴 ADVERTENCIA DE INTEGRIDAD\nEl hash del volcado no coincide con el portapapeles.");
+            tvBadge.setText(R.string.str_integrity_mismatch_warning);
         } else {
             tvBadge.setBackgroundColor(0xFF263238);
             tvBadge.setTextColor(0xFF90A4AE);
-            tvBadge.setText("⚪ Sin hash reconocido en portapapeles para cotejo.");
+            tvBadge.setText(R.string.str_integrity_no_clipboard_hash);
         }
         layout.addView(tvBadge);
 
@@ -779,26 +771,26 @@ public class HexViewerActivity extends AppCompatActivity {
         sv.addView(layout);
         builder.setView(sv);
 
-        builder.setPositiveButton("📋 Copiar SHA-256", (d, w) -> {
+        builder.setPositiveButton(R.string.str_btn_copy_sha256, (d, w) -> {
             ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
             if (cm != null) {
                 cm.setPrimaryClip(ClipData.newPlainText("SHA256 Hash", hashes.getSha256()));
-                Toast.makeText(this, "SHA-256 copiado al portapapeles", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.str_toast_sha256_copied, Toast.LENGTH_SHORT).show();
             }
         });
 
-        builder.setNeutralButton("📄 Generar Sidecars", (d, w) -> {
+        builder.setNeutralButton(R.string.str_btn_generate_sidecars, (d, w) -> {
             try {
                 File targetDir = getFilesDir();
                 File binFile = (currentLoadedFile != null) ? currentLoadedFile : new File(targetDir, "bios.bin");
                 IntegrityManager.generateSidecars(binFile, hashes);
-                Toast.makeText(this, "Archivos .sha256 y .md5 generados exitosamente.", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, R.string.str_toast_sidecars_success, Toast.LENGTH_LONG).show();
             } catch (Exception ex) {
-                Toast.makeText(this, "Error generando sidecars: " + ex.getMessage(), Toast.LENGTH_LONG).show();
+                Toast.makeText(this, getString(R.string.str_toast_sidecars_error, ex.getMessage()), Toast.LENGTH_LONG).show();
             }
         });
 
-        builder.setNegativeButton("Cerrar", null);
+        builder.setNegativeButton(R.string.str_close, null);
         builder.show();
     }
 
@@ -807,7 +799,7 @@ public class HexViewerActivity extends AppCompatActivity {
     // =========================================================================
     private void saveAndFlash() {
         if (patchTransaction.getModifiedCount() == 0) {
-            Toast.makeText(this, "No hay modificaciones pendientes para guardar.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.str_no_pending_modifications, Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -822,25 +814,24 @@ public class HexViewerActivity extends AppCompatActivity {
             }
 
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("💾 Guardar y Grabar en Chip SPI");
-            builder.setMessage(String.format(Locale.US,
-                    "Se han aplicado %d modificaciones en %s.\n\n¿Deseas disparar la grabación directa en el chip SPI ahora?",
+            builder.setTitle(R.string.str_dialog_save_and_flash_title);
+            builder.setMessage(getString(R.string.str_dialog_save_and_flash_msg,
                     patchTransaction.getModifiedCount(), biosFile.getName()));
 
-            builder.setPositiveButton("🔥 Grabar en Chip", (dialog, which) -> {
+            builder.setPositiveButton(R.string.str_btn_write_to_chip, (dialog, which) -> {
                 Intent result = new Intent();
                 result.putExtra("trigger_flash", true);
                 setResult(RESULT_OK, result);
                 finish();
             });
 
-            builder.setNegativeButton("Solo Guardar", (dialog, which) -> {
-                Toast.makeText(this, "Cambios guardados en " + biosFile.getName(), Toast.LENGTH_SHORT).show();
+            builder.setNegativeButton(R.string.str_btn_save_only, (dialog, which) -> {
+                Toast.makeText(this, getString(R.string.str_toast_changes_saved, biosFile.getName()), Toast.LENGTH_SHORT).show();
             });
 
             builder.show();
         } catch (Exception e) {
-            Toast.makeText(this, "Error al guardar: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, getString(R.string.str_toast_save_error, e.getMessage()), Toast.LENGTH_LONG).show();
         }
     }
 

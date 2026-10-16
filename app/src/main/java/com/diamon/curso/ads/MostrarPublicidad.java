@@ -116,6 +116,7 @@ public class MostrarPublicidad implements Publicidad {
     /**
      * Calcula el tamaño óptimo de Anchored Adaptive Banner según el ancho de pantalla del dispositivo.
      */
+    @SuppressWarnings("deprecation")
     private AdSize getAdaptiveBannerAdSize(Activity activity) {
         if (activity == null) {
             return AdSize.BANNER;

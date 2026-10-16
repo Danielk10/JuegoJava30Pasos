@@ -3,11 +3,8 @@ package com.diamon.curso.binary;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Locale;
-import java.util.regex.Pattern;
 
 /**
  * Parser, inyector de MAC y recalculador de checksum NVM para regiones Intel GbE (Gigabit Ethernet).
@@ -38,8 +35,6 @@ public final class GbeMacPatcher {
 
     /** Firma del Descriptor Flash de Intel en offset 0x10. */
     public static final int INTEL_FD_SIGNATURE = 0x0FF0A55A;
-
-    private static final Pattern MAC_PATTERN = Pattern.compile("^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$|^[0-9A-Fa-f]{12}$");
 
     private static volatile boolean sNativeAvailable = false;
     static {

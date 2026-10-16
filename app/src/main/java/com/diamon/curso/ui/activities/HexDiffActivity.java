@@ -18,6 +18,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.diamon.curso.diff.DiffHeatmapView;
+import com.diamon.curso.diff.MappedDiffDataSource;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
@@ -27,8 +30,8 @@ public class HexDiffActivity extends AppCompatActivity {
     private TextView tvDiffSummary, tvDiffStats;
     private RecyclerView recyclerDiff;
     private Button btnLoadFile1, btnLoadFile2;
-    private com.diamon.curso.diff.DiffHeatmapView diffHeatmapView;
-    private com.diamon.curso.diff.MappedDiffDataSource currentDiffSource;
+    private DiffHeatmapView diffHeatmapView;
+    private MappedDiffDataSource currentDiffSource;
 
     private byte[] dataA = null;
     private byte[] dataB = null;
@@ -166,12 +169,12 @@ public class HexDiffActivity extends AppCompatActivity {
         if (currentDiffSource != null) {
             currentDiffSource.close();
         }
-        currentDiffSource = new com.diamon.curso.diff.MappedDiffDataSource(dataA, dataB);
-        final com.diamon.curso.diff.MappedDiffDataSource diffSource = currentDiffSource;
+        currentDiffSource = new MappedDiffDataSource(dataA, dataB);
+        final MappedDiffDataSource diffSource = currentDiffSource;
 
         tvDiffSummary.setText(getString(R.string.str_compare_summary, nameA, dataA.length, nameB, dataB.length));
         tvDiffStats.setVisibility(View.VISIBLE);
-        tvDiffStats.setText("Escaneando sectores...");
+        tvDiffStats.setText(R.string.str_scanning_sectors);
 
         new Thread(() -> {
             diffSource.scan(null);

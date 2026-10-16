@@ -15,16 +15,16 @@ import com.diamon.curso.managers.SafetyVaultManager;
 import java.util.Locale;
 
 import android.app.AlertDialog;
-import android.app.PendingIntent;
 import android.content.ClipData;
 import android.content.ClipboardManager;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.hardware.usb.UsbDevice;
-import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
+import androidx.core.content.IntentCompat;
+import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -32,7 +32,6 @@ import android.os.Environment;
 import android.os.Looper;
 import android.os.PowerManager;
 import android.view.WindowManager;
-import android.text.InputType;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.util.Log;
@@ -44,38 +43,22 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import com.diamon.curso.ui.views.LogScrollView;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
-import androidx.core.content.IntentCompat;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import android.content.SharedPreferences;
-import android.widget.ProgressBar;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -86,7 +69,6 @@ import com.microsoft.appcenter.crashes.Crashes;
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "FlashromApp";
-    private static final String ACTION_USB_PERMISSION = "com.diamon.curso.USB_PERMISSION";
     private static final String PREFS = "flashrom_prefs";
     private static final String KEY_PROGRAMMER = "selected_programmer";
     private static final String KEY_EXPORT_URI = "export_uri";
@@ -185,7 +167,7 @@ public class MainActivity extends AppCompatActivity {
             result -> {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                     if (result.getData().getBooleanExtra("trigger_flash", false)) {
-                        log("[HEX EDITOR] 🔥 Grabación en chip SPI solicitada desde el Visor Hexadecimal.");
+                        log(getString(R.string.str_log_hex_flash_requested));
                         btnWrite.performClick();
                     }
                 }
@@ -657,9 +639,9 @@ public class MainActivity extends AppCompatActivity {
                             try {
                                 SafetyVaultManager vault = SafetyVaultManager.getInstance(MainActivity.this);
                                 SafetyVaultManager.VaultBackup backup = vault.createPreFlashSnapshot(biosFile, selectedProgrammer);
-                                log("[BÓVEDA ANTIBRICK] 🛡️ Snapshot pre-flash automático guardado: " + backup.getFile().getName());
+                                log(getString(R.string.str_log_vault_snapshot_saved, backup.getFile().getName()));
                             } catch (Exception ex) {
-                                log("[BÓVEDA ANTIBRICK] ⚠️ Error creando snapshot: " + ex.getMessage());
+                                log(getString(R.string.str_log_vault_snapshot_error, ex.getMessage()));
                             }
                         }
                     }
@@ -1317,13 +1299,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private String stackTrace(Throwable error) {
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
-        error.printStackTrace(pw);
-        return sw.toString();
-    }
-
     private void setupLogCopySupport() {
         tvLog.setTextIsSelectable(true);
         tvLog.setLongClickable(true);
@@ -1370,19 +1345,6 @@ public class MainActivity extends AppCompatActivity {
         fileOrDirectory.delete();
     }
 
-    private void setButtonsEnabled(boolean enabled) {
-        btnProbe.setEnabled(enabled);
-        btnVerify.setEnabled(enabled);
-        btnRead.setEnabled(enabled);
-        btnWrite.setEnabled(enabled);
-        btnEraseChip.setEnabled(enabled);
-        btnConnect.setEnabled(enabled);
-        btnImport.setEnabled(enabled);
-        btnExport.setEnabled(enabled);
-        btnRunCustomCommand.setEnabled(enabled);
-        etCustomCommand.setEnabled(enabled);
-    }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu, menu);
@@ -1394,11 +1356,11 @@ public class MainActivity extends AppCompatActivity {
         MenuItem proItem = menu.findItem(R.id.action_pro_status);
         if (proItem != null) {
             if (billingManager != null && billingManager.isProPurchased()) {
-                proItem.setTitle("👑 PRO");
+                proItem.setTitle(R.string.menu_pro_permanent);
             } else if (proPassManager != null && proPassManager.hasActiveProPass()) {
-                proItem.setTitle("⭐ Pro " + proPassManager.getTiempoRestanteFormateado());
+                proItem.setTitle(getString(R.string.menu_pro_timer, proPassManager.getTiempoRestanteFormateado()));
             } else {
-                proItem.setTitle("💎 PRO");
+                proItem.setTitle(R.string.menu_pro_mode);
             }
         }
         return super.onPrepareOptionsMenu(menu);
@@ -1471,61 +1433,49 @@ public class MainActivity extends AppCompatActivity {
         SafetyVaultManager vault = SafetyVaultManager.getInstance(this);
         SafetyVaultManager.VaultBackup latest = vault.getLatestBackup();
         if (latest == null || !latest.getFile().exists()) {
-            Toast.makeText(this, "No hay respaldos disponibles en la Bóveda de Seguridad.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, R.string.str_vault_no_backups, Toast.LENGTH_LONG).show();
             return;
         }
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("🚨 Rollback de Emergencia (Antibrick)");
-        builder.setMessage(String.format(Locale.US,
-                "Se restaurará el último snapshot seguro de la Bóveda:\n\n" +
-                "• Archivo: %s\n" +
-                "• Fecha: %s\n" +
-                "• Tamaño: %s\n" +
-                "• Chip: %s\n" +
-                "• SHA-256: %s\n\n" +
-                "¿Deseas restaurar este archivo como bios.bin y disparar la grabación inmediata en el chip conectado?",
+        builder.setTitle(R.string.str_dialog_emergency_rollback_title);
+        builder.setMessage(getString(R.string.str_dialog_emergency_rollback_msg,
                 latest.getFile().getName(),
                 latest.getFormattedDate(),
                 SafetyVaultManager.formatFileSize(latest.getSizeBytes()),
                 latest.getChipName(),
                 latest.getSha256() != null && latest.getSha256().length() >= 16 ? latest.getSha256().substring(0, 16) + "..." : "N/A"));
 
-        builder.setPositiveButton("🔥 Restaurar y Grabar", (dialog, which) -> {
+        builder.setPositiveButton(R.string.str_btn_restore_and_flash, (dialog, which) -> {
             File target = new File(getFilesDir(), "bios.bin");
             if (vault.restoreBackup(latest, target)) {
-                log("[ROLLBACK] 🔄 Volcado restaurado a bios.bin: " + latest.getFile().getName());
+                log(getString(R.string.str_log_rollback_restored, latest.getFile().getName()));
                 btnWrite.performClick();
             } else {
-                log("[ROLLBACK] ❌ Error al restaurar el respaldo de emergencia.");
+                log(getString(R.string.str_log_rollback_error));
             }
         });
 
-        builder.setNeutralButton("Solo Restaurar", (dialog, which) -> {
+        builder.setNeutralButton(R.string.str_btn_save_only, (dialog, which) -> {
             File target = new File(getFilesDir(), "bios.bin");
             if (vault.restoreBackup(latest, target)) {
-                log("[ROLLBACK] 🔄 bios.bin restaurado desde la bóveda: " + latest.getFile().getName());
-                Toast.makeText(this, "bios.bin restaurado desde la bóveda.", Toast.LENGTH_SHORT).show();
+                log(getString(R.string.str_log_rollback_restored, latest.getFile().getName()));
+                Toast.makeText(this, R.string.str_toast_rollback_restored, Toast.LENGTH_SHORT).show();
             }
         });
 
-        builder.setNegativeButton("Cancelar", null);
+        builder.setNegativeButton(R.string.str_cancelar, null);
         builder.show();
     }
 
     private void showUnlockStatusRegistersDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("🔓 Desbloquear Registros de Estado (SR1/SR2/SR3)");
-        builder.setMessage(
-                "Muchas memorias SPI (Winbond, Macronix, Micron, GigaDevice) fallan al borrar o escribir " +
-                "porque los bits de protección contra escritura (BP0..BP3, SRP0, SEC, TB) están activos.\n\n" +
-                "Esta acción ejecutará flashrom con la opción --wp-disable para desbloquear todos los bloques " +
-                "protegidos por hardware y software.\n\n" +
-                "¿Deseas ejecutar el desbloqueo ahora?");
+        builder.setTitle(R.string.str_dialog_unlock_sr_title);
+        builder.setMessage(R.string.str_dialog_unlock_sr_msg);
 
-        builder.setPositiveButton("🔓 Desbloquear Chip", (dialog, which) -> {
+        builder.setPositiveButton(R.string.str_btn_unlock_chip, (dialog, which) -> {
             ensureProgrammerThenRun(() -> {
-                log("[HARDWARE SPI] 🔓 Desbloqueando registros de estado (flashrom --wp-disable)...");
+                log(getString(R.string.str_log_unlocking_sr));
                 if (isDummyProgrammer()) {
                     executeFlashromTask("-p", "dummy:emulate=W25Q128FV", "--wp-disable");
                 } else {
@@ -1533,21 +1483,18 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
         });
-        builder.setNegativeButton("Cancelar", null);
+        builder.setNegativeButton(R.string.str_cancelar, null);
         builder.show();
     }
 
     private void showQuadEnableDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("⚡ Configuración Quad Enable (Bit QE)");
-        builder.setMessage(
-                "Las placas madre y tarjetas gráficas que arrancan en modo Quad-SPI (4 líneas IO) no dan video " +
-                "si el bit QE en el registro de estado SR2 del chip SPI se borra o desactiva.\n\n" +
-                "Selecciona una acción:");
+        builder.setTitle(R.string.str_dialog_quad_enable_title);
+        builder.setMessage(R.string.str_dialog_quad_enable_msg);
 
-        builder.setPositiveButton("Habilitar / Desbloquear QE", (dialog, which) -> {
+        builder.setPositiveButton(R.string.str_btn_enable_qe, (dialog, which) -> {
             ensureProgrammerThenRun(() -> {
-                log("[HARDWARE SPI] ⚡ Configurando y desbloqueando registros SPI...");
+                log(getString(R.string.str_log_configuring_spi_sr));
                 if (isDummyProgrammer()) {
                     executeFlashromTask("-p", "dummy:emulate=W25Q128FV", "--wp-disable");
                 } else {
@@ -1556,9 +1503,9 @@ public class MainActivity extends AppCompatActivity {
             });
         });
 
-        builder.setNeutralButton("Verificar Estado WP", (dialog, which) -> {
+        builder.setNeutralButton(R.string.str_btn_check_wp_status, (dialog, which) -> {
             ensureProgrammerThenRun(() -> {
-                log("[HARDWARE SPI] 🔍 Consultando registros de estado y protección (flashrom --wp-status)...");
+                log(getString(R.string.str_log_querying_wp_status));
                 if (isDummyProgrammer()) {
                     executeFlashromTask("-p", "dummy:emulate=W25Q128FV", "--wp-status");
                 } else {
@@ -1567,16 +1514,16 @@ public class MainActivity extends AppCompatActivity {
             });
         });
 
-        builder.setNegativeButton("Cancelar", null);
+        builder.setNegativeButton(R.string.str_cancelar, null);
         builder.show();
     }
 
     private void showTurboSerprogDialog() {
         final int[] bauds = {115200, 1000000, 2000000};
         final String[] options = {
-                "115,200 baudios (Estándar / Arduino UNO)",
-                "1,000,000 baudios (Turbo 1M - CH340 / CP2102 / RP2040) 💎 PRO",
-                "2,000,000 baudios (Ultra Turbo 2M - Optiboot / RP2040) 💎 PRO"
+                getString(R.string.str_serprog_baud_115200),
+                getString(R.string.str_serprog_baud_1m),
+                getString(R.string.str_serprog_baud_2m)
         };
 
         int currentBaud = UsbController.getSerprogBaud();
@@ -1589,7 +1536,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("🏎️ Turbo Baudrate Serprog");
+        builder.setTitle(R.string.str_dialog_turbo_serprog_title);
         builder.setSingleChoiceItems(options, selectedIndex, (dialog, which) -> {
             dialog.dismiss();
             final int chosenBaud = bauds[which];
@@ -1599,15 +1546,15 @@ public class MainActivity extends AppCompatActivity {
                 applySerprogBaud(chosenBaud);
             }
         });
-        builder.setNegativeButton("Cancelar", null);
+        builder.setNegativeButton(R.string.str_cancelar, null);
         builder.show();
     }
 
     private void applySerprogBaud(int baud) {
         UsbController.setSerprogBaud(baud);
         getSharedPreferences(PREFS, MODE_PRIVATE).edit().putInt("serprog_baud", baud).apply();
-        log(String.format(Locale.US, "[SERPROG] 🏎️ Velocidad serie configurada a %d bps.", baud));
-        Toast.makeText(this, "Serprog Baudrate: " + baud + " bps", Toast.LENGTH_SHORT).show();
+        log(getString(R.string.str_log_serprog_baud_set, baud));
+        Toast.makeText(this, getString(R.string.str_toast_serprog_baud, baud), Toast.LENGTH_SHORT).show();
     }
 
     private void exportSerprogFirmware() {
@@ -1641,25 +1588,6 @@ public class MainActivity extends AppCompatActivity {
             log(getString(R.string.str_error_copying_asset, assetName, e.getMessage()));
             return false;
         }
-    }
-
-    private void mostrarDialogoDonacionPizza() {
-        String precio = (billingManager != null)
-                ? billingManager.getFormattedPrice(BillingManager.PRODUCT_ID_PIZZA, "$5.00")
-                : "$5.00";
-        String btnTexto = getString(R.string.donate_dialog_btn, precio);
-
-        new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-                .setIcon(R.drawable.ic_pizza)
-                .setTitle(R.string.donate_dialog_title)
-                .setMessage(R.string.donate_dialog_message)
-                .setPositiveButton(btnTexto, (dialog, which) -> {
-                    if (billingManager != null) {
-                        billingManager.launchPurchaseFlow(this, BillingManager.PRODUCT_ID_PIZZA);
-                    }
-                })
-                .setNegativeButton(R.string.str_cancelar, null)
-                .show();
     }
 
     private void mostrarDialogoAgradecimiento() {

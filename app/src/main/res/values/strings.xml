@@ -259,4 +259,101 @@
     <string name="menu_pro_mode">⭐ Pro Mode</string>
     <string name="menu_pro_permanent">👑 Permanent Pro</string>
     <string name="menu_pro_timer">⭐ Pro %1$s</string>
+
+    <!-- Hex Diff Activity -->
+    <string name="str_scanning_sectors">Scanning sectors…</string>
+
+    <!-- General Common Action -->
+    <string name="str_ok">OK</string>
+    <string name="str_btn_apply">Apply</string>
+    <string name="str_btn_undo">Undo</string>
+    <string name="str_btn_redo">Redo</string>
+
+    <!-- Hex Viewer Activity -->
+    <string name="menu_hex_patch_gbe">🌐 Inject Intel GbE MAC</string>
+    <string name="menu_hex_extract_msdm">🔑 Extract MSDM Key</string>
+    <string name="menu_hex_verify_integrity">🔒 Verify Integrity</string>
+    <string name="menu_hex_undo">↩️ Undo</string>
+    <string name="menu_hex_save_and_flash">💾 Save &amp; Flash</string>
+    <string name="str_menu_save_mods">💾 Save (%1$d)</string>
+    <string name="str_toast_mod_undone">Modification undone (%1$d remaining)</string>
+    <string name="str_edit_byte_title">✏️ Edit Byte: 0x%1$08X [%2$d]</string>
+    <string name="str_byte_original">Original: 0x%1$02X (%2$d)\n</string>
+    <string name="str_byte_current">Current:  0x%1$02X (%2$d)   Bin: %3$s   ASCII: \'%4$c\'</string>
+    <string name="str_byte_word16_header">• 16-bit Word:\n</string>
+    <string name="str_byte_dword32_header">• 32-bit Dword:\n</string>
+    <string name="str_byte_endian_val">   LE: 0x%1$04X (%2$d)  |  BE: 0x%3$04X (%4$d)\n</string>
+    <string name="str_byte_dword_endian_val">   LE: 0x%1$08X (%2$d)\n   BE: 0x%3$08X (%4$d)</string>
+    <string name="str_new_hex_value_label">New Hex Value (00 - FF):</string>
+    <string name="str_byte_modified_success">Byte modified successfully</string>
+    <string name="str_invalid_hex">Invalid hexadecimal: %1$s</string>
+    <string name="str_no_dump_loaded">No dump loaded</string>
+    <string name="str_dialog_gbe_title">🌐 Intel GbE MAC Injector</string>
+    <string name="str_gbe_info_format">• GbE Region Detected: 0x%1$08X\n• Current MAC: %2$s\n• 0xBABA Checksum: %3$s\n• NVM Backup: %4$s\n\nEnter the new MAC address from the label:</string>
+    <string name="str_gbe_checksum_valid">VALID (0xBABA)</string>
+    <string name="str_gbe_checksum_invalid">INVALID/UNKNOWN</string>
+    <string name="str_gbe_backup_present">PRESENT</string>
+    <string name="str_gbe_backup_none">NOT DETECTED</string>
+    <string name="str_gbe_btn_inject">Inject &amp; Recalculate Checksum</string>
+    <string name="str_invalid_mac_format">Invalid MAC format (e.g. AA:BB:CC:DD:EE:FF)</string>
+    <string name="str_gbe_patch_desc">Intel GbE MAC Injection</string>
+    <string name="str_gbe_inject_success">✅ Intel GbE MAC injected and 0xBABA checksum corrected.</string>
+    <string name="str_gbe_inject_error">Error injecting MAC: %1$s</string>
+    <string name="str_dialog_msdm_title">🔑 Windows OEM Digital License (MSDM)</string>
+    <string name="str_msdm_not_found">No ACPI MSDM table with Windows product key was detected in this BIOS dump.</string>
+    <string name="str_btn_copy_key">📋 Copy Key</string>
+    <string name="str_btn_goto_offset">🔍 Go to Offset</string>
+    <string name="str_msdm_copied_toast">Key copied to clipboard: %1$s</string>
+    <string name="str_msdm_details_format">• Manufacturer (OEM ID): %1$s\n• ACPI Table: %2$s\n• Flash Offset: 0x%3$08X\n• ACPI Checksum: %4$s</string>
+    <string name="str_status_valid">VALID</string>
+    <string name="str_status_invalid">INVALID</string>
+    <string name="str_integrity_no_data">No data loaded to compute hashes</string>
+    <string name="str_dialog_integrity_title">🔒 Cryptographic Integrity Verifier</string>
+    <string name="str_integrity_match_success">🟢 MATCH CERTIFIED (%1$s)\n100%% matches the clipboard.</string>
+    <string name="str_integrity_mismatch_warning">🔴 INTEGRITY WARNING\nDump hash does not match clipboard.</string>
+    <string name="str_integrity_no_clipboard_hash">⚪ No recognized hash found in clipboard for comparison.</string>
+    <string name="str_btn_copy_sha256">📋 Copy SHA-256</string>
+    <string name="str_toast_sha256_copied">SHA-256 copied to clipboard</string>
+    <string name="str_btn_generate_sidecars">📄 Generate Sidecars</string>
+    <string name="str_toast_sidecars_success">.sha256 and .md5 sidecar files generated successfully.</string>
+    <string name="str_toast_sidecars_error">Error generating sidecars: %1$s</string>
+    <string name="str_no_pending_modifications">No pending modifications to save.</string>
+    <string name="str_dialog_save_and_flash_title">💾 Save &amp; Flash to SPI Chip</string>
+    <string name="str_dialog_save_and_flash_msg">%1$d modifications applied to %2$s.\n\nDo you want to write directly to the SPI chip now?</string>
+    <string name="str_btn_write_to_chip">🔥 Write to Chip</string>
+    <string name="str_btn_save_only">Save Only</string>
+    <string name="str_toast_changes_saved">Changes saved to %1$s</string>
+    <string name="str_toast_save_error">Error saving: %1$s</string>
+
+    <!-- Main Menu & Hardware Dialogs -->
+    <string name="menu_emergency_rollback">🚨 Emergency Rollback</string>
+    <string name="menu_unlock_status_registers">🔓 Unlock SPI Registers (SR1/SR2/SR3)</string>
+    <string name="menu_quad_enable">⚡ Enable/Verify Quad Enable (Bit QE)</string>
+    <string name="menu_turbo_serprog">🏎️ Turbo Baudrate Serprog (1M / 2M)</string>
+    <string name="str_log_hex_flash_requested">[HEX EDITOR] 🔥 SPI chip write requested from Hex Viewer.</string>
+    <string name="str_log_vault_snapshot_saved">[SAFETY VAULT] 🛡️ Automatic pre-flash snapshot saved: %1$s</string>
+    <string name="str_log_vault_snapshot_error">[SAFETY VAULT] ⚠️ Error creating snapshot: %1$s</string>
+    <string name="str_vault_no_backups">No backups available in the Safety Vault.</string>
+    <string name="str_dialog_emergency_rollback_title">🚨 Emergency Rollback (Antibrick)</string>
+    <string name="str_dialog_emergency_rollback_msg">The latest safe snapshot from the Vault will be restored:\n\n• File: %1$s\n• Date: %2$s\n• Size: %3$s\n• Chip: %4$s\n• SHA-256: %5$s\n\nDo you want to restore this file as bios.bin and immediately write to the connected chip?</string>
+    <string name="str_btn_restore_and_flash">🔥 Restore &amp; Flash</string>
+    <string name="str_log_rollback_restored">[ROLLBACK] 🔄 Dump restored to bios.bin: %1$s</string>
+    <string name="str_log_rollback_error">[ROLLBACK] ❌ Error restoring emergency backup.</string>
+    <string name="str_toast_rollback_restored">bios.bin restored from safety vault.</string>
+    <string name="str_dialog_unlock_sr_title">🔓 Unlock Status Registers (SR1/SR2/SR3)</string>
+    <string name="str_dialog_unlock_sr_msg">Many SPI flash chips (Winbond, Macronix, Micron, GigaDevice) fail to erase or write because write protection bits (BP0..BP3, SRP0, SEC, TB) are active.\n\nThis action will run flashrom with --wp-disable to unlock all hardware and software protected blocks.\n\nDo you want to proceed with unlocking now?</string>
+    <string name="str_btn_unlock_chip">🔓 Unlock Chip</string>
+    <string name="str_log_unlocking_sr">[HARDWARE SPI] 🔓 Unlocking status registers (flashrom --wp-disable)...</string>
+    <string name="str_dialog_quad_enable_title">⚡ Quad Enable Configuration (Bit QE)</string>
+    <string name="str_dialog_quad_enable_msg">Motherboards and GPU boards that boot in Quad-SPI mode (4 IO lines) will fail to post video if the QE bit in status register SR2 of the SPI chip is cleared or disabled.\n\nSelect an action:</string>
+    <string name="str_btn_enable_qe">Enable / Unlock QE</string>
+    <string name="str_log_configuring_spi_sr">[HARDWARE SPI] ⚡ Configuring and unlocking SPI registers...</string>
+    <string name="str_btn_check_wp_status">Check WP Status</string>
+    <string name="str_log_querying_wp_status">[HARDWARE SPI] 🔍 Checking status and protection registers (flashrom --wp-status)...</string>
+    <string name="str_dialog_turbo_serprog_title">🏎️ Serprog Turbo Baudrate</string>
+    <string name="str_serprog_baud_115200">115,200 baud (Standard / Arduino UNO)</string>
+    <string name="str_serprog_baud_1m">1,000,000 baud (Turbo 1M - CH340 / CP2102 / RP2040) 💎 PRO</string>
+    <string name="str_serprog_baud_2m">2,000,000 baud (Ultra Turbo 2M - Optiboot / RP2040) 💎 PRO</string>
+    <string name="str_log_serprog_baud_set">[SERPROG] 🏎️ Serial baudrate configured to %1$d bps.</string>
+    <string name="str_toast_serprog_baud">Serprog Baudrate: %1$d bps</string>
 </resources>
