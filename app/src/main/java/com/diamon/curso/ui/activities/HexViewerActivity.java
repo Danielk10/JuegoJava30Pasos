@@ -49,6 +49,7 @@ import com.diamon.curso.utils.FileManager;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -280,7 +281,18 @@ public class HexViewerActivity extends AppCompatActivity {
                 fileName = dataFile.getName();
 
                 if (fileName.toLowerCase().endsWith(".hex")) {
-                    byte[] data = java.nio.file.Files.readAllBytes(dataFile.toPath());
+                    byte[] data;
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                        data = java.nio.file.Files.readAllBytes(dataFile.toPath());
+                    } else {
+                        ByteArrayOutputStream bos = new ByteArrayOutputStream((int) dataFile.length());
+                        try (FileInputStream fis = new FileInputStream(dataFile)) {
+                            byte[] buf = new byte[8192];
+                            int n;
+                            while ((n = fis.read(buf)) != -1) bos.write(buf, 0, n);
+                        }
+                        data = bos.toByteArray();
+                    }
                     parseIntelHex(data, biosSource);
                 } else {
                     MappedFileSource mmapSource = new MappedFileSource(dataFile);
