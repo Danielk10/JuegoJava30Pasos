@@ -179,11 +179,11 @@ public class BillingManager implements PurchasesUpdatedListener {
                 ProductDetails selectedDetails = null;
                 for (ProductDetails details : queryResult.getProductDetailsList()) {
                     availableProducts.put(details.getProductId(), details);
-                    if (PRODUCT_ID_REMOVE_ADS.equals(details.getProductId())) {
+                    if (PRODUCT_ID_PIZZA.equals(details.getProductId())) {
+                        selectedDetails = details;
+                    } else if (selectedDetails == null && PRODUCT_ID_REMOVE_ADS.equals(details.getProductId())) {
                         selectedDetails = details;
                     } else if (selectedDetails == null && PRODUCT_ID_REMOVE_ADS_ALT.equals(details.getProductId())) {
-                        selectedDetails = details;
-                    } else if (selectedDetails == null && PRODUCT_ID_PIZZA.equals(details.getProductId())) {
                         selectedDetails = details;
                     }
 

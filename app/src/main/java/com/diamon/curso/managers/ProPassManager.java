@@ -11,6 +11,9 @@ import androidx.annotation.VisibleForTesting;
 
 import com.diamon.curso.R;
 import com.diamon.curso.billing.BillingManager;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -18,14 +21,17 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
  * Gestor del Pase Temporal Flash SPI Tool Pro (12 Horas).
  * Otorga acceso completo a todas las herramientas avanzadas Pro y elimina los anuncios tras
  * visualizar un anuncio de video recompensado (Rewarded Ad de AdMob).
- * Incluye respaldo firmado con SHA-256 en almacenamiento persistente local (.flash_spi_pro_pass.dat)
- * resistente a limpieza de caché.
+ * Incluye respaldo firmado con SHA-256 en almacenamiento persistente local (.flash_spi_pro_pass.dat),
+ * sincronización cloud en Firebase Firestore y Google Cloud Backup para que el usuario no pierda sus 12 horas
+ * al limpiar datos de la app, desinstalar o reinstalar en el mismo dispositivo.
  */
 public class ProPassManager {
 
@@ -51,6 +57,7 @@ public class ProPassManager {
         this.prefs = this.context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         if (!hasActiveProPass()) {
             intentarRestaurarRespaldo();
+            intentarRestaurarDesdeFirestore(null);
         }
     }
 
@@ -71,6 +78,7 @@ public class ProPassManager {
         long nuevoVencimiento = System.currentTimeMillis() + DURACION_PASE_MS;
         prefs.edit().putLong(KEY_EXPIRE_TIME, nuevoVencimiento).apply();
         guardarRespaldoPersistente(nuevoVencimiento);
+        guardarRespaldoEnFirestore(nuevoVencimiento);
     }
 
     private String getDeviceId() {
@@ -147,6 +155,63 @@ public class ProPassManager {
                 }
             }
         } catch (Exception ignored) {
+        }
+    }
+
+    private void guardarRespaldoEnFirestore(long expireTime) {
+        if (context == null) return;
+        new Thread(() -> {
+            try {
+                FirebaseFirestore db = FirebaseFirestore.getInstance();
+                Map<String, Object> data = new HashMap<>();
+                data.put("deviceId", getDeviceId());
+                data.put("expireTime", expireTime);
+                data.put("updatedAt", FieldValue.serverTimestamp());
+                data.put("active", true);
+
+                db.collection("pro_passes")
+                        .document(getDeviceId())
+                        .set(data, SetOptions.merge())
+                        .addOnSuccessListener(aVoid -> Log.d(TAG, "Pase Pro respaldado en Firestore exitosamente"))
+                        .addOnFailureListener(e -> Log.w(TAG, "Error al respaldar Pase Pro en Firestore: " + e.getMessage()));
+            } catch (Throwable t) {
+                Log.w(TAG, "Firestore no disponible o error al guardar: " + t.getMessage());
+            }
+        }, "ProPassFirestoreBackup").start();
+    }
+
+    /**
+     * Consulta Firestore en la nube para sincronizar o restaurar el pase de 12 horas.
+     * Útil tras desinstalar y reinstalar la aplicación en el mismo dispositivo o tras limpieza de datos.
+     */
+    public void intentarRestaurarDesdeFirestore(@Nullable OnPassRestoredListener listener) {
+        if (context == null) return;
+        try {
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+            db.collection("pro_passes")
+                    .document(getDeviceId())
+                    .get()
+                    .addOnSuccessListener(snapshot -> {
+                        if (snapshot != null && snapshot.exists()) {
+                            Long expireTime = snapshot.getLong("expireTime");
+                            if (expireTime != null && expireTime > System.currentTimeMillis()) {
+                                if (expireTime > getExpireTime()) {
+                                    prefs.edit().putLong(KEY_EXPIRE_TIME, expireTime).apply();
+                                    guardarRespaldoPersistente(expireTime);
+                                    Log.i(TAG, "Pase Pro recuperado de Firebase Firestore (expira en: " + expireTime + ")");
+                                    if (listener != null) {
+                                        listener.onPassRestored(expireTime);
+                                    }
+                                    if (onPassRestoredListener != null) {
+                                        onPassRestoredListener.onPassRestored(expireTime);
+                                    }
+                                }
+                            }
+                        }
+                    })
+                    .addOnFailureListener(e -> Log.w(TAG, "No se pudo recuperar Pase Pro de Firestore: " + e.getMessage()));
+        } catch (Throwable t) {
+            Log.w(TAG, "Firestore no inicializado o sin conectividad: " + t.getMessage());
         }
     }
 

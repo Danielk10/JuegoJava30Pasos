@@ -144,6 +144,7 @@ public class HexViewerActivity extends AppCompatActivity {
         }
 
         proPassManager = new ProPassManager(this);
+        proPassManager.setOnPassRestoredListener(expireTime -> runOnUiThread(this::invalidateOptionsMenu));
         billingManager = new BillingManager(this, null);
 
         tvHexSummary = findViewById(R.id.tvHexSummary);

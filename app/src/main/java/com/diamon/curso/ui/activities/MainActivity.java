@@ -482,7 +482,7 @@ public class MainActivity extends AppCompatActivity {
         setupLogCopySupport();
 
         proPassManager = new ProPassManager(this);
-        proPassManager.setOnPassRestoredListener(expireTime -> runOnUiThread(this::invalidateOptionsMenu));
+        proPassManager.setOnPassRestoredListener(expireTime -> actualizarEstadoProUI());
 
         UsbController.setSerprogBaud(UsbController.DEFAULT_SERPROG_BAUD);
 
@@ -505,7 +505,7 @@ public class MainActivity extends AppCompatActivity {
             public void onPurchaseSuccess(String productId) {
                 runOnUiThread(() -> {
                     mostrarDialogoAgradecimiento();
-                    invalidateOptionsMenu();
+                    actualizarEstadoProUI();
                 });
             }
 
@@ -1351,6 +1351,16 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    private void actualizarEstadoProUI() {
+        runOnUiThread(() -> {
+            boolean isPro = proPassManager != null && proPassManager.isProActive(billingManager);
+            if (isPro && mostrarPublicidad != null) {
+                mostrarPublicidad.ocultarBanner();
+            }
+            invalidateOptionsMenu();
+        });
+    }
+
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         MenuItem proItem = menu.findItem(R.id.action_pro_status);
@@ -1371,7 +1381,7 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         if (id == R.id.action_pro_status) {
-            ProAccessDialog.show(this, mostrarPublicidad, billingManager, proPassManager, this::invalidateOptionsMenu);
+            ProAccessDialog.show(this, mostrarPublicidad, billingManager, proPassManager, this::actualizarEstadoProUI);
             return true;
         } else if (id == R.id.action_emergency_rollback) {
             handleProFeature("Rollback de Emergencia", this::showEmergencyRollbackDialog);

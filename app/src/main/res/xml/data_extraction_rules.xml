@@ -5,15 +5,11 @@
 -->
 <data-extraction-rules>
     <cloud-backup>
-        <!-- TODO: Use <include> and <exclude> to control what is backed up.
-        <include .../>
-        <exclude .../>
-        -->
+        <include domain="sharedpref" path="pro_pass_prefs.xml"/>
+        <include domain="file" path=".flash_spi_pro_pass.dat"/>
     </cloud-backup>
-    <!--
     <device-transfer>
-        <include .../>
-        <exclude .../>
+        <include domain="sharedpref" path="pro_pass_prefs.xml"/>
+        <include domain="file" path=".flash_spi_pro_pass.dat"/>
     </device-transfer>
-    -->
 </data-extraction-rules>
