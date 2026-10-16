@@ -94,11 +94,25 @@ Inspirado exactamente en el módulo de monetización exitoso de **PIC-k150-Progr
 ```
 
 ### 3.1 Google Play Billing 9.1.0 (`BillingManager.java`)
-- **Product ID Principal:** `remove_ads_pro` (no consumible).
-- **Product ID Alternativo:** `remove_ads` (retrocompatibilidad garantizada).
-- **Donación Opcional:** Se conserva `donacion_pizza` para quienes deseen seguir aportando consumibles.
+- **Product ID Principal Recomendado:** `remove_ads_pro` (no consumible / permanente).
+- **Product ID Alternativo / Reutilización:** `donacion_pizza` y `remove_ads` (retrocompatibilidad total).
 - **Consultas Silenciosas:** Todas las comprobaciones de red se realizan en segundo plano sin interrumpir ni escribir mensajes de error en la consola de flasheo.
-- **Acknowledge Automático:** Confirmación de compra (`acknowledgePurchase`) para evitar reembolsos a los 3 días.
+- **Acknowledge Automático:** Confirmación de compra (`acknowledgePurchase`) para evitar reembolsos a los 3 días y garantizar permanencia tras reinstalar.
+
+#### 💡 ¿Se puede reutilizar el ID `donacion_pizza` o modificar su nombre y etiqueta en Google Play Console?
+**SÍ, es totalmente posible y compatible:**
+1. **Campos que SÍ puedes modificar libremente en Google Play Console para un producto ya creado:**
+   - **Nombre del producto (Name):** Puedes cambiarlo de *"Donar Pizza"* a *"Flash SPI Tool Pro (Sin Anuncios + Herramientas)"*.
+   - **Descripción (Description):** Puedes actualizarla detallando todas las herramientas Pro desbloqueadas.
+   - **Etiquetas (Tags):** Puedes cambiarlas libremente (ej. `flash-spi-pro`).
+   - **Ícono (Icon):** Puedes subir el nuevo ícono PNG de 512x512.
+   - **Precio y Disponibilidad:** Puedes cambiarlo a `$4.99 USD` (o el valor deseado) y distribuirlo en los 174 países.
+2. **Lo ÚNICO que Google Play NO permite cambiar:**
+   - El texto del campo **ID del producto** (`donacion_pizza`). Este identificador técnico queda congelado como clave primaria en los servidores de Google.
+3. **Diferencia técnica crucial (Consumible vs. No Consumible):**
+   - **Cómo funcionaba antes `donacion_pizza`:** La app llamaba a `consumeAsync()`. Al consumirse, Google Play **borra la compra de la cuenta** del usuario para que pueda donar otra pizza en el futuro. Por ende, si reinstalaba la app, no se podía restaurar.
+   - **Cómo funcionará ahora:** La nueva lógica de `BillingManager` reconocerá `donacion_pizza` (o `remove_ads_pro`) mediante `acknowledgePurchase()` **sin consumirlo**. Al no consumirlo, Google Play lo guarda de por vida asociado a la cuenta de Google del usuario, restaurándolo automáticamente al reinstalar o cambiar de teléfono.
+4. **Soporte Dual en Código:** La aplicación consultará y aceptará **ambos IDs en simultáneo** (`remove_ads_pro` y `donacion_pizza`). Así, tú decides si prefieres crear un producto nuevo en Play Console o simplemente editar el nombre y precio del producto existente `donacion_pizza`.
 
 ### 3.2 Pase Pro de 12 Horas (`ProPassManager.java`)
 - Otorga 12 horas continuas (`12 * 3600 * 1000 ms`) tras ver un video bonificado de AdMob.
