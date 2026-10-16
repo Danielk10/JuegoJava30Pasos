@@ -51,6 +51,4 @@ Esta versión (v1.9.1, código de versión 87) consolida la suite **Flash SPI To
   *SHA-256:* `9f26796b190297804e16926afdf29a41a78eba7363034d5f04f59437cfbb43e1`  
 • **AAB Release (Google Play Bundle):** `Flash-SPI-Tool-v1.9.1.aab` (17 MB)  
   *SHA-256:* `a5f77e6b8a0d8a0d9666212c7acc148cd8b8637c6d150c0020bc394018b42649`  
-• **APK Debug:** `Flash-SPI-Tool-v1.9.1-debug.apk` (21 MB)  
-  *SHA-256:* `d05865e92cb5939d4571c836551c2091e3549bf90a7625ab48062909346f1e30`  
 • **Firma Digital:** Certificado oficial RSA 2048-bit (Esquema v2 verificado con `apksigner`)
