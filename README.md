@@ -1,9 +1,9 @@
-# Flash SPI Tool v1.9.1
+# Flash SPI Tool v1.9.2
 
-[![Release](https://img.shields.io/badge/Release-v1.9.1%20(Build%2087)-007ACC?logo=github&logoColor=white)](https://github.com/danielk10/Flash-EEPROM-Tool)
+[![Release](https://img.shields.io/badge/Release-v1.9.2%20(Build%2088)-007ACC?logo=github&logoColor=white)](https://github.com/danielk10/Flash-EEPROM-Tool)
 [![Android](https://img.shields.io/badge/Android-7.0%2B%20(API%2024%20a%20API%2037)-3DDC84?logo=android&logoColor=white)](https://developer.android.com/)
 [![minSdk](https://img.shields.io/badge/minSdk-24%20(Nougat)-brightgreen?logo=android)](https://developer.android.com/)
-[![Architecture](https://img.shields.io/badge/Architecture-Pro%20Suite%20%7C%20Zero--OOM-FF6F00?logo=materialdesignicons&logoColor=white)](./RELEASE_NOTES_v1.9.1.md)
+[![Architecture](https://img.shields.io/badge/Architecture-Pro%20Suite%20%7C%20Zero--OOM-FF6F00?logo=materialdesignicons&logoColor=white)](./RELEASE_NOTES_v1.9.2.md)
 [![ABI](https://img.shields.io/badge/ABI-arm64--v8a%20(16KB%20Aligned)-0091EA?logo=arm&logoColor=white)](https://developer.android.com/ndk/guides/abis)
 [![NDK](https://img.shields.io/badge/NDK-r30--rc1-4CAF50?logo=android&logoColor=white)](https://developer.android.com/ndk)
 [![AGP](https://img.shields.io/badge/AGP-9.2.1-blue?logo=android)](https://developer.android.com/studio/releases/gradle-plugin)
@@ -20,8 +20,8 @@
 Diseñada tanto para ingenieros de hardware y laboratorios de reparación técnica como para entusiastas de la electrónica, la suite integra el poder del motor nativo de **flashrom** y una capa de transporte de alto rendimiento en C++ (`usb_bridge.cpp`) con una interfaz gráfica moderna, segura y optimizada para dispositivos táctiles.
 
 > **Información de la Versión Actual:**
-> - **Versión de la App:** `v1.9.1`
-> - **Código de Versión (`versionCode`):** `87`
+> - **Versión de la App:** `v1.9.2`
+> - **Código de Versión (`versionCode`):** `88`
 > - **Rango de Compatibilidad:** Android 7.0 Nougat (API 24) hasta Android 17 (API 37)
 > - **Arquitectura de Procesador:** ARM64 (`arm64-v8a`) con alineación de páginas de memoria de 16KB para compatibilidad total con Android 15+.
 > - **Seguridad:** Operación 100% en espacio de usuario mediante Android USB Host API; no requiere root.
@@ -95,11 +95,11 @@ Todas las funciones indispensables para el trabajo con chips flash y recuperaci�
 
 ## 💎 Flash SPI Tool Pro Suite (Monetización Ética & Híbrida)
 
-Para respaldar el mantenimiento continuo del proyecto sin comprometer las operaciones básicas de silicio, la versión 1.9.1 incluye la suite de ingeniería avanzada **Flash SPI Tool PRO** con un esquema de monetización justo, transparente y accesible:
+Para respaldar el mantenimiento continuo del proyecto sin comprometer las operaciones básicas de silicio, la versión 1.9.2 incluye la suite de ingeniería avanzada **Flash SPI Tool PRO** con un esquema de monetización justo, transparente y accesible:
 
 ### Esquema de Acceso Flexible y Justo
-1. **Pase Pro Gratuito de 12 Horas**: Cualquier usuario puede desbloquear la suite Pro completa de forma 100% gratuita durante 12 horas continuas con solo visualizar un anuncio de video bonificado (Rewarded Video de Google AdMob). Puede renovarse indefinidamente.
-2. **Desbloqueo Permanente In-App ($5.00 USD)**: Compra única de por vida mediante Google Play Billing (`remove_ads_pro`) con reconocimiento permanente de licencia para técnicos profesionales.
+1. **Pase Pro Gratuito de 12 Horas con Nube Firebase**: Cualquier usuario puede desbloquear la suite Pro completa de forma 100% gratuita durante 12 horas continuas con solo visualizar un anuncio de video bonificado (Rewarded Video de Google AdMob). El pase cuenta con **persistencia multinivel en Firebase Firestore (colección `pro_passes`)**, respaldo local firmado con SHA-256 (`.flash_spi_pro_pass.dat`) y Google Cloud Backup para que no se pierda al reinstalar la app o limpiar datos. Puede renovarse indefinidamente.
+2. **Desbloqueo Permanente In-App ($4.99 USD)**: Compra única de por vida mediante Google Play Billing (`donacion_pizza` / `remove_ads_pro`) con reconocimiento permanente de licencia (`acknowledgePurchase`) para técnicos profesionales.
 3. **Sin anuncios de por vida**: Tanto con el Pase de 12 horas como con la compra de por vida, se suprimen en su totalidad los banners e intersticiales publicitarios.
 
 ### Herramientas Avanzadas de la Suite Pro

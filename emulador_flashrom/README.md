@@ -1,6 +1,6 @@
-# Emulador de Flashrom (GD25Q80) — Flash SPI Tool v1.9.0
+# Emulador de Flashrom (GD25Q80) — Flash SPI Tool v1.9.2
 
-Entorno de simulación de hardware y silicio para desarrollo, pruebas unitarias y validación local de **Flash SPI Tool v1.9.0** sin necesidad de conectar programadores físicos o chips reales.
+Entorno de simulación de hardware y silicio para desarrollo, pruebas unitarias y validación local de **Flash SPI Tool v1.9.2** sin necesidad de conectar programadores físicos o chips reales.
 
 El emulador implementa un modelo de silicio en C++ para el chip **GigaDevice GD25Q80** (1 Megabyte / 1024 KB) junto con la emulación de protocolo para los cuatro tipos de programadores compatibles con la aplicación.
 

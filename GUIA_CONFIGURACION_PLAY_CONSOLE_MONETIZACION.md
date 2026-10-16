@@ -153,7 +153,24 @@ La aplicación utiliza anuncios bonificados (**Rewarded Ads**) para otorgar el *
 
 ---
 
-## ⚡ 5. Supresión Absoluta de Anuncios (Zero Ads / Sin anuncios de por vida)
+## ☁️ 5. Persistencia Cloud del Pase 12h en Firebase Firestore (Arquitectura PIC K150)
+
+Para asegurar que los usuarios no pierdan sus horas restantes al limpiar datos, cambiar de versión o reinstalar la app, el sistema implementa una **persistencia cuádruple multinivel** idéntica a `PIC-k150-Programing`:
+
+1. **Nivel 1 — SharedPreferences:** Lectura y escritura inmediata en `pro_pass_prefs.xml` con latencia de 0 ms.
+2. **Nivel 2 — Archivo Firmado Local con SHA-256:** Almacenado en `.flash_spi_pro_pass.dat` en el almacenamiento interno privado. Protege contra borrados de caché.
+3. **Nivel 3 — Firebase Firestore Cloud:**
+   - **Proyecto:** `pic-k150-programing-9d189` (compartido entre aplicaciones).
+   - **Colección:** `pro_passes`
+   - **Documento:** `deviceId` (`Settings.Secure.ANDROID_ID`).
+   - **Campos:** `expireTime` (timestamp ms), `updatedAt` (ServerTimestamp) y `active: true`.
+   - **Reglas de Seguridad:** Lectura y escritura directa para `/pro_passes/{deviceId}`.
+   - **Restauración:** Al arrancar la app, si no hay pase activo en memoria local, consulta Firestore y restaura el tiempo si aún no ha expirado.
+4. **Nivel 4 — Google Cloud Auto-Backup:** Incluido en `backup_rules.xml` y `data_extraction_rules.xml` para respaldos automáticos en Google Drive.
+
+---
+
+## ⚡ 6. Supresión Absoluta de Anuncios (Zero Ads / Sin anuncios de por vida)
 
 Cuando el usuario tiene el **Pase Pro activo** (sea por compra in-app permanente con **Sin anuncios de por vida** o mediante el pase temporal de 12 horas por video bonificado):
 1. **Banner Adaptativo:** Se oculta de inmediato (`View.GONE`) y se detiene la recarga.
@@ -164,7 +181,7 @@ Cuando el usuario tiene el **Pase Pro activo** (sea por compra in-app permanente
 
 ---
 
-## ✅ 6. Checklist de Validación Final
+## ✅ 7. Checklist de Validación Final
 
 - [ ] Producto `remove_ads_pro` (o ID legacy `donacion_pizza`) creado y en estado **Activo** en Google Play Console.
 - [ ] Opción de compra configurada como `Comprar` (precio ~$4.99 USD) para otorgar **Sin anuncios de por vida** y la suite Pro completa.

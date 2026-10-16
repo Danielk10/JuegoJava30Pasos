@@ -1,6 +1,6 @@
-# Guía de Uso del Emulador Flashrom (CH341A, Serprog, Bus Pirate y SPIDriver) — Flash SPI Tool v1.9.0
+# Guía de Uso del Emulador Flashrom (CH341A, Serprog, Bus Pirate y SPIDriver) — Flash SPI Tool v1.9.2
 
-Esta guía explica en detalle cómo compilar, configurar y usar el **Emulador de Memorias Flash SPI** desarrollado en C++ junto con la versión parchada de **`libusb`** y **`flashrom`** nativo para la validación y pruebas de **Flash SPI Tool v1.9.0** (versionCode 86).
+Esta guía explica en detalle cómo compilar, configurar y usar el **Emulador de Memorias Flash SPI** desarrollado en C++ junto con la versión parchada de **`libusb`** y **`flashrom`** nativo para la validación y pruebas de **Flash SPI Tool v1.9.2** (versionCode 88).
 
 El emulador permite simular dispositivos programadores reales contra una memoria SPI de prueba (**GigaDevice GD25Q80** de 1 MB) en un entorno local, ideal para desarrollo, validación y depuración rápida sin hardware real.
 
