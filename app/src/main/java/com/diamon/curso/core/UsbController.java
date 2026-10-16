@@ -22,7 +22,16 @@ import java.util.Map;
 
 public class UsbController {
     private static final String ACTION_USB_PERMISSION = "com.diamon.curso.USB_PERMISSION";
-    private static final int SERPROG_BAUD = 115200;
+    public static final int DEFAULT_SERPROG_BAUD = 115200;
+    private static int serprogBaud = DEFAULT_SERPROG_BAUD;
+
+    public static int getSerprogBaud() {
+        return serprogBaud;
+    }
+
+    public static void setSerprogBaud(int baud) {
+        serprogBaud = (baud > 0) ? baud : DEFAULT_SERPROG_BAUD;
+    }
 
     public interface Callback {
         void log(String message);
@@ -293,9 +302,9 @@ public class UsbController {
             callback.log(activity.getString(R.string.str_serial_programmer_detected));
             PtyBridge bridge = new PtyBridge();
             bridge.setLogCallback(msg -> callback.log(msg));
-            if (bridge.open(activity, device, usbManager, currentConnection, SERPROG_BAUD)) {
+            if (bridge.open(activity, device, usbManager, currentConnection, serprogBaud)) {
                 ptyBridge = bridge;
-                callback.log(activity.getString(R.string.str_pty_bridge_active_format, ptyBridge.getSlavePath(), SERPROG_BAUD));
+                callback.log(activity.getString(R.string.str_pty_bridge_active_format, ptyBridge.getSlavePath(), serprogBaud));
             } else {
                 callback.log(activity.getString(R.string.str_warn_pty_start_failed));
             }

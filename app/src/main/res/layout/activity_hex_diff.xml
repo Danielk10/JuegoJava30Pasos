@@ -55,6 +55,13 @@
         android:layout_marginBottom="4dp"
         android:visibility="gone" />
 
+    <com.diamon.curso.diff.DiffHeatmapView
+        android:id="@+id/diffHeatmapView"
+        android:layout_width="match_parent"
+        android:layout_height="32dp"
+        android:layout_marginBottom="6dp"
+        android:visibility="gone" />
+
     <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"

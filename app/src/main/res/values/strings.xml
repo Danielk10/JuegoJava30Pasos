@@ -235,4 +235,28 @@
     <string name="str_transport_socket_desc">Local TCP Socket (127.0.0.1) - Recommended (High speed, zero latency)</string>
     <string name="str_transport_pty_desc">Pseudoterminal PTY (/dev/pts) - Classic mode (Optimized C++ engine)</string>
     <string name="str_err_usb_host_not_supported">USB Host service is not supported or available on this device.</string>
+
+    <!-- Pro Suite & 12-Hour Pass -->
+    <string name="pro_access_title">⭐ %1$s Pro</string>
+    <string name="pro_access_subtitle">Unlock advanced technical suite for %1$s</string>
+    <string name="pro_feature_antibrick_vault">Safety Vault (Antibrick Pre-Flash Backup)</string>
+    <string name="pro_feature_crypto_checker">Cryptographic Integrity Verifier (MD5, SHA-256, CRC32)</string>
+    <string name="pro_feature_live_hex_editor">Live Hexadecimal Editor &amp; In-Place Byte Patching</string>
+    <string name="pro_feature_intel_gbe_mac">Intel GbE LAN MAC Injector with 0xBABA Checksum</string>
+    <string name="pro_feature_msdm_extractor">Windows OEM Digital License Key Extractor (MSDM)</string>
+    <string name="pro_feature_spi_registers">1-Click SPI Status Register Unlock (SR1/SR2/SR3)</string>
+    <string name="pro_feature_delta_flashing">Selective 4KB Sector Delta Flashing (90% faster)</string>
+    <string name="pro_feature_zero_ads">Zero Advertising (No Banners or Interstitials)</string>
+    <string name="pro_btn_watch_rewarded_video">🎬 Watch Video - 12-Hour Free Pass</string>
+    <string name="pro_pass_activated_toast">⭐ %1$s Pro pass activated for 12 hours!</string>
+    <string name="pro_ads_not_available">Rewarded video not available at this moment</string>
+    <string name="pro_btn_buy_permanent">👑 Buy %1$s Pro Permanent%2$s</string>
+    <string name="pro_billing_not_available">Google Play Billing not available</string>
+    <string name="pro_permanent_active_title">Flash SPI Tool Pro Permanent Active</string>
+    <string name="pro_permanent_active_desc">You have Flash SPI Tool Pro permanently. All advanced tools are fully unlocked without ads or time limits.</string>
+    <string name="ad_loading_rewarded_video_toast">Loading rewarded video... Please try again in a few seconds.</string>
+    <string name="pro_pass_expired">Expired</string>
+    <string name="menu_pro_mode">⭐ Pro Mode</string>
+    <string name="menu_pro_permanent">👑 Permanent Pro</string>
+    <string name="menu_pro_timer">⭐ Pro %1$s</string>
 </resources>

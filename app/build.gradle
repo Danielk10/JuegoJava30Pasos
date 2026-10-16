@@ -1,5 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.google.services)
+    alias(libs.plugins.firebase.crashlytics)
 }
 
 def keystorePropertiesFile = rootProject.file("keystore.properties")
@@ -23,8 +25,8 @@ android {
         applicationId "com.diamon.curso"
         minSdk 23
         targetSdk 37
-        versionCode 85
-        versionName "1.8.9"
+        versionCode 86
+        versionName "1.9.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -86,6 +88,10 @@ android {
         }
         doNotStrip "**/*.so"
     }
+
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
 }
 
 tasks.withType(JavaCompile).configureEach {
@@ -102,7 +108,12 @@ dependencies {
     implementation libs.appcenter.crashes
     implementation libs.play.services.ads
     implementation libs.play.billing
+    implementation platform(libs.firebase.bom)
+    implementation libs.firebase.crashlytics
+    implementation libs.firebase.crashlytics.ndk
+    implementation libs.firebase.analytics
     testImplementation libs.junit
+    testImplementation libs.mockito.core
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
 }

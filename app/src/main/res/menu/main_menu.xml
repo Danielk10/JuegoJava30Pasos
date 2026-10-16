@@ -3,6 +3,31 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     
     <item
+        android:id="@+id/action_pro_status"
+        android:title="💎 PRO"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_emergency_rollback"
+        android:title="🚨 Rollback de Emergencia"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_unlock_status_registers"
+        android:title="🔓 Desbloquear Registros SPI (SR1/SR2/SR3)"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_quad_enable"
+        android:title="⚡ Activar/Verificar Quad Enable (Bit QE)"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_turbo_serprog"
+        android:title="🏎️ Turbo Baudrate Serprog (1M / 2M)"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_hex_viewer"
         android:title="@string/str_visor_hexadecim"
         app:showAsAction="never" />

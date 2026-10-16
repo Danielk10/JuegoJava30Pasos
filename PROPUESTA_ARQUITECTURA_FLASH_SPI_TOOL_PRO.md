@@ -124,7 +124,7 @@ Inspirado exactamente en el módulo de monetización exitoso de **PIC-k150-Progr
 ### 3.3 Gestión Publicitaria (`MostrarPublicidad.java`)
 - Control mediante interfaz `AdsDisabledChecker`:
   - Si el usuario tiene Pase Pro activo o compra permanente, el banner adaptativo se oculta con `View.GONE` y los interstitials se omiten inmediatamente con `return false`.
-- Unidad Rewarded Video AdMob: `ca-app-pub-5141499161332805/7291519778`.
+- Unidad Rewarded Video AdMob: `ca-app-pub-5141499161332805/9025351389`.
 
 ---
 

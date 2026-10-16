@@ -17,12 +17,15 @@
 .cxx
 local.properties
 
-# Keystore files
+# Keystore files and credentials
 *.jks
 *.keystore
 keystore.properties
-
+google-services.json
+*/google-services.json
 *.json
+.*_pro_pass.dat
+
 
 *.apk
 *.aab

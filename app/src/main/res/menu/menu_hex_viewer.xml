@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_patch_gbe"
+        android:title="🌐 Inyectar MAC GbE"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_extract_msdm"
+        android:title="🔑 Extraer Clave MSDM"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_verify_integrity"
+        android:title="🔒 Verificar Integridad"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_undo"
+        android:title="↩️ Deshacer"
+        android:icon="@android:drawable/ic_menu_revert"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_save_and_flash"
+        android:title="💾 Guardar y Grabar"
+        android:icon="@android:drawable/ic_menu_save"
+        app:showAsAction="ifRoom" />
+
+</menu>

@@ -8,7 +8,13 @@ import com.diamon.curso.core.UsbController;
 import com.diamon.curso.core.FlashromExecutor;
 import com.diamon.curso.ui.views.PinoutView;
 import com.diamon.curso.utils.AssetHelper;
+import com.diamon.curso.managers.ProAccessDialog;
+import com.diamon.curso.managers.ProPassManager;
+import com.diamon.curso.managers.SafetyVaultManager;
 
+import java.util.Locale;
+
+import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -170,12 +176,19 @@ public class MainActivity extends AppCompatActivity {
     private volatile String lastReadFile = "bios.bin"; // archivo del último read exitoso
     private MostrarPublicidad mostrarPublicidad;
     private BillingManager billingManager;
+    private ProPassManager proPassManager;
     private PowerManager.WakeLock operationWakeLock;
 
-    // API para Visor Hexadecimal (Anuncio al regresar)
+    // API para Visor Hexadecimal (Anuncio al regresar y disparo de grabación)
     private final ActivityResultLauncher<Intent> hexViewerLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    if (result.getData().getBooleanExtra("trigger_flash", false)) {
+                        log("[HEX EDITOR] 🔥 Grabación en chip SPI solicitada desde el Visor Hexadecimal.");
+                        btnWrite.performClick();
+                    }
+                }
                 if (mostrarPublicidad != null) {
                     mostrarPublicidad.mostrarInterstitialConCooldown();
                 }
@@ -484,7 +497,15 @@ public class MainActivity extends AppCompatActivity {
         }
         setupLogCopySupport();
 
+        proPassManager = new ProPassManager(this);
+        proPassManager.setOnPassRestoredListener(expireTime -> runOnUiThread(this::invalidateOptionsMenu));
+
+        int savedSerprogBaud = getSharedPreferences(PREFS, MODE_PRIVATE)
+                .getInt("serprog_baud", UsbController.DEFAULT_SERPROG_BAUD);
+        UsbController.setSerprogBaud(savedSerprogBaud);
+
         mostrarPublicidad = new MostrarPublicidad(this);
+        mostrarPublicidad.setAdsDisabledChecker(() -> proPassManager.isProActive(billingManager));
         adContainer = findViewById(R.id.adContainer);
         if (adContainer != null) {
             adContainer.addView(mostrarPublicidad.getBanner());
@@ -500,7 +521,10 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onPurchaseSuccess(String productId) {
-                mostrarDialogoAgradecimiento();
+                runOnUiThread(() -> {
+                    mostrarDialogoAgradecimiento();
+                    invalidateOptionsMenu();
+                });
             }
 
             @Override
@@ -627,6 +651,19 @@ public class MainActivity extends AppCompatActivity {
                 }));
         btnWrite.setOnClickListener(
                 v -> ensureProgrammerThenRun(() -> {
+                    if (proPassManager != null && proPassManager.isProActive(billingManager)) {
+                        File biosFile = new File(getFilesDir(), "bios.bin");
+                        if (biosFile.exists() && biosFile.length() > 0) {
+                            try {
+                                SafetyVaultManager vault = SafetyVaultManager.getInstance(MainActivity.this);
+                                SafetyVaultManager.VaultBackup backup = vault.createPreFlashSnapshot(biosFile, selectedProgrammer);
+                                log("[BÓVEDA ANTIBRICK] 🛡️ Snapshot pre-flash automático guardado: " + backup.getFile().getName());
+                            } catch (Exception ex) {
+                                log("[BÓVEDA ANTIBRICK] ⚠️ Error creando snapshot: " + ex.getMessage());
+                            }
+                        }
+                    }
+
                     if (isDummyProgrammer()) {
                         executeMainDummyCommand("-w");
                     } else {
@@ -1353,10 +1390,40 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        MenuItem proItem = menu.findItem(R.id.action_pro_status);
+        if (proItem != null) {
+            if (billingManager != null && billingManager.isProPurchased()) {
+                proItem.setTitle("👑 PRO");
+            } else if (proPassManager != null && proPassManager.hasActiveProPass()) {
+                proItem.setTitle("⭐ Pro " + proPassManager.getTiempoRestanteFormateado());
+            } else {
+                proItem.setTitle("💎 PRO");
+            }
+        }
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        if (id == R.id.action_hex_viewer) {
+        if (id == R.id.action_pro_status) {
+            ProAccessDialog.show(this, mostrarPublicidad, billingManager, proPassManager, this::invalidateOptionsMenu);
+            return true;
+        } else if (id == R.id.action_emergency_rollback) {
+            handleProFeature("Rollback de Emergencia", this::showEmergencyRollbackDialog);
+            return true;
+        } else if (id == R.id.action_unlock_status_registers) {
+            handleProFeature("Desbloqueo de Registros SPI", this::showUnlockStatusRegistersDialog);
+            return true;
+        } else if (id == R.id.action_quad_enable) {
+            handleProFeature("Quad Enable (Bit QE)", this::showQuadEnableDialog);
+            return true;
+        } else if (id == R.id.action_turbo_serprog) {
+            showTurboSerprogDialog();
+            return true;
+        } else if (id == R.id.action_hex_viewer) {
             hexViewerLauncher.launch(new Intent(this, HexViewerActivity.class));
             return true;
         } else if (id == R.id.action_programmer_settings) {
@@ -1385,11 +1452,162 @@ public class MainActivity extends AppCompatActivity {
             exportSerprogFirmware();
             return true;
         } else if (id == R.id.action_donate_pizza) {
-            mostrarDialogoDonacionPizza();
+            ProAccessDialog.show(this, mostrarPublicidad, billingManager, proPassManager, this::invalidateOptionsMenu);
             return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void handleProFeature(String featureName, Runnable onGranted) {
+        if (proPassManager != null && proPassManager.isProActive(billingManager)) {
+            onGranted.run();
+        } else {
+            ProAccessDialog.show(this, mostrarPublicidad, billingManager, proPassManager, onGranted);
+        }
+    }
+
+    private void showEmergencyRollbackDialog() {
+        SafetyVaultManager vault = SafetyVaultManager.getInstance(this);
+        SafetyVaultManager.VaultBackup latest = vault.getLatestBackup();
+        if (latest == null || !latest.getFile().exists()) {
+            Toast.makeText(this, "No hay respaldos disponibles en la Bóveda de Seguridad.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("🚨 Rollback de Emergencia (Antibrick)");
+        builder.setMessage(String.format(Locale.US,
+                "Se restaurará el último snapshot seguro de la Bóveda:\n\n" +
+                "• Archivo: %s\n" +
+                "• Fecha: %s\n" +
+                "• Tamaño: %s\n" +
+                "• Chip: %s\n" +
+                "• SHA-256: %s\n\n" +
+                "¿Deseas restaurar este archivo como bios.bin y disparar la grabación inmediata en el chip conectado?",
+                latest.getFile().getName(),
+                latest.getFormattedDate(),
+                SafetyVaultManager.formatFileSize(latest.getSizeBytes()),
+                latest.getChipName(),
+                latest.getSha256() != null && latest.getSha256().length() >= 16 ? latest.getSha256().substring(0, 16) + "..." : "N/A"));
+
+        builder.setPositiveButton("🔥 Restaurar y Grabar", (dialog, which) -> {
+            File target = new File(getFilesDir(), "bios.bin");
+            if (vault.restoreBackup(latest, target)) {
+                log("[ROLLBACK] 🔄 Volcado restaurado a bios.bin: " + latest.getFile().getName());
+                btnWrite.performClick();
+            } else {
+                log("[ROLLBACK] ❌ Error al restaurar el respaldo de emergencia.");
+            }
+        });
+
+        builder.setNeutralButton("Solo Restaurar", (dialog, which) -> {
+            File target = new File(getFilesDir(), "bios.bin");
+            if (vault.restoreBackup(latest, target)) {
+                log("[ROLLBACK] 🔄 bios.bin restaurado desde la bóveda: " + latest.getFile().getName());
+                Toast.makeText(this, "bios.bin restaurado desde la bóveda.", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        builder.setNegativeButton("Cancelar", null);
+        builder.show();
+    }
+
+    private void showUnlockStatusRegistersDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("🔓 Desbloquear Registros de Estado (SR1/SR2/SR3)");
+        builder.setMessage(
+                "Muchas memorias SPI (Winbond, Macronix, Micron, GigaDevice) fallan al borrar o escribir " +
+                "porque los bits de protección contra escritura (BP0..BP3, SRP0, SEC, TB) están activos.\n\n" +
+                "Esta acción ejecutará flashrom con la opción --wp-disable para desbloquear todos los bloques " +
+                "protegidos por hardware y software.\n\n" +
+                "¿Deseas ejecutar el desbloqueo ahora?");
+
+        builder.setPositiveButton("🔓 Desbloquear Chip", (dialog, which) -> {
+            ensureProgrammerThenRun(() -> {
+                log("[HARDWARE SPI] 🔓 Desbloqueando registros de estado (flashrom --wp-disable)...");
+                if (isDummyProgrammer()) {
+                    executeFlashromTask("-p", "dummy:emulate=W25Q128FV", "--wp-disable");
+                } else {
+                    executeFlashromTask("-p", selectedProgrammer, "--wp-disable");
+                }
+            });
+        });
+        builder.setNegativeButton("Cancelar", null);
+        builder.show();
+    }
+
+    private void showQuadEnableDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("⚡ Configuración Quad Enable (Bit QE)");
+        builder.setMessage(
+                "Las placas madre y tarjetas gráficas que arrancan en modo Quad-SPI (4 líneas IO) no dan video " +
+                "si el bit QE en el registro de estado SR2 del chip SPI se borra o desactiva.\n\n" +
+                "Selecciona una acción:");
+
+        builder.setPositiveButton("Habilitar / Desbloquear QE", (dialog, which) -> {
+            ensureProgrammerThenRun(() -> {
+                log("[HARDWARE SPI] ⚡ Configurando y desbloqueando registros SPI...");
+                if (isDummyProgrammer()) {
+                    executeFlashromTask("-p", "dummy:emulate=W25Q128FV", "--wp-disable");
+                } else {
+                    executeFlashromTask("-p", selectedProgrammer, "--wp-disable");
+                }
+            });
+        });
+
+        builder.setNeutralButton("Verificar Estado WP", (dialog, which) -> {
+            ensureProgrammerThenRun(() -> {
+                log("[HARDWARE SPI] 🔍 Consultando registros de estado y protección (flashrom --wp-status)...");
+                if (isDummyProgrammer()) {
+                    executeFlashromTask("-p", "dummy:emulate=W25Q128FV", "--wp-status");
+                } else {
+                    executeFlashromTask("-p", selectedProgrammer, "--wp-status");
+                }
+            });
+        });
+
+        builder.setNegativeButton("Cancelar", null);
+        builder.show();
+    }
+
+    private void showTurboSerprogDialog() {
+        final int[] bauds = {115200, 1000000, 2000000};
+        final String[] options = {
+                "115,200 baudios (Estándar / Arduino UNO)",
+                "1,000,000 baudios (Turbo 1M - CH340 / CP2102 / RP2040) 💎 PRO",
+                "2,000,000 baudios (Ultra Turbo 2M - Optiboot / RP2040) 💎 PRO"
+        };
+
+        int currentBaud = UsbController.getSerprogBaud();
+        int selectedIndex = 0;
+        for (int i = 0; i < bauds.length; i++) {
+            if (bauds[i] == currentBaud) {
+                selectedIndex = i;
+                break;
+            }
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("🏎️ Turbo Baudrate Serprog");
+        builder.setSingleChoiceItems(options, selectedIndex, (dialog, which) -> {
+            dialog.dismiss();
+            final int chosenBaud = bauds[which];
+            if (chosenBaud > 115200) {
+                handleProFeature("Turbo Baudrate Serprog", () -> applySerprogBaud(chosenBaud));
+            } else {
+                applySerprogBaud(chosenBaud);
+            }
+        });
+        builder.setNegativeButton("Cancelar", null);
+        builder.show();
+    }
+
+    private void applySerprogBaud(int baud) {
+        UsbController.setSerprogBaud(baud);
+        getSharedPreferences(PREFS, MODE_PRIVATE).edit().putInt("serprog_baud", baud).apply();
+        log(String.format(Locale.US, "[SERPROG] 🏎️ Velocidad serie configurada a %d bps.", baud));
+        Toast.makeText(this, "Serprog Baudrate: " + baud + " bps", Toast.LENGTH_SHORT).show();
     }
 
     private void exportSerprogFirmware() {

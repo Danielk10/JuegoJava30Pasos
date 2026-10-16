@@ -1,13 +1,45 @@
 package com.diamon.curso.ui.activities;
 
 import com.diamon.curso.R;
+import com.diamon.curso.billing.BillingManager;
+import com.diamon.curso.binary.GbeMacPatcher;
+import com.diamon.curso.binary.IntegrityManager;
+import com.diamon.curso.binary.MsdmExtractor;
+import com.diamon.curso.binary.PatchTransaction;
+import com.diamon.curso.managers.ProAccessDialog;
+import com.diamon.curso.managers.ProPassManager;
 
+import android.app.AlertDialog;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
+import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.InputFilter;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
+import android.text.TextWatcher;
+import android.text.style.BackgroundColorSpan;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.StyleSpan;
+import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -15,10 +47,12 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.RandomAccessFile;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.util.Locale;
 
 public class HexViewerActivity extends AppCompatActivity {
 
@@ -26,6 +60,11 @@ public class HexViewerActivity extends AppCompatActivity {
     private RecyclerView recyclerHex;
     private HexAdapter hexAdapter;
     private HexDataSource currentDataSource;
+    private File currentLoadedFile;
+
+    private final PatchTransaction patchTransaction = new PatchTransaction();
+    private ProPassManager proPassManager;
+    private BillingManager billingManager;
 
     public interface HexDataSource extends java.io.Closeable {
         long size();
@@ -33,16 +72,16 @@ public class HexViewerActivity extends AppCompatActivity {
     }
 
     public static class MappedFileSource implements HexDataSource {
-        private final java.io.RandomAccessFile raf;
-        private final java.nio.channels.FileChannel channel;
-        private final java.nio.MappedByteBuffer mappedBuffer;
+        private final RandomAccessFile raf;
+        private final FileChannel channel;
+        private final MappedByteBuffer mappedBuffer;
         private final long size;
 
         public MappedFileSource(File file) throws Exception {
-            this.raf = new java.io.RandomAccessFile(file, "r");
+            this.raf = new RandomAccessFile(file, "r");
             this.channel = raf.getChannel();
             this.size = channel.size();
-            this.mappedBuffer = channel.map(java.nio.channels.FileChannel.MapMode.READ_ONLY, 0, size);
+            this.mappedBuffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, size);
         }
 
         @Override
@@ -106,9 +145,14 @@ public class HexViewerActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
+        proPassManager = new ProPassManager(this);
+        billingManager = new BillingManager(this, null);
+
         tvHexSummary = findViewById(R.id.tvHexSummary);
         recyclerHex = findViewById(R.id.recyclerHex);
         recyclerHex.setLayoutManager(new LinearLayoutManager(this));
+
+        patchTransaction.addListener(tx -> runOnUiThread(this::invalidateOptionsMenu));
 
         loadDataFromIntent();
     }
@@ -122,13 +166,67 @@ public class HexViewerActivity extends AppCompatActivity {
             } catch (Exception ignored) {}
             currentDataSource = null;
         }
+        if (billingManager != null) {
+            billingManager.onDestroy();
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_hex_viewer, menu);
+        MenuItem undoItem = menu.findItem(R.id.action_undo);
+        if (undoItem != null) {
+            undoItem.setEnabled(patchTransaction.canUndo());
+        }
+        MenuItem saveItem = menu.findItem(R.id.action_save_and_flash);
+        if (saveItem != null) {
+            int mods = patchTransaction.getModifiedCount();
+            saveItem.setTitle(mods > 0 ? "💾 Guardar (" + mods + ")" : "💾 Guardar y Grabar");
+        }
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        int id = item.getItemId();
+        if (id == android.R.id.home) {
+            getOnBackPressedDispatcher().onBackPressed();
+            return true;
+        } else if (id == R.id.action_undo) {
+            if (patchTransaction.undo()) {
+                if (hexAdapter != null) hexAdapter.notifyDataSetChanged();
+                invalidateOptionsMenu();
+                Toast.makeText(this, "Modificación deshecha (" + patchTransaction.getModifiedCount() + " restantes)", Toast.LENGTH_SHORT).show();
+            }
+            return true;
+        } else if (id == R.id.action_patch_gbe) {
+            handleProTool(this::showGbePatcherDialog);
+            return true;
+        } else if (id == R.id.action_extract_msdm) {
+            handleProTool(this::showMsdmDialog);
+            return true;
+        } else if (id == R.id.action_verify_integrity) {
+            handleProTool(this::showIntegrityDialog);
+            return true;
+        } else if (id == R.id.action_save_and_flash) {
+            saveAndFlash();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void handleProTool(Runnable onGranted) {
+        if (!proPassManager.isProActive(billingManager)) {
+            ProAccessDialog.show(this, null, billingManager, proPassManager, onGranted);
+        } else {
+            onGranted.run();
+        }
     }
 
     private void loadDataFromIntent() {
         Uri fileUri = getIntent().getData();
         String fileName = "bios.bin";
 
-        // Leer el origen del archivo (importado vs leído del chip)
         String biosSource = getSharedPreferences("flashrom_prefs", MODE_PRIVATE)
                 .getString("bios_source", null);
 
@@ -138,13 +236,18 @@ public class HexViewerActivity extends AppCompatActivity {
                 biosSource = getString(R.string.str_external_file, fileName);
                 byte[] data = readUriToBytes(fileUri);
 
+                File cachedFile = new File(getCacheDir(), "hex_edit_" + (fileName != null ? fileName : "bios.bin"));
+                try (FileOutputStream fos = new FileOutputStream(cachedFile)) {
+                    fos.write(data);
+                }
+                currentLoadedFile = cachedFile;
+
                 if (fileName != null && fileName.toLowerCase().endsWith(".hex")) {
                     parseIntelHex(data, biosSource);
                 } else {
                     displayBinary(new ByteArraySource(data), fileName, biosSource);
                 }
             } else {
-                // Cargar el archivo rastreado (último leído o importado)
                 String trackedFile = getSharedPreferences("flashrom_prefs", MODE_PRIVATE)
                         .getString("last_read_file", "bios.bin");
                 File dataFile = new File(getFilesDir(), trackedFile);
@@ -155,13 +258,13 @@ public class HexViewerActivity extends AppCompatActivity {
                     tvHexSummary.setText(R.string.str_err_no_data_visualize);
                     return;
                 }
+                currentLoadedFile = dataFile;
                 fileName = dataFile.getName();
 
                 if (fileName.toLowerCase().endsWith(".hex")) {
                     byte[] data = java.nio.file.Files.readAllBytes(dataFile.toPath());
                     parseIntelHex(data, biosSource);
                 } else {
-                    // Mapeo virtual directo con mmap (0 ms, 0 MB heap)
                     MappedFileSource mmapSource = new MappedFileSource(dataFile);
                     displayBinary(mmapSource, fileName, biosSource);
                 }
@@ -198,7 +301,7 @@ public class HexViewerActivity extends AppCompatActivity {
             summary += getString(R.string.str_source_label, biosSource);
         }
         tvHexSummary.setText(summary);
-        hexAdapter = new HexAdapter(source, 0);
+        hexAdapter = new HexAdapter(source, 0, patchTransaction, this::onByteClicked);
         recyclerHex.setAdapter(hexAdapter);
     }
 
@@ -281,11 +384,463 @@ public class HexViewerActivity extends AppCompatActivity {
                 try { currentDataSource.close(); } catch (Exception ignored) {}
             }
             currentDataSource = hexSource;
-            hexAdapter = new HexAdapter(hexSource, (int) minAddr);
+            hexAdapter = new HexAdapter(hexSource, (int) minAddr, patchTransaction, this::onByteClicked);
             recyclerHex.setAdapter(hexAdapter);
 
         } catch (Exception e) {
             tvHexSummary.setText(getString(R.string.str_err_parse_hex, e.getMessage()));
+        }
+    }
+
+    private byte[] getAllDumpBytes() {
+        if (currentDataSource == null) return new byte[0];
+        int size = (int) Math.min(currentDataSource.size(), 64 * 1024 * 1024);
+        byte[] dump = new byte[size];
+        currentDataSource.read(0, dump, 0, size);
+        return patchTransaction.applyTo(dump);
+    }
+
+    // =========================================================================
+    // PILAR 2: DIÁLOGO EDITOR HEXADECIMAL IN-PLACE CON DESGLOSE Y UNDO/REDO
+    // =========================================================================
+    private void onByteClicked(final long offset) {
+        if (!proPassManager.isProActive(billingManager)) {
+            ProAccessDialog.show(this, null, billingManager, proPassManager, () -> onByteClicked(offset));
+            return;
+        }
+
+        showByteEditorDialog(offset);
+    }
+
+    private void showByteEditorDialog(final long offset) {
+        if (currentDataSource == null || offset < 0 || offset >= currentDataSource.size()) return;
+
+        final byte[] quad = new byte[4];
+        currentDataSource.read(offset, quad, 0, 4);
+        final byte origByte = quad[0];
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        ScrollView scrollView = new ScrollView(this);
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(36, 24, 36, 24);
+        layout.setBackgroundColor(0xFF1E1E2C);
+
+        // 1. TÍTULO CON OFFSET HEX Y DECIMAL
+        TextView tvTitle = new TextView(this);
+        tvTitle.setText(String.format(Locale.US, "✏️ Editar Byte: 0x%08X [%d]", offset, offset));
+        tvTitle.setTextSize(18);
+        tvTitle.setTypeface(null, Typeface.BOLD);
+        tvTitle.setTextColor(0xFF00B0FF);
+        layout.addView(tvTitle);
+
+        // 2. DETALLE DE VALOR ACTUAL, BINARIO Y ASCII
+        final TextView tvValues = new TextView(this);
+        tvValues.setTextSize(14);
+        tvValues.setTypeface(Typeface.MONOSPACE);
+        tvValues.setTextColor(0xFFE0E0E0);
+        tvValues.setPadding(0, 16, 0, 16);
+        layout.addView(tvValues);
+
+        // 3. DESGLOSE LITTLE-ENDIAN / BIG-ENDIAN (16 y 32 bits)
+        final TextView tvEndian = new TextView(this);
+        tvEndian.setTextSize(13);
+        tvEndian.setTypeface(Typeface.MONOSPACE);
+        tvEndian.setTextColor(0xFFB0BEC5);
+        tvEndian.setPadding(0, 0, 0, 16);
+        layout.addView(tvEndian);
+
+        // Función de actualización reactiva de textos
+        final Runnable updateDisplays = () -> {
+            byte curByte = patchTransaction.getByte(offset, origByte);
+            String binStr = String.format("%8s", Integer.toBinaryString(curByte & 0xFF)).replace(' ', '0');
+            char asciiChar = (curByte >= 32 && curByte <= 126) ? (char) curByte : '.';
+
+            StringBuilder sbVal = new StringBuilder();
+            sbVal.append(String.format(Locale.US, "Original: 0x%02X (%d)\n", origByte & 0xFF, origByte & 0xFF));
+            sbVal.append(String.format(Locale.US, "Actual:   0x%02X (%d)   Bin: %s   ASCII: '%c'",
+                    curByte & 0xFF, curByte & 0xFF, binStr, asciiChar));
+            tvValues.setText(sbVal.toString());
+
+            // Lectura de 4 bytes con parches aplicados para desglose de endianness
+            byte b0 = curByte;
+            byte b1 = (offset + 1 < currentDataSource.size()) ? patchTransaction.getByte(offset + 1, quad[1]) : 0;
+            byte b2 = (offset + 2 < currentDataSource.size()) ? patchTransaction.getByte(offset + 2, quad[2]) : 0;
+            byte b3 = (offset + 3 < currentDataSource.size()) ? patchTransaction.getByte(offset + 3, quad[3]) : 0;
+
+            int le16 = (b0 & 0xFF) | ((b1 & 0xFF) << 8);
+            int be16 = ((b0 & 0xFF) << 8) | (b1 & 0xFF);
+            int le32 = (b0 & 0xFF) | ((b1 & 0xFF) << 8) | ((b2 & 0xFF) << 16) | ((b3 & 0xFF) << 24);
+            int be32 = ((b0 & 0xFF) << 24) | ((b1 & 0xFF) << 16) | ((b2 & 0xFF) << 8) | (b3 & 0xFF);
+
+            StringBuilder sbEnd = new StringBuilder();
+            sbEnd.append("• 16-bit Word:\n");
+            sbEnd.append(String.format(Locale.US, "   LE: 0x%04X (%d)  |  BE: 0x%04X (%d)\n", le16, le16, be16, be16));
+            sbEnd.append("• 32-bit Dword:\n");
+            sbEnd.append(String.format(Locale.US, "   LE: 0x%08X (%d)\n   BE: 0x%08X (%d)", le32, le32, be32, be32));
+            tvEndian.setText(sbEnd.toString());
+        };
+
+        updateDisplays.run();
+
+        // 4. CAMPO EDITTEXT PARA NUEVO VALOR EN HEXADECIMAL
+        TextView tvInputLabel = new TextView(this);
+        tvInputLabel.setText("Nuevo Valor Hex (00 - FF):");
+        tvInputLabel.setTextColor(0xFFFFB300);
+        tvInputLabel.setTextSize(14);
+        layout.addView(tvInputLabel);
+
+        final EditText etNewHex = new EditText(this);
+        etNewHex.setFilters(new InputFilter[]{new InputFilter.LengthFilter(2)});
+        etNewHex.setTypeface(Typeface.MONOSPACE);
+        etNewHex.setTextSize(18);
+        etNewHex.setTextColor(0xFFFFFFFF);
+        etNewHex.setBackgroundColor(0xFF2B2B3C);
+        etNewHex.setPadding(24, 16, 24, 16);
+        etNewHex.setText(String.format(Locale.US, "%02X", patchTransaction.getByte(offset, origByte) & 0xFF));
+        layout.addView(etNewHex);
+
+        // 5. FILA DE BOTONES: APLICAR, DESHACER, REHACER
+        LinearLayout btnRow = new LinearLayout(this);
+        btnRow.setOrientation(LinearLayout.HORIZONTAL);
+        btnRow.setPadding(0, 24, 0, 8);
+
+        Button btnApply = new Button(this);
+        btnApply.setText("Aplicar");
+        btnApply.setBackgroundColor(0xFF00C853);
+        btnApply.setTextColor(Color.WHITE);
+        LinearLayout.LayoutParams p1 = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        p1.setMargins(0, 0, 8, 0);
+        btnRow.addView(btnApply, p1);
+
+        final Button btnUndo = new Button(this);
+        btnUndo.setText("Deshacer");
+        btnUndo.setBackgroundColor(0xFF455A64);
+        btnUndo.setTextColor(Color.WHITE);
+        btnUndo.setEnabled(patchTransaction.canUndo());
+        LinearLayout.LayoutParams p2 = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        p2.setMargins(4, 0, 4, 0);
+        btnRow.addView(btnUndo, p2);
+
+        final Button btnRedo = new Button(this);
+        btnRedo.setText("Rehacer");
+        btnRedo.setBackgroundColor(0xFF455A64);
+        btnRedo.setTextColor(Color.WHITE);
+        btnRedo.setEnabled(patchTransaction.canRedo());
+        LinearLayout.LayoutParams p3 = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        p3.setMargins(8, 0, 0, 0);
+        btnRow.addView(btnRedo, p3);
+
+        layout.addView(btnRow);
+        scrollView.addView(layout);
+        builder.setView(scrollView);
+        builder.setNegativeButton("Cerrar", null);
+
+        final AlertDialog dialog = builder.create();
+
+        btnApply.setOnClickListener(v -> {
+            String hexStr = etNewHex.getText().toString().trim();
+            if (hexStr.isEmpty()) return;
+            try {
+                int val = Integer.parseInt(hexStr, 16);
+                byte newByte = (byte) (val & 0xFF);
+                patchTransaction.modifyByte(offset, origByte, newByte);
+                updateDisplays.run();
+                btnUndo.setEnabled(patchTransaction.canUndo());
+                btnRedo.setEnabled(patchTransaction.canRedo());
+                if (hexAdapter != null) hexAdapter.notifyItemChanged((int) (offset / 16));
+                invalidateOptionsMenu();
+                Toast.makeText(this, "Byte modificado correctamente", Toast.LENGTH_SHORT).show();
+            } catch (Exception ex) {
+                Toast.makeText(this, "Hexadecimal no válido: " + hexStr, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        btnUndo.setOnClickListener(v -> {
+            if (patchTransaction.undo()) {
+                updateDisplays.run();
+                etNewHex.setText(String.format(Locale.US, "%02X", patchTransaction.getByte(offset, origByte) & 0xFF));
+                btnUndo.setEnabled(patchTransaction.canUndo());
+                btnRedo.setEnabled(patchTransaction.canRedo());
+                if (hexAdapter != null) hexAdapter.notifyDataSetChanged();
+                invalidateOptionsMenu();
+            }
+        });
+
+        btnRedo.setOnClickListener(v -> {
+            if (patchTransaction.redo()) {
+                updateDisplays.run();
+                etNewHex.setText(String.format(Locale.US, "%02X", patchTransaction.getByte(offset, origByte) & 0xFF));
+                btnUndo.setEnabled(patchTransaction.canUndo());
+                btnRedo.setEnabled(patchTransaction.canRedo());
+                if (hexAdapter != null) hexAdapter.notifyDataSetChanged();
+                invalidateOptionsMenu();
+            }
+        });
+
+        dialog.show();
+    }
+
+    // =========================================================================
+    // HERRAMIENTAS PRO: INYECTAR MAC INTEL GbE CON CHECKSUM 0xBABA
+    // =========================================================================
+    private void showGbePatcherDialog() {
+        final byte[] dump = getAllDumpBytes();
+        if (dump.length == 0) {
+            Toast.makeText(this, "No hay volcado cargado", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        final GbeMacPatcher.GbeRegionInfo region = GbeMacPatcher.detectGbeRegion(dump);
+        final long gbeOffset = (region != null) ? region.getOffset() : 0x1000L;
+        final String currentMac = (region != null) ? region.getMacAddress() : "00:1B:21:88:99:AA";
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("🌐 Inyector de MAC Intel GbE");
+
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(36, 20, 36, 16);
+        layout.setBackgroundColor(0xFF1E1E2C);
+
+        TextView tvInfo = new TextView(this);
+        tvInfo.setTextColor(0xFFE0E0E0);
+        tvInfo.setTextSize(13);
+        tvInfo.setTypeface(Typeface.MONOSPACE);
+        String info = String.format(Locale.US,
+                "• Región GbE Detectada: 0x%08X\n" +
+                "• MAC Actual: %s\n" +
+                "• Checksum 0xBABA: %s\n" +
+                "• Respaldo NVM: %s\n\n" +
+                "Introduce la nueva dirección MAC de la etiqueta:",
+                gbeOffset, currentMac,
+                (region != null && region.isChecksumValid()) ? "VÁLIDO (0xBABA)" : "INVÁLIDO/DESCONOCIDO",
+                (region != null && region.hasBackupRegion()) ? "PRESENTE" : "NO DETECTADO");
+        tvInfo.setText(info);
+        layout.addView(tvInfo);
+
+        final EditText etMac = new EditText(this);
+        etMac.setText(currentMac);
+        etMac.setTextColor(0xFF00E5FF);
+        etMac.setTypeface(Typeface.MONOSPACE);
+        etMac.setBackgroundColor(0xFF2B2B3C);
+        etMac.setPadding(24, 16, 24, 16);
+        layout.addView(etMac);
+
+        builder.setView(layout);
+        builder.setPositiveButton("Inyectar y Recalcular Checksum", (dialog, which) -> {
+            String newMacStr = etMac.getText().toString().trim();
+            if (!GbeMacPatcher.isValidMacString(newMacStr)) {
+                Toast.makeText(this, "Formato MAC inválido (ej: AA:BB:CC:DD:EE:FF)", Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            int nvmLen = Math.min(GbeMacPatcher.GBE_NVM_SIZE * 2, dump.length - (int) gbeOffset);
+            byte[] originalBlock = new byte[nvmLen];
+            System.arraycopy(dump, (int) gbeOffset, originalBlock, 0, nvmLen);
+
+            byte[] patchedDump = dump.clone();
+            try {
+                GbeMacPatcher.patchMac(patchedDump, (int) gbeOffset, newMacStr, true);
+                byte[] newBlock = new byte[nvmLen];
+                System.arraycopy(patchedDump, (int) gbeOffset, newBlock, 0, nvmLen);
+
+                patchTransaction.modifyBytes(gbeOffset, originalBlock, newBlock, "Inyección MAC Intel GbE");
+                if (hexAdapter != null) hexAdapter.notifyDataSetChanged();
+                recyclerHex.scrollToPosition((int) (gbeOffset / 16));
+                invalidateOptionsMenu();
+
+                Toast.makeText(this, "✅ MAC GbE inyectada y checksum 0xBABA corregido.", Toast.LENGTH_LONG).show();
+            } catch (Exception e) {
+                Toast.makeText(this, "Error al inyectar MAC: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        });
+        builder.setNegativeButton("Cancelar", null);
+        builder.show();
+    }
+
+    // =========================================================================
+    // HERRAMIENTAS PRO: EXTRACTOR DE CLAVE WINDOWS OEM MSDM
+    // =========================================================================
+    private void showMsdmDialog() {
+        byte[] dump = getAllDumpBytes();
+        MsdmExtractor.MsdmResult result = MsdmExtractor.extractKey(dump);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("🔑 Licencia Digital Windows OEM (MSDM)");
+
+        if (!result.isFound()) {
+            builder.setMessage("No se detectó ninguna tabla ACPI MSDM con clave de producto Windows en este volcado de BIOS.");
+            builder.setPositiveButton("Aceptar", null);
+            builder.show();
+            return;
+        }
+
+        final String productKey = result.getProductKey();
+        final long tableOffset = result.getTableOffset();
+
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(36, 20, 36, 16);
+        layout.setBackgroundColor(0xFF1E1E2C);
+
+        TextView tvKey = new TextView(this);
+        tvKey.setText(productKey);
+        tvKey.setTextColor(0xFF00E676);
+        tvKey.setTextSize(20);
+        tvKey.setTypeface(Typeface.MONOSPACE, Typeface.BOLD);
+        tvKey.setGravity(Gravity.CENTER);
+        tvKey.setPadding(0, 16, 0, 16);
+        layout.addView(tvKey);
+
+        TextView tvDetails = new TextView(this);
+        tvDetails.setTextColor(0xFFB0BEC5);
+        tvDetails.setTextSize(13);
+        tvDetails.setTypeface(Typeface.MONOSPACE);
+        String details = String.format(Locale.US,
+                "• Fabricante (OEM ID): %s\n" +
+                "• Tabla ACPI: %s\n" +
+                "• Offset en Flash: 0x%08X\n" +
+                "• Checksum ACPI: %s",
+                result.getOemId(), result.getOemTableId(),
+                tableOffset,
+                result.isChecksumValid() ? "VÁLIDO" : "INVÁLIDO");
+        tvDetails.setText(details);
+        layout.addView(tvDetails);
+
+        builder.setView(layout);
+        builder.setPositiveButton("📋 Copiar Clave", (dialog, which) -> {
+            ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+            if (cm != null) {
+                cm.setPrimaryClip(ClipData.newPlainText("Windows OEM Key", productKey));
+                Toast.makeText(this, "Clave copiada al portapapeles: " + productKey, Toast.LENGTH_SHORT).show();
+            }
+        });
+        builder.setNeutralButton("🔍 Ir a Offset", (dialog, which) -> {
+            if (recyclerHex != null) {
+                recyclerHex.scrollToPosition((int) (tableOffset / 16));
+            }
+        });
+        builder.setNegativeButton("Cerrar", null);
+        builder.show();
+    }
+
+    // =========================================================================
+    // HERRAMIENTAS PRO: VERIFICACIÓN CRIPTOGRÁFICA DE INTEGRIDAD Y SIDECARS
+    // =========================================================================
+    private void showIntegrityDialog() {
+        final byte[] dump = getAllDumpBytes();
+        if (dump.length == 0) {
+            Toast.makeText(this, "No hay datos para calcular hashes", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        final IntegrityManager.HashResult hashes = IntegrityManager.computeHashes(dump);
+        final String clipText = IntegrityManager.getClipboardText(this);
+        final IntegrityManager.ClipboardMatchResult matchResult = IntegrityManager.checkClipboardMatch(clipText, hashes);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("🔒 Verificador de Integridad Criptográfica");
+
+        ScrollView sv = new ScrollView(this);
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(36, 20, 36, 16);
+        layout.setBackgroundColor(0xFF1E1E2C);
+
+        // Insignia de coincidencia con portapapeles
+        TextView tvBadge = new TextView(this);
+        tvBadge.setTextSize(14);
+        tvBadge.setTypeface(null, Typeface.BOLD);
+        tvBadge.setPadding(16, 12, 16, 12);
+        if (matchResult.isMatched()) {
+            tvBadge.setBackgroundColor(0xFF1B5E20);
+            tvBadge.setTextColor(0xFF00E676);
+            tvBadge.setText(String.format("🟢 MATCH CERTIFIED (%s)\nCoincide al 100%% con el portapapeles.", matchResult.getMatchedAlgorithm()));
+        } else if (matchResult.hasClipboardHash()) {
+            tvBadge.setBackgroundColor(0xFFB71C1C);
+            tvBadge.setTextColor(0xFFFF5252);
+            tvBadge.setText("🔴 ADVERTENCIA DE INTEGRIDAD\nEl hash del volcado no coincide con el portapapeles.");
+        } else {
+            tvBadge.setBackgroundColor(0xFF263238);
+            tvBadge.setTextColor(0xFF90A4AE);
+            tvBadge.setText("⚪ Sin hash reconocido en portapapeles para cotejo.");
+        }
+        layout.addView(tvBadge);
+
+        TextView tvHashes = new TextView(this);
+        tvHashes.setTextSize(12);
+        tvHashes.setTypeface(Typeface.MONOSPACE);
+        tvHashes.setTextColor(0xFFECEFF1);
+        tvHashes.setPadding(0, 16, 0, 16);
+        tvHashes.setText(hashes.formatSummary());
+        layout.addView(tvHashes);
+
+        sv.addView(layout);
+        builder.setView(sv);
+
+        builder.setPositiveButton("📋 Copiar SHA-256", (d, w) -> {
+            ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+            if (cm != null) {
+                cm.setPrimaryClip(ClipData.newPlainText("SHA256 Hash", hashes.getSha256()));
+                Toast.makeText(this, "SHA-256 copiado al portapapeles", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        builder.setNeutralButton("📄 Generar Sidecars", (d, w) -> {
+            try {
+                File targetDir = getFilesDir();
+                File binFile = (currentLoadedFile != null) ? currentLoadedFile : new File(targetDir, "bios.bin");
+                IntegrityManager.generateSidecars(binFile, hashes);
+                Toast.makeText(this, "Archivos .sha256 y .md5 generados exitosamente.", Toast.LENGTH_LONG).show();
+            } catch (Exception ex) {
+                Toast.makeText(this, "Error generando sidecars: " + ex.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        });
+
+        builder.setNegativeButton("Cerrar", null);
+        builder.show();
+    }
+
+    // =========================================================================
+    // GUARDAR Y GRABAR EN CHIP SPI
+    // =========================================================================
+    private void saveAndFlash() {
+        if (patchTransaction.getModifiedCount() == 0) {
+            Toast.makeText(this, "No hay modificaciones pendientes para guardar.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        try {
+            File biosFile = (currentLoadedFile != null && currentLoadedFile.canWrite())
+                    ? currentLoadedFile
+                    : new File(getFilesDir(), "bios.bin");
+
+            byte[] fullDump = getAllDumpBytes();
+            try (FileOutputStream fos = new FileOutputStream(biosFile)) {
+                fos.write(fullDump);
+            }
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("💾 Guardar y Grabar en Chip SPI");
+            builder.setMessage(String.format(Locale.US,
+                    "Se han aplicado %d modificaciones en %s.\n\n¿Deseas disparar la grabación directa en el chip SPI ahora?",
+                    patchTransaction.getModifiedCount(), biosFile.getName()));
+
+            builder.setPositiveButton("🔥 Grabar en Chip", (dialog, which) -> {
+                Intent result = new Intent();
+                result.putExtra("trigger_flash", true);
+                setResult(RESULT_OK, result);
+                finish();
+            });
+
+            builder.setNegativeButton("Solo Guardar", (dialog, which) -> {
+                Toast.makeText(this, "Cambios guardados en " + biosFile.getName(), Toast.LENGTH_SHORT).show();
+            });
+
+            builder.show();
+        } catch (Exception e) {
+            Toast.makeText(this, "Error al guardar: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -295,13 +850,25 @@ public class HexViewerActivity extends AppCompatActivity {
         return true;
     }
 
+    // =========================================================================
+    // ADAPTER CON RESALTADO EN COLOR ÁMBAR (#FFB300) PARA CELDAS MODIFICADAS
+    // =========================================================================
+    interface OnByteClickListener {
+        void onByteClick(long offset);
+    }
+
     static class HexAdapter extends RecyclerView.Adapter<HexAdapter.HexViewHolder> {
         private final HexDataSource dataSource;
         private final long startAddress;
+        private final PatchTransaction patchTransaction;
+        private final OnByteClickListener byteClickListener;
 
-        public HexAdapter(HexDataSource dataSource, long startAddress) {
+        public HexAdapter(HexDataSource dataSource, long startAddress,
+                          PatchTransaction patchTransaction, OnByteClickListener byteClickListener) {
             this.dataSource = dataSource;
             this.startAddress = startAddress;
+            this.patchTransaction = patchTransaction;
+            this.byteClickListener = byteClickListener;
         }
 
         @NonNull
@@ -318,27 +885,62 @@ public class HexViewerActivity extends AppCompatActivity {
             byte[] rowData = new byte[16];
             int length = dataSource.read(rowStart, rowData, 0, 16);
 
-            StringBuilder hexBuilder = new StringBuilder(48);
-            StringBuilder asciiBuilder = new StringBuilder(16);
+            SpannableStringBuilder hexSpannable = new SpannableStringBuilder();
+            SpannableStringBuilder asciiSpannable = new SpannableStringBuilder();
 
             for (int i = 0; i < 16; i++) {
                 if (i < length) {
-                    byte b = rowData[i];
-                    hexBuilder.append(String.format("%02X ", b));
-                    if (b >= 32 && b <= 126) {
-                        asciiBuilder.append((char) b);
-                    } else {
-                        asciiBuilder.append(".");
+                    long byteOffset = currentAddr + i;
+                    byte origByte = rowData[i];
+                    byte activeByte = patchTransaction != null ? patchTransaction.getByte(byteOffset, origByte) : origByte;
+                    boolean isModified = patchTransaction != null && patchTransaction.isModified(byteOffset);
+
+                    int startHexIdx = hexSpannable.length();
+                    hexSpannable.append(String.format(Locale.US, "%02X ", activeByte & 0xFF));
+                    if (isModified) {
+                        hexSpannable.setSpan(new ForegroundColorSpan(0xFFFFB300), startHexIdx, startHexIdx + 2, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                        hexSpannable.setSpan(new StyleSpan(Typeface.BOLD), startHexIdx, startHexIdx + 2, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                        hexSpannable.setSpan(new BackgroundColorSpan(0x33FFB300), startHexIdx, startHexIdx + 2, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    }
+
+                    int startAsciiIdx = asciiSpannable.length();
+                    char c = (activeByte >= 32 && activeByte <= 126) ? (char) activeByte : '.';
+                    asciiSpannable.append(c);
+                    if (isModified) {
+                        asciiSpannable.setSpan(new ForegroundColorSpan(0xFFFFB300), startAsciiIdx, startAsciiIdx + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                        asciiSpannable.setSpan(new StyleSpan(Typeface.BOLD), startAsciiIdx, startAsciiIdx + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                     }
                 } else {
-                    hexBuilder.append("   ");
-                    asciiBuilder.append(" ");
+                    hexSpannable.append("   ");
+                    asciiSpannable.append(" ");
                 }
             }
 
-            holder.tvAddress.setText(String.format("%08X", currentAddr));
-            holder.tvHex.setText(hexBuilder.toString());
-            holder.tvAscii.setText(asciiBuilder.toString());
+            holder.tvAddress.setText(String.format(Locale.US, "%08X", currentAddr));
+            holder.tvHex.setText(hexSpannable);
+            holder.tvAscii.setText(asciiSpannable);
+
+            // Detección de pulsación in-place en cada celda individual
+            holder.tvHex.setOnTouchListener((v, event) -> {
+                if (event.getAction() == MotionEvent.ACTION_UP && byteClickListener != null) {
+                    int charPos = holder.tvHex.getOffsetForPosition(event.getX(), event.getY());
+                    int byteIdx = Math.min(15, Math.max(0, charPos / 3));
+                    if (byteIdx < length) {
+                        byteClickListener.onByteClick(currentAddr + byteIdx);
+                    }
+                }
+                return true;
+            });
+
+            holder.tvAscii.setOnTouchListener((v, event) -> {
+                if (event.getAction() == MotionEvent.ACTION_UP && byteClickListener != null) {
+                    int charPos = holder.tvAscii.getOffsetForPosition(event.getX(), event.getY());
+                    if (charPos >= 0 && charPos < length) {
+                        byteClickListener.onByteClick(currentAddr + charPos);
+                    }
+                }
+                return true;
+            });
         }
 
         @Override

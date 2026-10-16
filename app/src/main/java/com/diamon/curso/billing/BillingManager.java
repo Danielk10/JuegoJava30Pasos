@@ -2,26 +2,27 @@ package com.diamon.curso.billing;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
-import com.diamon.curso.R;
-
+import com.android.billingclient.api.AcknowledgePurchaseParams;
 import com.android.billingclient.api.BillingClient;
 import com.android.billingclient.api.BillingClientStateListener;
 import com.android.billingclient.api.BillingFlowParams;
 import com.android.billingclient.api.BillingResult;
-import com.android.billingclient.api.ConsumeParams;
-import com.android.billingclient.api.ConsumeResponseListener;
 import com.android.billingclient.api.PendingPurchasesParams;
 import com.android.billingclient.api.ProductDetails;
 import com.android.billingclient.api.Purchase;
 import com.android.billingclient.api.PurchasesUpdatedListener;
 import com.android.billingclient.api.QueryProductDetailsParams;
 import com.android.billingclient.api.QueryPurchasesParams;
+import com.diamon.curso.R;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,67 +30,137 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Gestor de facturación y compras in-app para Flash SPI Tool utilizando Google Play Billing Library 9.1.0.
+ * Maneja la compra del producto permanente no consumible "remove_ads_pro"
+ * (con retrocompatibilidad para "remove_ads" y "donacion_pizza") para eliminar publicidad de por vida
+ * y desbloquear la suite Flash SPI Tool Pro.
+ */
 public class BillingManager implements PurchasesUpdatedListener {
 
     private static final String TAG = "BillingManager";
+
+    /** ID del producto principal en Google Play Console para la suite Pro permanente sin anuncios. */
+    public static final String PRODUCT_ID_REMOVE_ADS = "remove_ads_pro";
+    /** ID alternativo para retrocompatibilidad. */
+    public static final String PRODUCT_ID_REMOVE_ADS_ALT = "remove_ads";
+    /** ID histórico de donación de pizza (mantenido para retrocompatibilidad total sin consumo). */
     public static final String PRODUCT_ID_PIZZA = "donacion_pizza";
 
+    public static final String PREFS_NAME = "billing_prefs";
+    public static final String KEY_ADS_REMOVED = "is_ads_removed";
+    public static final String KEY_PRO_USER = "is_pro_user";
+
+    /**
+     * Interfaz de escucha para eventos de compra y estado de facturación.
+     */
     public interface BillingListener {
-        void onProductReady(String productId, String formattedPrice);
-        void onPurchaseSuccess(String productId);
-        void onPurchaseError(String errorMessage);
+        default void onAdsRemovedChanged(boolean adsRemoved) {}
+        default void onProStatusChanged(boolean isProPurchased) { onAdsRemovedChanged(isProPurchased); }
+        default void onPriceLoaded(String formattedPrice) {}
+        default void onBillingError(String errorMessage) {}
+        default void onPurchaseError(String errorMessage) { onBillingError(errorMessage); }
+        default void onProductReady(String productId, String formattedPrice) { onPriceLoaded(formattedPrice); }
+        default void onPurchaseSuccess(String productId) { onAdsRemovedChanged(true); }
     }
 
     private final Context context;
-    private final BillingListener listener;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
-    private BillingClient billingClient;
+    private final BillingClient billingClient;
+    @Nullable
+    private BillingListener listener;
+    @Nullable
+    private ProductDetails removeAdsDetails;
     private final Map<String, ProductDetails> availableProducts = new HashMap<>();
-    private boolean isConnected = false;
+    private boolean isServiceConnected = false;
+    private boolean isAdsRemovedCached = false;
 
-    public BillingManager(Context context, BillingListener listener) {
+    public BillingManager(@NonNull Context context, @Nullable BillingListener listener) {
+        this(context, listener, null);
+    }
+
+    @VisibleForTesting
+    public BillingManager(@NonNull Context context, @Nullable BillingListener listener, @Nullable BillingClient billingClient) {
         this.context = context.getApplicationContext();
         this.listener = listener;
-        initBillingClient();
+
+        if (billingClient != null) {
+            this.billingClient = billingClient;
+        } else {
+            this.billingClient = BillingClient.newBuilder(this.context)
+                    .setListener(this)
+                    .enablePendingPurchases(
+                            PendingPurchasesParams.newBuilder()
+                                    .enableOneTimeProducts()
+                                    .build()
+                    )
+                    .build();
+        }
+
+        // Cargar estado inicial desde SharedPreferences
+        isAdsRemovedCached = isAdsRemoved();
+
+        if (billingClient == null) {
+            startConnection();
+        }
     }
 
-    private void initBillingClient() {
-        billingClient = BillingClient.newBuilder(context)
-                .setListener(this)
-                .enablePendingPurchases(PendingPurchasesParams.newBuilder().enableOneTimeProducts().build())
-                .build();
-
-        startConnection();
+    public void setBillingListener(@Nullable BillingListener listener) {
+        this.listener = listener;
     }
 
+    @Nullable
+    public BillingListener getBillingListener() {
+        return listener;
+    }
+
+    /**
+     * Inicia la conexión con el servicio de Google Play Billing.
+     */
     public void startConnection() {
-        if (billingClient == null) return;
+        if (billingClient.isReady()) {
+            isServiceConnected = true;
+            queryActivePurchases();
+            queryProducts();
+            return;
+        }
+
         billingClient.startConnection(new BillingClientStateListener() {
             @Override
             public void onBillingSetupFinished(@NonNull BillingResult billingResult) {
                 if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
-                    isConnected = true;
+                    isServiceConnected = true;
                     Log.d(TAG, "Billing client connected successfully.");
+                    queryActivePurchases();
                     queryProducts();
-                    processPendingPurchases();
                 } else {
-                    isConnected = false;
-                    Log.w(TAG, "Billing setup failed: " + billingResult.getDebugMessage());
+                    isServiceConnected = false;
+                    Log.w(TAG, "Billing setup failed: " + billingResult.getDebugMessage()
+                            + " (Code: " + billingResult.getResponseCode() + ")");
                 }
             }
 
             @Override
             public void onBillingServiceDisconnected() {
-                isConnected = false;
-                Log.w(TAG, "Billing service disconnected.");
+                isServiceConnected = false;
+                Log.w(TAG, "Billing service disconnected. Will retry on next request.");
             }
         });
     }
 
-    private void queryProducts() {
-        if (!isConnected || billingClient == null) return;
-
+    /**
+     * Consulta los detalles de los productos in-app en Google Play.
+     */
+    public void queryProducts() {
         List<QueryProductDetailsParams.Product> productList = new ArrayList<>();
+        productList.add(QueryProductDetailsParams.Product.newBuilder()
+                .setProductId(PRODUCT_ID_REMOVE_ADS)
+                .setProductType(BillingClient.ProductType.INAPP)
+                .build());
+        productList.add(QueryProductDetailsParams.Product.newBuilder()
+                .setProductId(PRODUCT_ID_REMOVE_ADS_ALT)
+                .setProductType(BillingClient.ProductType.INAPP)
+                .build());
         productList.add(QueryProductDetailsParams.Product.newBuilder()
                 .setProductId(PRODUCT_ID_PIZZA)
                 .setProductType(BillingClient.ProductType.INAPP)
@@ -99,31 +170,55 @@ public class BillingManager implements PurchasesUpdatedListener {
                 .setProductList(productList)
                 .build();
 
-        billingClient.queryProductDetailsAsync(params, (billingResult, queryProductDetailsResult) -> {
-            if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK && queryProductDetailsResult != null) {
-                List<ProductDetails> productDetailsList = queryProductDetailsResult.getProductDetailsList();
-                if (productDetailsList != null) {
-                    for (ProductDetails pd : productDetailsList) {
-                        availableProducts.put(pd.getProductId(), pd);
-                        String price = "$5.00";
-                        if (pd.getOneTimePurchaseOfferDetails() != null) {
-                            price = pd.getOneTimePurchaseOfferDetails().getFormattedPrice();
-                        }
-                        final String finalPrice = price;
-                        final String finalId = pd.getProductId();
+        billingClient.queryProductDetailsAsync(params, (billingResult, queryResult) -> {
+            if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK
+                    && queryResult != null
+                    && queryResult.getProductDetailsList() != null
+                    && !queryResult.getProductDetailsList().isEmpty()) {
+
+                ProductDetails selectedDetails = null;
+                for (ProductDetails details : queryResult.getProductDetailsList()) {
+                    availableProducts.put(details.getProductId(), details);
+                    if (PRODUCT_ID_REMOVE_ADS.equals(details.getProductId())) {
+                        selectedDetails = details;
+                    } else if (selectedDetails == null && PRODUCT_ID_REMOVE_ADS_ALT.equals(details.getProductId())) {
+                        selectedDetails = details;
+                    } else if (selectedDetails == null && PRODUCT_ID_PIZZA.equals(details.getProductId())) {
+                        selectedDetails = details;
+                    }
+
+                    if (details.getOneTimePurchaseOfferDetails() != null) {
+                        String formattedPrice = details.getOneTimePurchaseOfferDetails().getFormattedPrice();
                         mainHandler.post(() -> {
                             if (listener != null) {
-                                listener.onProductReady(finalId, finalPrice);
+                                listener.onProductReady(details.getProductId(), formattedPrice);
                             }
                         });
                     }
                 }
+
+                if (selectedDetails == null) {
+                    selectedDetails = queryResult.getProductDetailsList().get(0);
+                }
+                removeAdsDetails = selectedDetails;
+                Log.d(TAG, "Product details loaded: " + removeAdsDetails.getName()
+                        + " (" + removeAdsDetails.getProductId() + ")");
+
+                ProductDetails.OneTimePurchaseOfferDetails offerDetails =
+                        removeAdsDetails.getOneTimePurchaseOfferDetails();
+                if (offerDetails != null && listener != null) {
+                    mainHandler.post(() -> listener.onPriceLoaded(offerDetails.getFormattedPrice()));
+                }
             } else {
-                Log.w(TAG, "Failed to query products: " + billingResult.getDebugMessage());
+                Log.w(TAG, "Failed to load product details: " + billingResult.getDebugMessage()
+                        + " (Code: " + billingResult.getResponseCode() + ")");
             }
         });
     }
 
+    /**
+     * Retorna el precio formateado de un producto específico, con fallback.
+     */
     public String getFormattedPrice(String productId, String fallbackPrice) {
         ProductDetails pd = availableProducts.get(productId);
         if (pd != null && pd.getOneTimePurchaseOfferDetails() != null) {
@@ -132,134 +227,288 @@ public class BillingManager implements PurchasesUpdatedListener {
         return fallbackPrice;
     }
 
-    public void launchPurchaseFlow(Activity activity, String productId) {
-        if (billingClient == null || !billingClient.isReady()) {
+    /**
+     * Lanza la compra del producto Pro principal "remove_ads_pro" (o disponible).
+     */
+    public boolean launchPurchaseFlow(@NonNull Activity activity) {
+        if (removeAdsDetails == null) {
+            String errorMsg = "Product details not available. Cannot launch purchase flow.";
+            Log.w(TAG, errorMsg);
+            queryProducts();
+            if (listener != null) {
+                listener.onBillingError(errorMsg);
+            }
+            return false;
+        }
+
+        BillingFlowParams.ProductDetailsParams productDetailsParams =
+                BillingFlowParams.ProductDetailsParams.newBuilder()
+                        .setProductDetails(removeAdsDetails)
+                        .build();
+
+        BillingFlowParams billingFlowParams = BillingFlowParams.newBuilder()
+                .setProductDetailsParamsList(Collections.singletonList(productDetailsParams))
+                .build();
+
+        BillingResult result = billingClient.launchBillingFlow(activity, billingFlowParams);
+        boolean success = result.getResponseCode() == BillingClient.BillingResponseCode.OK;
+        if (!success && listener != null) {
+            listener.onBillingError("Launch billing flow failed: " + result.getDebugMessage());
+        }
+        return success;
+    }
+
+    /**
+     * Sobrecarga retrocompatible para lanzar el flujo de compra indicando el ID del producto.
+     */
+    public void launchPurchaseFlow(@NonNull Activity activity, @NonNull String productId) {
+        if (!billingClient.isReady()) {
             startConnection();
             if (listener != null) {
-                listener.onPurchaseError(context.getString(R.string.str_billing_connecting));
+                listener.onPurchaseError(context.getString(R.string.pro_billing_not_available));
             }
             return;
         }
 
         ProductDetails pd = availableProducts.get(productId);
+        if (pd == null && removeAdsDetails != null && removeAdsDetails.getProductId().equals(productId)) {
+            pd = removeAdsDetails;
+        }
+
         if (pd == null) {
             if (listener != null) {
-                listener.onPurchaseError(context.getString(R.string.str_billing_not_ready));
+                listener.onPurchaseError(context.getString(R.string.pro_billing_not_available));
             }
             queryProducts();
             return;
         }
 
-        try {
-            BillingFlowParams.ProductDetailsParams detailsParams =
-                    BillingFlowParams.ProductDetailsParams.newBuilder()
-                            .setProductDetails(pd)
-                            .build();
+        BillingFlowParams.ProductDetailsParams detailsParams =
+                BillingFlowParams.ProductDetailsParams.newBuilder()
+                        .setProductDetails(pd)
+                        .build();
 
-            BillingFlowParams flowParams = BillingFlowParams.newBuilder()
-                    .setProductDetailsParamsList(Collections.singletonList(detailsParams))
-                    .build();
+        BillingFlowParams flowParams = BillingFlowParams.newBuilder()
+                .setProductDetailsParamsList(Collections.singletonList(detailsParams))
+                .build();
 
-            BillingResult result = billingClient.launchBillingFlow(activity, flowParams);
-            if (result.getResponseCode() != BillingClient.BillingResponseCode.OK) {
-                Log.e(TAG, "Launch billing flow error: " + result.getDebugMessage());
-                if (listener != null) {
-                    listener.onPurchaseError(result.getDebugMessage());
-                }
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Excepción al lanzar flujo de compra", e);
+        BillingResult result = billingClient.launchBillingFlow(activity, flowParams);
+        if (result.getResponseCode() != BillingClient.BillingResponseCode.OK) {
+            Log.e(TAG, "Launch billing flow error: " + result.getDebugMessage());
             if (listener != null) {
-                listener.onPurchaseError(context.getString(R.string.str_billing_not_ready));
+                listener.onPurchaseError(result.getDebugMessage());
             }
         }
     }
 
     @Override
-    public void onPurchasesUpdated(@NonNull BillingResult billingResult, List<Purchase> purchases) {
+    public void onPurchasesUpdated(@NonNull BillingResult billingResult,
+                                   @Nullable List<Purchase> purchases) {
         int responseCode = billingResult.getResponseCode();
+
         if (responseCode == BillingClient.BillingResponseCode.OK && purchases != null) {
             for (Purchase purchase : purchases) {
                 handlePurchase(purchase);
             }
         } else if (responseCode == BillingClient.BillingResponseCode.USER_CANCELED) {
-            Log.i(TAG, "Compra cancelada por el usuario.");
+            Log.d(TAG, "User canceled the purchase.");
+        } else if (responseCode == BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED) {
+            Log.d(TAG, "Item already owned. Restoring purchase...");
+            setAdsRemoved(true);
         } else {
-            Log.w(TAG, "Error en compra: " + billingResult.getDebugMessage());
+            String errorMsg = "Purchase failed (" + responseCode + "): " + billingResult.getDebugMessage();
+            Log.w(TAG, errorMsg);
             if (listener != null) {
-                mainHandler.post(() -> listener.onPurchaseError(billingResult.getDebugMessage()));
+                listener.onBillingError(errorMsg);
             }
         }
     }
 
-    private void handlePurchase(Purchase purchase) {
-        if (purchase.getPurchaseState() == Purchase.PurchaseState.PURCHASED) {
-            // Consumir el producto para permitir volver a donar en el futuro
-            consumeWithRetry(purchase, 0);
+    /**
+     * Procesa una compra individual: reconoce (acknowledge) compras válidas
+     * para hacerlas permanentes de por vida (NO las consume) y actualiza el estado local Pro.
+     */
+    public void handlePurchase(@NonNull Purchase purchase) {
+        List<String> products = purchase.getProducts();
+        if (products.contains(PRODUCT_ID_REMOVE_ADS)
+                || products.contains(PRODUCT_ID_REMOVE_ADS_ALT)
+                || products.contains(PRODUCT_ID_PIZZA)) {
+
+            if (purchase.getPurchaseState() == Purchase.PurchaseState.PURCHASED) {
+                if (!purchase.isAcknowledged()) {
+                    acknowledgePurchase(purchase);
+                } else {
+                    setAdsRemoved(true);
+                    String prodId = products.isEmpty() ? PRODUCT_ID_REMOVE_ADS : products.get(0);
+                    if (listener != null) {
+                        listener.onPurchaseSuccess(prodId);
+                    }
+                }
+            } else if (purchase.getPurchaseState() == Purchase.PurchaseState.PENDING) {
+                Log.d(TAG, "Purchase is pending. Pro will be unlocked once confirmed.");
+            }
         }
     }
 
-    private static final int MAX_CONSUME_RETRIES = 2;
-
-    private void consumeWithRetry(Purchase purchase, int attempt) {
-        if (billingClient == null || !billingClient.isReady()) {
-            Log.w(TAG, "BillingClient no disponible para consumir compra, intento " + attempt);
-            return;
-        }
-
-        ConsumeParams consumeParams = ConsumeParams.newBuilder()
+    /**
+     * Reconoce una compra para hacerla permanente y evitar que Google Play la reembolse automáticamente
+     * transcurridos 3 días.
+     */
+    private void acknowledgePurchase(@NonNull Purchase purchase) {
+        AcknowledgePurchaseParams params = AcknowledgePurchaseParams.newBuilder()
                 .setPurchaseToken(purchase.getPurchaseToken())
                 .build();
 
-        billingClient.consumeAsync(consumeParams, new ConsumeResponseListener() {
-            @Override
-            public void onConsumeResponse(@NonNull BillingResult billingResult, @NonNull String purchaseToken) {
-                if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
-                    Log.i(TAG, "Producto consumido exitosamente.");
-                    mainHandler.post(() -> {
-                        if (listener != null) {
-                            String prodId = purchase.getProducts().isEmpty() ? PRODUCT_ID_PIZZA : purchase.getProducts().get(0);
-                            listener.onPurchaseSuccess(prodId);
-                        }
-                    });
-                } else {
-                    Log.e(TAG, "Error consumiendo producto (intento " + attempt + "): " + billingResult.getDebugMessage());
-                    if (attempt < MAX_CONSUME_RETRIES) {
-                        // Reintentar tras 2 segundos
-                        mainHandler.postDelayed(() -> consumeWithRetry(purchase, attempt + 1), 2000);
+        billingClient.acknowledgePurchase(params, billingResult -> {
+            if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
+                Log.d(TAG, "Purchase acknowledged successfully as permanent.");
+                setAdsRemoved(true);
+                String prodId = purchase.getProducts().isEmpty() ? PRODUCT_ID_REMOVE_ADS : purchase.getProducts().get(0);
+                mainHandler.post(() -> {
+                    if (listener != null) {
+                        listener.onPurchaseSuccess(prodId);
                     }
+                });
+            } else {
+                String errorMsg = "Failed to acknowledge purchase: " + billingResult.getDebugMessage();
+                Log.w(TAG, errorMsg);
+                if (listener != null) {
+                    listener.onBillingError(errorMsg);
                 }
             }
         });
     }
 
     /**
-     * Recupera compras pendientes (no consumidas) para evitar reembolsos automáticos.
-     * Google reembolsa compras no confirmadas tras 3 días.
+     * Consulta las compras activas de la cuenta para restaurar compras previas al iniciar.
      */
-    private void processPendingPurchases() {
-        if (billingClient == null || !billingClient.isReady()) return;
+    public void queryActivePurchases() {
+        QueryPurchasesParams params = QueryPurchasesParams.newBuilder()
+                .setProductType(BillingClient.ProductType.INAPP)
+                .build();
 
-        billingClient.queryPurchasesAsync(
-                QueryPurchasesParams.newBuilder()
-                        .setProductType(BillingClient.ProductType.INAPP)
-                        .build(),
-                (billingResult, purchaseList) -> {
-                    if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK && purchaseList != null) {
-                        for (Purchase purchase : purchaseList) {
-                            if (purchase.getPurchaseState() == Purchase.PurchaseState.PURCHASED) {
-                                Log.i(TAG, "Compra pendiente encontrada, consumiendo...");
-                                handlePurchase(purchase);
-                            }
+        billingClient.queryPurchasesAsync(params, (billingResult, purchases) -> {
+            if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
+                boolean hasActivePurchase = false;
+                if (purchases != null) {
+                    for (Purchase purchase : purchases) {
+                        List<String> prods = purchase.getProducts();
+                        if ((prods.contains(PRODUCT_ID_REMOVE_ADS)
+                                || prods.contains(PRODUCT_ID_REMOVE_ADS_ALT)
+                                || prods.contains(PRODUCT_ID_PIZZA))
+                                && purchase.getPurchaseState() == Purchase.PurchaseState.PURCHASED) {
+                            hasActivePurchase = true;
+                            handlePurchase(purchase);
+                            break;
                         }
                     }
                 }
-        );
+                if (!hasActivePurchase && !isAdsRemoved()) {
+                    setAdsRemoved(false);
+                }
+            } else {
+                Log.w(TAG, "Failed to query purchases: " + billingResult.getDebugMessage()
+                        + " (Code: " + billingResult.getResponseCode() + ")");
+            }
+        });
     }
 
+    /**
+     * Actualiza el estado de anuncios eliminados y Pro en SharedPreferences y notifica al listener.
+     */
+    @VisibleForTesting
+    public void setAdsRemoved(boolean value) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        boolean previousValue = isAdsRemoved();
+
+        prefs.edit()
+                .putBoolean(KEY_ADS_REMOVED, value)
+                .putBoolean(KEY_PRO_USER, value)
+                .apply();
+
+        isAdsRemovedCached = value;
+
+        if (value != previousValue && listener != null) {
+            listener.onAdsRemovedChanged(value);
+        }
+    }
+
+    /**
+     * Retorna si los anuncios han sido eliminados por compra in-app permanente.
+     */
+    public boolean isAdsRemoved() {
+        if (isAdsRemovedCached) {
+            return true;
+        }
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        boolean adsRemoved = prefs.getBoolean(KEY_ADS_REMOVED, false) || prefs.getBoolean(KEY_PRO_USER, false);
+        if (adsRemoved) {
+            isAdsRemovedCached = true;
+        }
+        return adsRemoved;
+    }
+
+    /**
+     * Método estático para verificar rápidamente el estado de compra sin instanciar BillingManager.
+     */
+    public static boolean isAdsRemoved(@NonNull Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        return prefs.getBoolean(KEY_ADS_REMOVED, false) || prefs.getBoolean(KEY_PRO_USER, false);
+    }
+
+    /**
+     * Alias para verificar si la compra de Flash SPI Tool Pro fue adquirida.
+     */
+    public boolean isProPurchased() {
+        return isAdsRemoved();
+    }
+
+    public boolean isProductAvailable() {
+        return removeAdsDetails != null;
+    }
+
+    @Nullable
+    public ProductDetails getRemoveAdsDetails() {
+        return removeAdsDetails;
+    }
+
+    @Nullable
+    public String getFormattedPrice() {
+        if (removeAdsDetails != null && removeAdsDetails.getOneTimePurchaseOfferDetails() != null) {
+            return removeAdsDetails.getOneTimePurchaseOfferDetails().getFormattedPrice();
+        }
+        return null;
+    }
+
+    public boolean isServiceConnected() {
+        return isServiceConnected;
+    }
+
+    @VisibleForTesting
+    public void setRemoveAdsDetails(@Nullable ProductDetails details) {
+        this.removeAdsDetails = details;
+    }
+
+    @VisibleForTesting
+    public void setServiceConnected(boolean connected) {
+        this.isServiceConnected = connected;
+    }
+
+    /**
+     * Desconecta de forma segura el cliente de facturación.
+     */
     public void destroy() {
         if (billingClient != null && billingClient.isReady()) {
             billingClient.endConnection();
         }
+        isServiceConnected = false;
+        listener = null;
+    }
+
+    /**
+     * Alias retrocompatible con el ciclo de vida de actividades.
+     */
+    public void onDestroy() {
+        destroy();
     }
 }

@@ -139,7 +139,7 @@ La aplicación utiliza anuncios bonificados (**Rewarded Ads**) para otorgar el *
 ### Bloques de Anuncios Oficiales (App ID: `ca-app-pub-5141499161332805~8263601193`):
 * **Adaptive Banner:** `ca-app-pub-5141499161332805/1518371626`
 * **Interstitial Ad:** `ca-app-pub-5141499161332805/8275351662`
-* **Rewarded Video Ad (Pase Pro 12 Horas):** `ca-app-pub-5141499161332805/7291519778`
+* **Rewarded Video Ad (Pase Pro 12 Horas):** `ca-app-pub-5141499161332805/9025351389`
 
 ### En Google AdMob:
 1. Inicia sesión en [Google AdMob](https://apps.admob.com/).
@@ -150,7 +150,7 @@ La aplicación utiliza anuncios bonificados (**Rewarded Ads**) para otorgar el *
 6. Configuración de recompensa:
    - **Cantidad de recompensa:** `1`
    - **Elemento de recompensa:** `Pase Pro 12 Horas`
-7. Haz clic en **Crear bloque de anuncios** y copia el ID generado (`ca-app-pub-5141499161332805/7291519778`).
+7. Haz clic en **Crear bloque de anuncios** y copia el ID generado (`ca-app-pub-5141499161332805/9025351389`).
 
 ---
 
@@ -170,7 +170,7 @@ Cuando el usuario tiene el **Pase Pro activo** (sea por compra permanente o por 
 - [ ] Producto `remove_ads_pro` (o `donacion_pizza`) creado y en estado **Activo** en Google Play Console.
 - [ ] Opción de compra configurada como `Comprar` (precio ~$4.99 USD).
 - [ ] Tu correo de Google registrado en **Evaluadores con acceso a licencias**.
-- [ ] Bloque bonificado AdMob (`7291519778`) activo y enlazado.
+- [ ] Bloque bonificado AdMob (`9025351389`) activo y enlazado.
 - [ ] Al ver video bonificado: se activa el temporizador de 12 horas, se oculta el banner y se desbloquean las herramientas Pro.
 - [ ] Al pulsar compra permanente: se abre la pasarela de Google Play, confirma sin consumir y persiste de por vida tras reinstalar.
 - [ ] Todas las funciones básicas de flasheo de silicio (lectura, escritura, borrado, verificación, detección) continúan operando de forma 100% gratuita y sin anuncios forzados.

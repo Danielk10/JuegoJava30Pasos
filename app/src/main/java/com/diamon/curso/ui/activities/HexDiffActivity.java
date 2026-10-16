@@ -27,6 +27,8 @@ public class HexDiffActivity extends AppCompatActivity {
     private TextView tvDiffSummary, tvDiffStats;
     private RecyclerView recyclerDiff;
     private Button btnLoadFile1, btnLoadFile2;
+    private com.diamon.curso.diff.DiffHeatmapView diffHeatmapView;
+    private com.diamon.curso.diff.MappedDiffDataSource currentDiffSource;
 
     private byte[] dataA = null;
     private byte[] dataB = null;
@@ -84,8 +86,29 @@ public class HexDiffActivity extends AppCompatActivity {
 
         tvDiffSummary = findViewById(R.id.tvDiffSummary);
         tvDiffStats = findViewById(R.id.tvDiffStats);
+        diffHeatmapView = findViewById(R.id.diffHeatmapView);
         recyclerDiff = findViewById(R.id.recyclerDiff);
-        recyclerDiff.setLayoutManager(new LinearLayoutManager(this));
+        final LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        recyclerDiff.setLayoutManager(layoutManager);
+        recyclerDiff.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                if (diffHeatmapView != null) {
+                    int firstPos = layoutManager.findFirstVisibleItemPosition();
+                    if (firstPos >= 0) {
+                        diffHeatmapView.setVisibleOffset((long) firstPos * 16);
+                    }
+                }
+            }
+        });
+
+        if (diffHeatmapView != null) {
+            diffHeatmapView.setOnSectorSelectedListener((sectorIndex, offset) -> {
+                int targetRow = (int) (offset / 16);
+                layoutManager.scrollToPositionWithOffset(targetRow, 0);
+            });
+        }
+
         btnLoadFile1 = findViewById(R.id.btnLoadFile1);
         btnLoadFile2 = findViewById(R.id.btnLoadFile2);
 
@@ -125,36 +148,55 @@ public class HexDiffActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (currentDiffSource != null) {
+            currentDiffSource.close();
+            currentDiffSource = null;
+        }
+    }
+
     private void tryCompare() {
         if (dataA == null || dataB == null) {
             tvDiffSummary.setText(R.string.str_load_both_files);
             return;
         }
 
-        int maxLen = Math.max(dataA.length, dataB.length);
-        int minLen = Math.min(dataA.length, dataB.length);
-        int diffCount = 0;
-
-        for (int i = 0; i < maxLen; i++) {
-            byte a = i < dataA.length ? dataA[i] : (byte) 0xFF;
-            byte b = i < dataB.length ? dataB[i] : (byte) 0xFF;
-            if (a != b)
-                diffCount++;
+        if (currentDiffSource != null) {
+            currentDiffSource.close();
         }
+        currentDiffSource = new com.diamon.curso.diff.MappedDiffDataSource(dataA, dataB);
+        final com.diamon.curso.diff.MappedDiffDataSource diffSource = currentDiffSource;
 
         tvDiffSummary.setText(getString(R.string.str_compare_summary, nameA, dataA.length, nameB, dataB.length));
-
         tvDiffStats.setVisibility(View.VISIBLE);
-        if (diffCount == 0) {
-            tvDiffStats.setText(R.string.str_files_identical);
-            tvDiffStats.setTextColor(0xFF4CAF50);
-        } else {
-            double pct = (diffCount * 100.0) / maxLen;
-            tvDiffStats.setText(getString(R.string.str_files_different, diffCount, pct, maxLen));
-            tvDiffStats.setTextColor(0xFFFF5252);
-        }
+        tvDiffStats.setText("Escaneando sectores...");
 
-        recyclerDiff.setAdapter(new DiffAdapter(dataA, dataB));
+        new Thread(() -> {
+            diffSource.scan(null);
+            runOnUiThread(() -> {
+                if (isFinishing() || isDestroyed()) return;
+                long diffCount = diffSource.getTotalDiffBytes();
+                long maxLen = diffSource.getMaxLen();
+
+                if (diffCount == 0) {
+                    tvDiffStats.setText(R.string.str_files_identical);
+                    tvDiffStats.setTextColor(0xFF4CAF50);
+                } else {
+                    double pct = (diffCount * 100.0) / maxLen;
+                    tvDiffStats.setText(getString(R.string.str_files_different, (int) diffCount, pct, (int) maxLen));
+                    tvDiffStats.setTextColor(0xFFFF5252);
+                }
+
+                if (diffHeatmapView != null) {
+                    diffHeatmapView.setVisibility(View.VISIBLE);
+                    diffHeatmapView.setDataSource(diffSource);
+                }
+
+                recyclerDiff.setAdapter(new DiffAdapter(dataA, dataB));
+            });
+        }).start();
     }
 
     private byte[] readUriToBytes(Uri uri) throws Exception {

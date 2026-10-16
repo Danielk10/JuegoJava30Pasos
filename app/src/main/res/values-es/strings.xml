@@ -235,4 +235,28 @@
     <string name="str_transport_socket_desc">Socket TCP Local (127.0.0.1) - Recomendado (Mayor velocidad y estabilidad)</string>
     <string name="str_transport_pty_desc">Pseudoterminal PTY (/dev/pts) - Modo clásico (Motor C++ optimizado)</string>
     <string name="str_err_usb_host_not_supported">El servicio USB Host no está soportado o no está disponible en este dispositivo.</string>
+
+    <!-- Suite Pro y Pase de 12 Horas -->
+    <string name="pro_access_title">⭐ %1$s Pro</string>
+    <string name="pro_access_subtitle">Desbloquea la suite técnica avanzada para %1$s</string>
+    <string name="pro_feature_antibrick_vault">Bóveda de Seguridad (Backup Pre-Flash Antibrick)</string>
+    <string name="pro_feature_crypto_checker">Verificador Criptográfico (MD5, SHA-256, CRC32)</string>
+    <string name="pro_feature_live_hex_editor">Editor Hexadecimal en Vivo con Parcheo In-Place</string>
+    <string name="pro_feature_intel_gbe_mac">Inyector MAC Intel GbE LAN (Checksum NVM 0xBABA)</string>
+    <string name="pro_feature_msdm_extractor">Extractor de Clave Windows OEM (MSDM / ACPI)</string>
+    <string name="pro_feature_spi_registers">Desbloqueo de Registros SPI SR1/SR2/SR3 en 1 Clic</string>
+    <string name="pro_feature_delta_flashing">Flasheo Delta Selectivo de Sectores 4KB (Ahorro 90% tiempo)</string>
+    <string name="pro_feature_zero_ads">Cero Publicidad (Sin Banners ni Anuncios Intersticiales)</string>
+    <string name="pro_btn_watch_rewarded_video">🎬 Ver Video - Pase Gratis de 12 Horas</string>
+    <string name="pro_pass_activated_toast">⭐ ¡Pase %1$s Pro activado por 12 horas!</string>
+    <string name="pro_ads_not_available">Publicidad no disponible en este momento</string>
+    <string name="pro_btn_buy_permanent">👑 Comprar %1$s Pro Permanente%2$s</string>
+    <string name="pro_billing_not_available">Google Play Billing no disponible</string>
+    <string name="pro_permanent_active_title">Flash SPI Tool Pro Permanente Activo</string>
+    <string name="pro_permanent_active_desc">Dispones de Flash SPI Tool Pro de por vida. Todas las herramientas avanzadas están desbloqueadas sin anuncios ni límites de tiempo.</string>
+    <string name="ad_loading_rewarded_video_toast">Cargando video bonificado... Por favor intente en unos segundos.</string>
+    <string name="pro_pass_expired">Expirado</string>
+    <string name="menu_pro_mode">⭐ Modo Pro</string>
+    <string name="menu_pro_permanent">👑 Pro Permanente</string>
+    <string name="menu_pro_timer">⭐ Pro %1$s</string>
 </resources>
