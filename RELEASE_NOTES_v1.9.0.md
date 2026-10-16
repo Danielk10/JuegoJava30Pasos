@@ -63,9 +63,10 @@ Esta versión mayor (v1.9.0, código de versión 86) introduce la arquitectura *
 ---
 
 ## 📦 Artefactos de la Versión
-• **APK Release:** `/tmp/flashrom/outputs/apk/release/app-release.apk` (18 MB)  
-  *SHA-256:* `206b6762d0ab672404bf108064f0c2f239cb5e369a7ec5b0d9f8b95986d2caed`  
-• **AAB Release (Google Play Bundle):** `/tmp/flashrom/outputs/bundle/release/app-release.aab` (17 MB)  
-  *SHA-256:* `e36a9922ec53eb9ef32d9ab3b7676a3564b6f16f812a5db1339641b172f7bdea`  
-• **APK Debug:** `/tmp/flashrom/outputs/apk/debug/app-debug.apk` (23 MB)  
+• **APK Release:** `Flash-SPI-Tool-v1.9.0-release.apk` (18 MB)  
+  *SHA-256:* `ebd9b5109d750809e3e1fa009d67a3c9f28df94188d22bdc8f11f1595d3ea1dc`  
+• **AAB Release (Google Play Bundle):** `Flash-SPI-Tool-v1.9.0.aab` (17 MB)  
+  *SHA-256:* `b274ac0db07cf7438f7ce40da43375b0eb7b8f35e9df6249ce68edfbfdce2d4e`  
+• **APK Debug:** `Flash-SPI-Tool-v1.9.0-debug.apk` (22 MB)  
+  *SHA-256:* `5f904062d94207daea3e68bdcdfab765743cb5031bf57d1602328dddc7974596`  
 • **Firma Digital:** Certificado oficial RSA 2048-bit (Esquema v2 verificado con `apksigner`)
