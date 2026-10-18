@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
+import android.provider.Settings;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -50,6 +52,7 @@ public class BillingManager implements PurchasesUpdatedListener {
     public static final String PREFS_NAME = "billing_prefs";
     public static final String KEY_ADS_REMOVED = "is_ads_removed";
     public static final String KEY_PRO_USER = "is_pro_user";
+    private static final long LAUNCH_DEBOUNCE_MS = 2000L;
 
     /**
      * Interfaz de escucha para eventos de compra y estado de facturación.
@@ -74,6 +77,7 @@ public class BillingManager implements PurchasesUpdatedListener {
     private final Map<String, ProductDetails> availableProducts = new HashMap<>();
     private boolean isServiceConnected = false;
     private boolean isAdsRemovedCached = false;
+    private long lastLaunchTimeMs = 0L;
 
     public BillingManager(@NonNull Context context, @Nullable BillingListener listener) {
         this(context, listener, null);
@@ -231,6 +235,29 @@ public class BillingManager implements PurchasesUpdatedListener {
      * Lanza la compra del producto Pro principal "remove_ads_pro" (o disponible).
      */
     public boolean launchPurchaseFlow(@NonNull Activity activity) {
+        if (activity == null || activity.isFinishing() || activity.isDestroyed()) {
+            Log.w(TAG, "Cannot launch purchase flow: Activity is null, finishing, or destroyed.");
+            return false;
+        }
+
+        if (isRunningInTestLab(activity)) {
+            Log.w(TAG, "Skipping Play Billing launch flow inside Firebase Test Lab / Play Pre-launch environment.");
+            if (listener != null) {
+                listener.onBillingError("In-app billing is disabled in automated test environments.");
+            }
+            return false;
+        }
+
+        if (!billingClient.isReady()) {
+            String errorMsg = "Billing service is not connected. Reconnecting...";
+            Log.w(TAG, errorMsg);
+            startConnection();
+            if (listener != null) {
+                listener.onBillingError(errorMsg);
+            }
+            return false;
+        }
+
         if (removeAdsDetails == null) {
             String errorMsg = "Product details not available. Cannot launch purchase flow.";
             Log.w(TAG, errorMsg);
@@ -241,6 +268,13 @@ public class BillingManager implements PurchasesUpdatedListener {
             return false;
         }
 
+        long now = SystemClock.elapsedRealtime();
+        if (lastLaunchTimeMs > 0L && (now - lastLaunchTimeMs) < LAUNCH_DEBOUNCE_MS) {
+            Log.w(TAG, "Ignoring rapid duplicate launchPurchaseFlow call.");
+            return false;
+        }
+        lastLaunchTimeMs = now;
+
         BillingFlowParams.ProductDetailsParams productDetailsParams =
                 BillingFlowParams.ProductDetailsParams.newBuilder()
                         .setProductDetails(removeAdsDetails)
@@ -250,10 +284,26 @@ public class BillingManager implements PurchasesUpdatedListener {
                 .setProductDetailsParamsList(Collections.singletonList(productDetailsParams))
                 .build();
 
-        BillingResult result = billingClient.launchBillingFlow(activity, billingFlowParams);
-        boolean success = result.getResponseCode() == BillingClient.BillingResponseCode.OK;
-        if (!success && listener != null) {
-            listener.onBillingError("Launch billing flow failed: " + result.getDebugMessage());
+        final BillingResult result;
+        try {
+            result = billingClient.launchBillingFlow(activity, billingFlowParams);
+        } catch (RuntimeException e) {
+            lastLaunchTimeMs = 0L;
+            String errorMsg = "Failed to launch billing flow: " + e.getMessage();
+            Log.e(TAG, errorMsg, e);
+            if (listener != null) {
+                listener.onBillingError(errorMsg);
+            }
+            return false;
+        }
+
+        boolean success = result != null && result.getResponseCode() == BillingClient.BillingResponseCode.OK;
+        if (!success) {
+            lastLaunchTimeMs = 0L;
+            if (listener != null) {
+                String debugMsg = result != null ? result.getDebugMessage() : "Null BillingResult";
+                listener.onBillingError("Launch billing flow failed: " + debugMsg);
+            }
         }
         return success;
     }
@@ -262,6 +312,19 @@ public class BillingManager implements PurchasesUpdatedListener {
      * Sobrecarga retrocompatible para lanzar el flujo de compra indicando el ID del producto.
      */
     public void launchPurchaseFlow(@NonNull Activity activity, @NonNull String productId) {
+        if (activity == null || activity.isFinishing() || activity.isDestroyed()) {
+            Log.w(TAG, "Cannot launch purchase flow: Activity is null, finishing, or destroyed.");
+            return;
+        }
+
+        if (isRunningInTestLab(activity)) {
+            Log.w(TAG, "Skipping Play Billing launch flow inside Firebase Test Lab / Play Pre-launch environment.");
+            if (listener != null) {
+                listener.onPurchaseError("In-app billing is disabled in automated test environments.");
+            }
+            return;
+        }
+
         if (!billingClient.isReady()) {
             startConnection();
             if (listener != null) {
@@ -283,6 +346,13 @@ public class BillingManager implements PurchasesUpdatedListener {
             return;
         }
 
+        long now = SystemClock.elapsedRealtime();
+        if (lastLaunchTimeMs > 0L && (now - lastLaunchTimeMs) < LAUNCH_DEBOUNCE_MS) {
+            Log.w(TAG, "Ignoring rapid duplicate launchPurchaseFlow call.");
+            return;
+        }
+        lastLaunchTimeMs = now;
+
         BillingFlowParams.ProductDetailsParams detailsParams =
                 BillingFlowParams.ProductDetailsParams.newBuilder()
                         .setProductDetails(pd)
@@ -292,18 +362,44 @@ public class BillingManager implements PurchasesUpdatedListener {
                 .setProductDetailsParamsList(Collections.singletonList(detailsParams))
                 .build();
 
-        BillingResult result = billingClient.launchBillingFlow(activity, flowParams);
-        if (result.getResponseCode() != BillingClient.BillingResponseCode.OK) {
-            Log.e(TAG, "Launch billing flow error: " + result.getDebugMessage());
+        final BillingResult result;
+        try {
+            result = billingClient.launchBillingFlow(activity, flowParams);
+        } catch (RuntimeException e) {
+            lastLaunchTimeMs = 0L;
+            Log.e(TAG, "Failed to launch billing flow", e);
             if (listener != null) {
-                listener.onPurchaseError(result.getDebugMessage());
+                listener.onPurchaseError("Launch billing flow failed: " + e.getMessage());
             }
+            return;
+        }
+
+        if (result == null || result.getResponseCode() != BillingClient.BillingResponseCode.OK) {
+            lastLaunchTimeMs = 0L;
+            String debugMsg = result != null ? result.getDebugMessage() : "Null BillingResult";
+            Log.e(TAG, "Launch billing flow error: " + debugMsg);
+            if (listener != null) {
+                listener.onPurchaseError(debugMsg);
+            }
+        }
+    }
+
+    /**
+     * Detecta si el dispositivo se encuentra ejecutando en Firebase Test Lab / Google Play Pre-launch Report.
+     */
+    private boolean isRunningInTestLab(@NonNull Context ctx) {
+        try {
+            String testLabSetting = Settings.System.getString(ctx.getContentResolver(), "firebase.test.lab");
+            return "true".equalsIgnoreCase(testLabSetting);
+        } catch (Exception e) {
+            return false;
         }
     }
 
     @Override
     public void onPurchasesUpdated(@NonNull BillingResult billingResult,
                                    @Nullable List<Purchase> purchases) {
+        lastLaunchTimeMs = 0L;
         int responseCode = billingResult.getResponseCode();
 
         if (responseCode == BillingClient.BillingResponseCode.OK && purchases != null) {

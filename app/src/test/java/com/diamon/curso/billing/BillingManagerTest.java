@@ -301,6 +301,39 @@ public class BillingManagerTest {
     @Test
     public void launchPurchaseFlow_withNoDetails_queriesProductsAndReturnsFalse() {
         Activity mockActivity = mock(Activity.class);
+        when(mockBillingClient.isReady()).thenReturn(true);
+        assertFalse(billingManager.launchPurchaseFlow(mockActivity));
+        verify(mockListener).onBillingError(anyString());
+    }
+
+    @Test
+    public void launchPurchaseFlow_whenActivityIsFinishing_returnsFalse() {
+        Activity mockActivity = mock(Activity.class);
+        when(mockActivity.isFinishing()).thenReturn(true);
+        assertFalse(billingManager.launchPurchaseFlow(mockActivity));
+        verify(mockBillingClient, never()).launchBillingFlow(any(), any());
+    }
+
+    @Test
+    public void launchPurchaseFlow_whenBillingClientNotReady_reconnectsAndReturnsFalse() {
+        Activity mockActivity = mock(Activity.class);
+        when(mockBillingClient.isReady()).thenReturn(false);
+        assertFalse(billingManager.launchPurchaseFlow(mockActivity));
+        verify(mockBillingClient).startConnection(any());
+        verify(mockListener).onBillingError(anyString());
+    }
+
+    @Test
+    public void launchPurchaseFlow_whenLaunchThrowsRuntimeException_catchesAndNotifiesError() {
+        Activity mockActivity = mock(Activity.class);
+        when(mockBillingClient.isReady()).thenReturn(true);
+        ProductDetails mockDetails = mock(ProductDetails.class);
+        when(mockDetails.zza()).thenReturn("dummy_product_json");
+        billingManager.setRemoveAdsDetails(mockDetails);
+
+        when(mockBillingClient.launchBillingFlow(eq(mockActivity), any(BillingFlowParams.class)))
+                .thenThrow(new RuntimeException("Simulated ProxyBillingActivity failure"));
+
         assertFalse(billingManager.launchPurchaseFlow(mockActivity));
         verify(mockListener).onBillingError(anyString());
     }
@@ -308,6 +341,7 @@ public class BillingManagerTest {
     @Test
     public void launchPurchaseFlow_withDetails_launchesFlow() {
         Activity mockActivity = mock(Activity.class);
+        when(mockBillingClient.isReady()).thenReturn(true);
         ProductDetails mockDetails = mock(ProductDetails.class);
         when(mockDetails.zza()).thenReturn("dummy_product_json");
         billingManager.setRemoveAdsDetails(mockDetails);
