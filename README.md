@@ -10,6 +10,7 @@
 [![Flashrom](https://img.shields.io/badge/flashrom-integrado%20(Custom%20Engine)-orange)](https://github.com/flashrom/flashrom)
 [![Build](https://img.shields.io/badge/Build-Passing-success?logo=githubactions&logoColor=white)](#)
 [![Licencia](https://img.shields.io/badge/Licencia-GPLv3-blue.svg)](./LICENSE.txt)
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=flat-square&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/danielpdiai)
 
 ---
 
@@ -288,3 +289,11 @@ Este proyecto es software libre y de código abierto distribuido bajo la licenci
 - **[libftdi](https://developer.intra2net.com/git/libftdi)** — Licencia LGPL-2.1+
 - **[libjaylink](https://gitlab.zapb.de/libjaylink/libjaylink)** — Licencia GPL-2.0+
 - **[OpenSSL](https://www.openssl.org/)** — Licencia Apache 2.0
+
+---
+
+## ☕ Apoyo y Donaciones
+
+Si este proyecto te ha sido de utilidad y deseas apoyar el desarrollo continuo:
+
+[![Buy Me A Coffee](https://img.buymeacoffee.com/button-api/?text=Cómprame%20un%20café&emoji=☕&slug=danielpdiai&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff)](https://buymeacoffee.com/danielpdiai)
