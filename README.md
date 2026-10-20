@@ -11,6 +11,7 @@
 [![Build](https://img.shields.io/badge/Build-Passing-success?logo=githubactions&logoColor=white)](#)
 [![Licencia](https://img.shields.io/badge/Licencia-GPLv3-blue.svg)](./LICENSE.txt)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=flat-square&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/danielpdiai)
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-F16061?style=flat-square&logo=ko-fi&logoColor=white)](https://ko-fi.com/danieleliasdiamonvazquez)
 
 ---
 
@@ -297,3 +298,4 @@ Este proyecto es software libre y de código abierto distribuido bajo la licenci
 Si este proyecto te ha sido de utilidad y deseas apoyar el desarrollo continuo:
 
 [![Buy Me A Coffee](https://img.buymeacoffee.com/button-api/?text=Cómprame%20un%20café&emoji=☕&slug=danielpdiai&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff)](https://buymeacoffee.com/danielpdiai)
+[![Support me on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/danieleliasdiamonvazquez)
