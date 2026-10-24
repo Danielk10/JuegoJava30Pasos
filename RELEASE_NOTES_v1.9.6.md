@@ -49,5 +49,8 @@ Esta versión (`v1.9.6`, código de versión `92`) introduce mejoras clave orien
 
 ## 📦 Artefactos de la Versión
 
-• **AAB Release (Google Play Bundle):** `app-release.aab` (Generado en `/tmp/flashrom/outputs/bundle/release/app-release.aab`)  
+• **APK Release:** `Flash-SPI-Tool-v1.9.6-release.apk` (20 MB)  
+  **SHA-256:** `a8e23d54022307dab2068168f5860434c2545159ee2e7465bdffc528426a2737`  
+• **AAB Release (Google Play Bundle):** `Flash-SPI-Tool-v1.9.6.aab` (19 MB)  
+  **SHA-256:** `2b0c0724f093dae503d32112a9c7ed37ff11223b185d52d68d4ab5d2e29b8d3b`  
 • **Firma Digital:** Certificado oficial RSA 2048-bit (`firma_flash_spi_tool.jks`)
