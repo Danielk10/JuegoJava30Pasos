@@ -58,6 +58,68 @@ public class FlashromExecutor {
         this.callback = callback;
     }
 
+    public static class AmbiguityInfo {
+        public final boolean multipleChipsFound;
+        public final List<String> suggestedChips;
+
+        public AmbiguityInfo(boolean multipleChipsFound, List<String> suggestedChips) {
+            this.multipleChipsFound = multipleChipsFound;
+            this.suggestedChips = suggestedChips != null ? suggestedChips : new ArrayList<>();
+        }
+    }
+
+    public static AmbiguityInfo parseOutputForAmbiguity(String fullOutput) {
+        boolean multipleChipsFound = false;
+        List<String> suggestedChips = new ArrayList<>();
+        List<String> allDetectedChips = new ArrayList<>();
+
+        if (fullOutput == null || fullOutput.isEmpty()) {
+            return new AmbiguityInfo(false, suggestedChips);
+        }
+
+        String[] lines = fullOutput.split("\\r?\\n");
+        for (String rawLine : lines) {
+            String line = rawLine.trim();
+            if (line.isEmpty()) continue;
+
+            if (line.contains("Found ") && line.contains("flash chip")) {
+                int startQuote = line.indexOf('"');
+                int endQuote = line.indexOf('"', startQuote + 1);
+                if (startQuote != -1 && endQuote != -1) {
+                    String chip = line.substring(startQuote + 1, endQuote).trim();
+                    if (!chip.isEmpty() && !allDetectedChips.contains(chip)) {
+                        allDetectedChips.add(chip);
+                    }
+                }
+            }
+
+            if (line.contains("Multiple flash chip definitions match") ||
+                line.contains("Please specify which chip definition to use with the -c")) {
+                multipleChipsFound = true;
+                int startQuote = -1;
+                while ((startQuote = line.indexOf('"', startQuote + 1)) != -1) {
+                    int endQuote = line.indexOf('"', startQuote + 1);
+                    if (endQuote == -1) break;
+                    String chip = line.substring(startQuote + 1, endQuote).trim();
+                    if (!chip.isEmpty() && !suggestedChips.contains(chip)) {
+                        suggestedChips.add(chip);
+                    }
+                    startQuote = endQuote;
+                }
+            }
+        }
+
+        if (multipleChipsFound) {
+            for (String chip : allDetectedChips) {
+                if (!suggestedChips.contains(chip)) {
+                    suggestedChips.add(chip);
+                }
+            }
+        }
+
+        return new AmbiguityInfo(multipleChipsFound, suggestedChips);
+    }
+
     public synchronized void abort() {
         if (!nativeLibraryLoaded) return;
         int pid = currentPid;
@@ -128,8 +190,7 @@ public class FlashromExecutor {
                 currentPid = childPid;
             }
 
-            boolean multipleChipsFound = false;
-            List<String> suggestedChips = new ArrayList<>();
+            StringBuilder fullOutputCollector = new StringBuilder();
 
             try (android.os.ParcelFileDescriptor pfd = android.os.ParcelFileDescriptor.adoptFd(readFd);
                  java.io.FileInputStream fis = new java.io.FileInputStream(pfd.getFileDescriptor());
@@ -137,33 +198,11 @@ public class FlashromExecutor {
                 
                 char[] buffer = new char[512];
                 int charsRead;
-                StringBuilder lineCollector = new StringBuilder();
                 
                 while ((charsRead = reader.read(buffer)) != -1) {
                     String chunk = new String(buffer, 0, charsRead);
                     callback.onProcessOutput(chunk);
-                    
-                    for (int i = 0; i < chunk.length(); i++) {
-                        char c = chunk.charAt(i);
-                        if (c == '\n' || c == '\r') {
-                            if (lineCollector.length() > 0) {
-                                String line = lineCollector.toString();
-                                if (line.contains("Multiple flash chip definitions match")) {
-                                    multipleChipsFound = true;
-                                }
-                                if (multipleChipsFound && line.startsWith("Found ") && line.contains("flash chip")) {
-                                    int startQuote = line.indexOf('"');
-                                    int endQuote = line.indexOf('"', startQuote + 1);
-                                    if (startQuote != -1 && endQuote != -1) {
-                                        suggestedChips.add(line.substring(startQuote + 1, endQuote));
-                                    }
-                                }
-                                lineCollector.setLength(0);
-                            }
-                        } else {
-                            lineCollector.append(c);
-                        }
-                    }
+                    fullOutputCollector.append(chunk);
                 }
             }
 
@@ -172,8 +211,9 @@ public class FlashromExecutor {
                 currentPid = -1;
             }
 
-            if (exitCode != 0 && multipleChipsFound && !suggestedChips.isEmpty()) {
-                callback.onAmbiguityDetected(args, suggestedChips);
+            AmbiguityInfo ambiguity = parseOutputForAmbiguity(fullOutputCollector.toString());
+            if (exitCode != 0 && ambiguity.multipleChipsFound) {
+                callback.onAmbiguityDetected(args, ambiguity.suggestedChips);
                 return;
             }
 

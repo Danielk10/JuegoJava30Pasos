@@ -1,0 +1,432 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Flash SPI Tool</string>
+    <string name="str_selecciona_dos_">选择两个要比较的文件</string>
+    <string name="str_archivo_a">文件 A</string>
+    <string name="str_archivo_b">文件 B</string>
+    <string name="str_seleccionar_dis">选择基础设备：</string>
+    <string name="str_ajustes_manuale">手动参数设置 (-p)：</string>
+    <string name="str_guardar_configu">保存配置</string>
+    <string name="str_hardware_soport">此版本支持的硬件：</string>
+    <string name="str_asm106x_atavia_">asm106x, atavia, buspirate_spi, ch341a_spi, ch347_spi, dediprog, developerbox_spi, digilent_spi, dirtyjtag_spi, drkaiser, dummy, ft2232_spi, gfxnvidia, internal, it8212, jlink_spi, linux_mtd, linux_spi, mediatek_i2c_spi, mstarddc_spi, nicintel, nicintel_eeprom, nicintel_spi, nv_sma_spi, ogp_spi, parade_lspcon, pickit2_spi, pony_spi, raiden_debug_spi, realtek_mst_i2c_spi, satasii, serprog, spidriver, stlinkv3_spi, usbblaster_spi</string>
+    <string name="str_hardware_no_sop">不支持或排除的硬件：</string>
+    <string name="str_atahpt_atapromi">atahpt, atapromise, ft232r_spi, ni845x_spi, nic3com, nicnatsemi, nicrealtek, rayer_spi, satamv</string>
+    <string name="str_cargando_archiv">正在加载文件...</string>
+    <string name="str_preparando_depe">正在准备原生依赖组件...</string>
+    <string name="str_estado_usb_desc">USB 状态：未连接</string>
+    <string name="str_detectar_y_cone">自动检测并连接</string>
+    <string name="str_identificar_chi">识别芯片</string>
+    <string name="str_verificar_rom">校验 ROM</string>
+    <string name="str_leer_backup">读取芯片</string>
+    <string name="str_flashear_rom">写入芯片</string>
+    <string name="str_cargar_rom">加载 ROM</string>
+    <string name="str_guardar_rom">保存 ROM</string>
+    <string name="str_borrar_chip">擦除芯片</string>
+    <string name="str_borrar_rom">清理文件</string>
+    <string name="str_ejecutar_instru">执行控制台指令</string>
+    <string name="str_terminal_salida">终端</string>
+    <string name="str_limpiar">清空</string>
+    <string name="str__log_">--- 日志 ---</string>
+    <string name="str_00000000">00000000</string>
+    <string name="str___"> | </string>
+    <string name="str_ff_ff_ff_ff_ff_">FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF </string>
+    <string name="str__">| </string>
+    <string name="str_str">................</string>
+    <string name="str_visor_hexadecim">十六进制查看器</string>
+    <string name="str_comparar_hex">十六进制对比</string>
+    <string name="str_configuracin_de">编程器设置</string>
+    <string name="str_polticas_de_pri">隐私政策</string>
+    <string name="str_pinouts_de_hard">硬件引脚图</string>
+    <string name="str_acerca_de">关于 / 开源许可</string>
+    <string name="menu_export_serprog">导出 Arduino serprog 固件</string>
+    <string name="str_error">错误</string>
+    <string name="str_cancelar">取消</string>
+    <string name="str_detener">停止</string>
+    <string name="str_file_a">文件 A：%1$s</string>
+    <string name="str_file_b">文件 B：%1$s</string>
+    <string name="str_err_load_file_a">加载文件 A 失败：%1$s</string>
+    <string name="str_err_load_file_b">加载文件 B 失败：%1$s</string>
+    <string name="str_load_both_files">请加载两个文件以进行比较。</string>
+    <string name="str_files_identical">✅ 文件完全一致 — 0 处差异。</string>
+    <string name="str_files_different">⚠ 总计 %3$d 字节中有 %1$d 字节不同 (%2$.1f%%)。</string>
+    <string name="str_err_no_data_visualize">错误：没有可查看的数据。
+请先读取芯片或导入文件。</string>
+    <string name="str_err_load_data">加载数据出错：%1$s</string>
+    <string name="str_err_hex_no_records">HEX 文件不包含有效的数据记录。</string>
+    <string name="str_err_hex_too_large">HEX 文件过大，无法查看 (%1$s MB)。</string>
+    <string name="str_err_parse_hex">解析 Intel HEX 出错：%1$s</string>
+    <string name="str_extracting_libs">首次运行：正在解压原生二进制库...</string>
+    <string name="str_verifying_dependencies">正在验证本地依赖组件...</string>
+    <string name="str_confirm_erase_title">⚠ 确认擦除芯片</string>
+    <string name="str_confirm_erase_msg">此操作将彻底擦除闪存芯片的内容。
+
+芯片上的所有数据都将丢失（全部填充为 0xFF）。
+
+确定要继续吗？</string>
+    <string name="str_select_usb_device">选择 USB 设备</string>
+    <string name="str_status_usb_connected">状态：%1$s 已连接</string>
+    <string name="str_ambiguity_title">检测到多个芯片定义</string>
+    <string name="str_ambiguity_msg">flashrom 检测到多个匹配的芯片型号。请选择确切的型号：</string>
+    <string name="str_logs_copied">日志已复制到剪贴板。</string>
+    <string name="str_saved">已保存：%1$s</string>
+    <string name="str_dummy_chip_emulate">选择要模拟的芯片</string>
+    <string name="str_dummy_chip_selected">已选择用于模拟的芯片：%1$s</string>
+    <string name="str_dummy_info_title">Dummy 虚拟编程器说明</string>
+    <string name="str_pinout_ch341a">CH341A — SPI 引脚排针</string>
+    <string name="str_pinout_soic8">SOIC8 / DIP8 闪存烧录夹</string>
+    <string name="str_pinout_arduino">Arduino UNO serprog 连接 Flash SPI</string>
+    <string name="str_pinout_buspirate">Bus Pirate 连接 Flash SPI</string>
+    <string name="str_pinout_spidriver">SPIDriver 连接 Flash SPI</string>
+    <string name="str_pinout_spi_bus">SPI 串行外设接口总线</string>
+    <string name="str_pinout_lpc_bus">LPC/FWH 总线 BIOS 芯片</string>
+    <string name="str_bios_internal">bios.bin (内部)</string>
+    <string name="str_compare_summary">A：%1$s (%2$d 字节) 对比 B：%3$s (%4$d 字节)</string>
+    <string name="str_err_open_file">无法打开文件。</string>
+    <string name="str_hex_detected">检测到 Intel HEX | 范围：0x%1$08X - 0x%2$08X</string>
+    <string name="str_source_label">
+来源：%1$s</string>
+    <string name="str_binary_summary">文件：%1$s | 大小：%2$d 字节</string>
+    <string name="str_log_new_install">--- 检测到新安装 ---</string>
+    <string name="str_log_preparing_resources">正在内部存储中准备本地资源...</string>
+    <string name="str_log_update_detected">--- 检测到版本更新 (v%1$d -&gt; v%2$d) ---</string>
+    <string name="str_log_verifying_resources">正在为新版本验证本地资源...</string>
+    <string name="str_log_warn_dependencies_failed">[警告] 准备部分本地依赖组件失败。</string>
+    <string name="str_log_assets_copied">资源已成功复制到内部存储。</string>
+    <string name="str_log_resources_verified">本地资源验证并更新成功。</string>
+    <string name="str_log_started">Flash SPI Tool 已成功启动。</string>
+    <string name="str_log_android_info">Android：%1$s (API %2$d)</string>
+    <string name="str_log_programmer_selected">已选择编程器：%1$s</string>
+    <string name="str_log_connect_help">开始前，请连接 USB 编程器并点击“自动检测并连接”。</string>
+    <string name="str_yes_erase">是的，立即擦除</string>
+    <string name="str_log_write_command_help">请输入要执行的指令。例如：flashrom --version 或 flashrom -p ch341a_spi -r bios.bin</string>
+    <string name="str_log_warn_no_usb">[警告] 指令使用了 \'-p\' 但未连接 USB 设备。</string>
+    <string name="str_log_dummy_ok">如果使用 \'dummy\' 虚拟模式则无需连接硬件。对于真实硬件，请先连接编程器。</string>
+    <string name="str_log_terminal_reset">终端已重置。</string>
+    <string name="str_usb_device">USB 设备</string>
+    <string name="str_usb_device_attached">已接入 USB 设备</string>
+    <string name="str_unknown_manufacturer">未知制造商</string>
+    <string name="str_close">关闭</string>
+    <string name="str_dummy_test_mode">Dummy 虚拟测试模式</string>
+    <string name="str_dummy_info_msg">\'dummy\' flashrom 编程器是虚拟模拟器。
+
+它不需要真实的 USB 硬件。
+
+支持模拟的芯片 (v1.7.0)：
+
+• VARIABLE_SIZE — 自定义大小 (使用 size=N)
+• W25Q128.V — 16 MB
+• MX25L6405D — 8 MB
+• SST25VF032B — 4 MB
+• SST25VF040 — 512 KB
+• M25P10.RES — 128 KB
+• S25FL128L — 16 MB
+
+正确指令示例：
+flashrom -p dummy:emulate=VARIABLE_SIZE,size=16777216,image=bios_test.bin -r read_test.bin
+
+⚠ 切勿在 emulate 中填写不一致的真实芯片名称。仅上述名称有效。
+
+对于真实硬件，请使用对应的硬件编程器：
+• CH341A → ch341a_spi
+• FT2232H → ft2232_spi
+• ST-Link → stlinkv3_spi</string>
+    <string name="str_log_test_file_created">已创建测试文件：bios_test.bin (%1$d KB)</string>
+    <string name="str_pinout_ch341a_header">CH341A 迷你编程器 — SPI 排针接线</string>
+    <string name="str_pinout_soic8_header">SOIC8 / DIP8 闪存芯片 — 连接至 CH341A</string>
+    <string name="str_pinout_arduino_header">Arduino UNO serprog — 连接至 Flash SPI</string>
+    <string name="str_pinout_buspirate_header">Bus Pirate — 连接至 Flash SPI</string>
+    <string name="str_pinout_spidriver_header">SPIDriver — 连接至 Flash SPI</string>
+    <string name="str_pinout_ch341a_note">⚠ 跳线 1-2：SPI 模式  ⚠ 跳线 2-3：TTL/UART 串口模式  ⚠ 仅支持 25xx SPI 闪存 (不支持 24C EEPROM)  ⚠ 3.3V 电压</string>
+    <string name="str_pinout_soic8_note">⚠ HOLD 与 WP 未使用时连接至 VCC  ⚠ 最高 3.3V</string>
+    <string name="str_pinout_spi_note">CPOL=0, CPHA=0 | Mode 0  |  典型速率：1–50 MHz</string>
+    <string name="str_pinout_lpc_note">flashrom 原生支持 PLCC32 封装的 LPC/FWH 芯片</string>
+    <string name="str_pinout_arduino_note">⚠ Arduino UNO 电平为 5V — 请使用 HEF4050 电平转换至 3.3V</string>
+    <string name="str_pinout_buspirate_note">⚠ Bus Pirate v3：SPI 最高约 8MHz  ⚠ 从 Vout 供电</string>
+    <string name="str_pinout_spidriver_note">⚠ SPIDriver 原生以 3.3V 运行 — 无需电平转换器</string>
+    <string name="str_pinout_pin_chip">芯片引脚</string>
+    <string name="str_pinout_flash_to_ch341a">闪存芯片 → CH341A</string>
+    <string name="str_pinout_clock_desc">CLK  = 主机生成的时钟信号</string>
+    <string name="str_pinout_cs_desc">CS   = 片选信号 (低电平有效)</string>
+    <string name="str_pinout_lpc_desc_fwh">FWH 使用与 LPC 非常相似的物理协议</string>
+    <string name="str_pinout_lpc_desc_lad">LAD0-3 = 复用数据/地址总线 (4位)</string>
+    <string name="str_pinout_lpc_desc_frame">LFRAME# = LPC 周期开始 (低电平有效)</string>
+    <string name="str_pinout_lpc_desc_clk">LCLK    = 时钟信号 (通常为 33 MHz)</string>
+    <string name="str_hint_comando">例如 flashrom --version | flashrom -p ch341a_spi -L</string>
+    <string name="str_err_flashrom_running">正在运行 flashrom 操作。请中止或等待其完成。</string>
+    <string name="str_err_missing_flashrom_prefix">错误：指令必须以 \'flashrom\' 开头。例如：flashrom -p ch341a_spi -r bios.bin</string>
+    <string name="str_log_starting_pty">正在为 %1$s 启动 PTY↔USB 桥接...</string>
+    <string name="str_log_forwarding_active">转发线程已激活。</string>
+    <string name="str_log_pty_bridge_ready">PTY↔USB 桥接已激活 — 桥接就绪。</string>
+    <string name="str_log_pty_jni_read_error">线程 A：JNI 读取错误。</string>
+    <string name="str_log_usb_write_error">线程 A：USB 写入错误：%1$s</string>
+    <string name="str_log_thread_a_finish">线程 A 结束 — PTY 读取：%1$d，USB 写入：%2$d</string>
+    <string name="str_log_thread_b_start">线程 B 启动 — masterFd：%1$d %2$s</string>
+    <string name="str_log_usb_async_jni_pty">(异步 USB + JNI PTY)</string>
+    <string name="str_log_usb_sync_jni_pty">(同步 USB + JNI PTY)</string>
+    <string name="str_log_usb_request_failed">UsbRequest 队列入队失败。</string>
+    <string name="str_log_beacon_detected">检测到重新同步信号！Arduino 已从超时中恢复。</string>
+    <string name="str_log_pty_jni_write_error">USB→PTY JNI 写入错误。</string>
+    <string name="str_log_usb_timeout_50">线程 B：50 次 USB 超时（Arduino 无响应？）</string>
+    <string name="str_log_usb_read_error">USB 读取错误：%1$s</string>
+    <string name="str_log_thread_b_finish">线程 B 结束 — USB 接收：%1$d，PTY 写入：%2$d</string>
+    <string name="str_err_critical_flashrom_missing">严重故障：未找到 \'flashrom\' 二进制文件。(%1$s)</string>
+    <string name="str_err_logical_usb_lost">逻辑错误：USB 文件描述符已失效。</string>
+    <string name="str_log_verify_disabled">校验已禁用：跳过校验步骤 (-n)</string>
+    <string name="str_log_writing_flash_op">正在写入闪存</string>
+    <string name="str_verificar_escritura">写入后校验</string>
+    <string name="str_export_dir_saved">导出目录已配置并保存。</string>
+    <string name="str_export_dir_limited">目录已配置（无持久扩展授权）。</string>
+    <string name="str_no_log_to_copy">没有可复制的日志文本。</string>
+    <string name="str_clipboard_error">无法访问系统剪贴板。</string>
+    <string name="str_export_success_log">文件 serprog_arduino.ino 和 serprog_arduino.hex 已成功导出到“下载”文件夹。</string>
+    <string name="str_export_success_toast">文件已导出到“下载”目录</string>
+    <string name="str_export_error_log">导出文件出错。可能缺少存储权限。</string>
+    <string name="str_error_copying_asset">复制 %1$s 出错：%2$s</string>
+    <string name="str_dummy_opt_read">读取模拟芯片</string>
+    <string name="str_dummy_opt_write">写入并校验</string>
+    <string name="str_dummy_opt_erase">擦除模拟芯片</string>
+    <string name="str_dummy_opt_probe">识别模拟芯片</string>
+    <string name="str_dummy_opt_select">选择预定义芯片</string>
+    <string name="str_dummy_opt_info">支持模拟的芯片列表</string>
+    <string name="str_about_html"><![CDATA[<h2>Flash SPI Tool</h2><p>使用原生 <b>flashrom</b> 引擎在 <b>SPI 闪存</b> 中读取、校验和写入固件的高级应用程序。</p><hr/><h3>内存与芯片兼容性</h3><p><b>✔ 支持的芯片：</b><br/>• <b>SPI 闪存（25xx 系列）：</b>Winbond（W25Q、W25X）、Macronix（MX25L）、GigaDevice（GD25Q）、Spansion/Cypress（S25FL）、EON（EN25）等。<br/>• flashrom 官方支持的 SPI、LPC、FWH 和 MTD 总线芯片。</p><p><b>❌ 不支持的存储器（24C 系列 I2C EEPROM）：</b><br/>• <b>24C 系列 EEPROM</b>（24C02、24C04、24C08、24C16、24C32、24C64、24C128、24C256 等）使用 <b>I2C</b> 协议（2 根线：SDA 和 SCL），而不是 SPI。<br/>• <b>flashrom</b> 仅通过 <code>ch341a_spi</code> 驱动在 SPI 总线上运行，<b>不支持 I2C 协议</b>。<br/>• 此外，24C EEPROM 缺少通用的电子标识指令（JEDEC ID 0x9F），因此芯片检测将始终提示未检测到芯片。</p><hr/><h3>CH341A 编程器配置</h3><p>• <b>编程器模式（跳线在 1-2 脚）：</b>应用程序将设备识别为 USB 编程器（VID 0x1A86，PID 0x5512）所必需的。在此模式下，SPI 接口对 25xx 系列起作用。<br/>• <b>串口 TTL/UART 模式（跳线在 2-3 脚）：</b>硬件切换为 COM 串口模式（PID 0x5523），无法用于烧录闪存。<br/>• <b>ZIF 锁紧插座：</b>尽管物理 CH341A 板上丝印有 24xx 和 25xx 标记，但在本应用中，芯片必须仅插入 <b>25 SPI FLASH</b> 区域。</p><hr/><h3>许可证与开源库</h3><p><b>项目许可证：</b>GNU GPLv3。<br/><br/><b>依赖项与库：</b><br/>• <a href="https://github.com/flashrom/flashrom">flashrom</a> (GPL-2.0)<br/>• <a href="https://github.com/mik3y/usb-serial-for-android">usb-serial-for-android</a> (MIT)<br/>• <a href="https://github.com/libusb/libusb">libusb</a> (LGPL-2.1+)<br/>• <a href="https://github.com/pciutils/pciutils">pciutils</a> (GPL-2.0+)<br/>• <a href="https://developer.intra2net.com/git/libftdi">libftdi</a> (LGPL-2.1+)<br/>• <a href="https://gitlab.zapb.de/libjaylink/libjaylink">libjaylink</a> (GPL-2.0+)<br/><br/><b>开发者相关项目：</b><br/>• <a href="https://github.com/Danielk10/PIC-k150-Programing">PIC k150 Programming</a> — Android 平台基于 P018A 协议的 PIC 编程器<br/></p>]]></string>
+    <string name="donate_thank_you_title">非常感谢您的支持！❤️</string>
+    <string name="donate_thank_you_message">您的支持对我们意义重大！感谢您支持 Flash SPI Tool 的开发。</string>
+    <string name="str_hint_programmer_param">例如 ch341a_spi 或 ft2232_spi:type=2232H</string>
+    <string name="str_menu_working_dir">保存/加载工作路径</string>
+    <string name="str_external_file">外部文件：%1$s</string>
+    <string name="str_err_file_too_large_diff">文件过大 (&gt;16MB)，无法在内存中进行对比。</string>
+    <string name="str_billing_connecting">正在连接 Google Play... 请几秒后重试。</string>
+    <string name="str_billing_not_ready">商品未就绪或 Google Play Console 仍在处理。</string>
+    <string name="str_log_process_aborted">
+[用户已中止进程]
+</string>
+    <string name="str_log_err_stop_native_process">[错误] 停止原生进程失败：%1$s</string>
+    <string name="str_log_err_start_native_process">[错误] 启动原生进程失败。</string>
+    <string name="str_usb_permission_denied">USB 访问权限被拒绝。</string>
+    <string name="str_usb_physically_disconnected">USB 设备已物理断开连接。</string>
+    <string name="str_no_usb_detected">未检测到 USB 设备。</string>
+    <string name="str_auto_detect_recognized">自动识别：设备 %1$s 已识别为 %2$s</string>
+    <string name="str_usb_not_recognized">[提示] 未能自动识别此 USB 编程器型号。</string>
+    <string name="str_known_devices">已知设备：CH341A、FT2232、Bus Pirate、Dediprog、ST-LINK 等。</string>
+    <string name="str_can_connect_manually">您可以尝试手动连接 — flashrom 将报告是否兼容。</string>
+    <string name="str_device_detected_requesting">检测到设备：%1$s | 正在请求连接权限...</string>
+    <string name="str_vid_pid_detected">检测到 VID:PID =&gt; %1$s</string>
+    <string name="str_serial_programmer_detected">检测到串口编程器 — 正在启动 PTY 桥接...</string>
+    <string name="str_pty_bridge_active_format">PtyBridge 已就绪：flashrom 将使用 %1$s，波特率 %2$d bps</string>
+    <string name="str_warn_pty_start_failed">[警告] PtyBridge 无法启动。devpts 是否可用？请检查原生日志。</string>
+    <string name="str_log_perm_granted">权限已获取！内部 USB 标识：%1$d</string>
+    <string name="str_log_connected_vid_pid">已连接到 USB VID:PID %1$s</string>
+    <string name="str_log_compat_device">[信息] 兼容设备：%1$s (识别为 \'%2$s\')</string>
+    <string name="str_log_usb_device_connected">[提示] USB 设备已连接。</string>
+    <string name="str_log_can_select_prog">您可以在“编程器设置”中选择您的编程器，或点击“自动检测并连接”。</string>
+    <string name="str_log_usb_disconnected">USB 设备已断开连接。</string>
+    <string name="str_log_device_bind_failed">%1$s 无法绑定到应用程序 (openDevice == null)</string>
+    <string name="str_log_auto_config_prog">自动配置：编程器已自动变更为 \'%1$s\'</string>
+    <string name="str_log_err_no_data_read">错误：尚未从芯片读取任何数据。</string>
+    <string name="str_log_use_read_backup_first">请先点击“读取芯片”以提取芯片内容。</string>
+    <string name="str_log_save_rom_expl">（“保存 ROM”按钮用于导出已读取的数据，并非导入的文件。）</string>
+    <string name="str_log_err_file_not_exist">错误：文件 \'%1$s\' 不存在。请先读取芯片。</string>
+    <string name="str_log_backup_success">成功：\'%1$s\' 已成功备份至所选目录。</string>
+    <string name="str_log_backup_error">保存文件出错：%1$s</string>
+    <string name="str_log_file_too_large">错误：文件过大 (%1$d MB)。支持的最大大小：%2$d MB。</string>
+    <string name="str_log_hex_no_data">错误：Intel HEX 不包含有效数据。</string>
+    <string name="str_log_warn_plain_text">[提示] 文件 \'%1$s\' 似乎是纯文本格式。</string>
+    <string name="str_log_file_empty">错误：所选文件为空，不是有效的二进制固件。</string>
+    <string name="str_log_rom_imported">ROM 已导入：\'%1$s\' (%2$s, %3$s)</string>
+    <string name="str_raw_binary">原始二进制</string>
+    <string name="str_intel_hex">Intel HEX</string>
+    <string name="str_log_intel_hex_converted">Intel HEX 转二进制固件成功。</string>
+    <string name="str_log_warn_copy_failed">提示：无法创建保留原始文件名的副本供手动指令使用。</string>
+    <string name="str_log_file_saved_bios">文件已保存为 \'bios.bin\' — 已就绪，可执行写入或校验。</string>
+    <string name="str_log_file_also_avail">同时可用作 \'%1$s\' 以供手动指令调用。</string>
+    <string name="str_log_err_copy_storage">从存储复制 ROM 出错：%1$s</string>
+    <string name="str_log_temp_deleted">临时数据已清理 (%1$s)。</string>
+    <string name="str_log_no_temp_files">未找到需要清理的临时文件。</string>
+    <string name="str_log_err_no_prog_selected">错误：未选择编程器。请在设置中进行配置。</string>
+    <string name="str_log_err_no_usb_connected">错误：未连接 USB 设备。请先连接您的编程器。</string>
+    <string name="str_log_warn_pty_not_ready">[警告] PtyBridge 尚未就绪。正在尝试在未预同步的情况下执行 flashrom。</string>
+    <string name="str_log_syncing_arduino">正在与 Arduino 同步... 等待启动信号。</string>
+    <string name="str_log_pty_connection_lost">[错误] PTY 连线中断。</string>
+    <string name="str_log_err_prepare_serial">[错误] 无法准备串口会话 — 已中止。</string>
+    <string name="str_log_prog_modified_settings">已通过设置修改编程器：%1$s</string>
+    <string name="str_log_dummy_mode_active">虚拟模拟模式已激活：按钮无需 USB 硬件即可操作。</string>
+    <string name="str_log_warn_fallback_jnilibs">[警告] 未在 files/usr/sbin 中找到 flashrom，改用内置 jniLibs 备选。</string>
+    <string name="str_log_err_no_bios_loaded">错误：未加载 bios.bin。请先点击“加载 ROM”。</string>
+    <string name="str_log_warn_dummy_size_mismatch">提示：文件 bios.bin (%1$d 字节) 与所选虚拟芯片大小 (%2$d 字节) 不符。强制切换为 VARIABLE_SIZE 模拟以避免 flashrom 报错。</string>
+    <string name="str_log_generating_test_file">未加载 bios.bin。正在生成/使用测试文件...</string>
+    <string name="str_log_err_creating_test_file">创建测试文件出错：%1$s</string>
+    <string name="str_serprog_transport_title">串口传输模式 (Serprog)</string>
+    <string name="str_transport_socket_desc">本地 TCP 套接字 (127.0.0.1) - 推荐 (高速，零延迟)</string>
+    <string name="str_transport_pty_desc">伪终端 PTY (/dev/pts) - 传统模式 (优化 C++ 引擎)</string>
+    <string name="str_err_usb_host_not_supported">此设备不支持或未开放 USB Host 服务。</string>
+    <string name="pro_access_title">⭐ %1$s 专业版</string>
+    <string name="pro_access_subtitle">解锁 %1$s 的高级技术工具套件</string>
+    <string name="pro_feature_antibrick_vault">防变砖安全保险箱与烧录前自动快照备份</string>
+    <string name="pro_feature_crypto_checker">密码学哈希完整性校验 MD5、SHA-256 和 CRC32</string>
+    <string name="pro_feature_live_hex_editor">实时十六进制编辑器与原地字节修补</string>
+    <string name="pro_feature_intel_gbe_mac">Intel GbE 千兆网卡 MAC 注入与 0xBABA 校验和修正</string>
+    <string name="pro_feature_msdm_extractor">从 MSDM ACPI 表提取 Windows OEM 数字激活密钥</string>
+    <string name="pro_feature_spi_registers">一键解锁 SPI 状态寄存器 (SR1、SR2 和 SR3 写保护)</string>
+    <string name="pro_feature_delta_flashing">高速 4KB 扇区增量差分极速烧录</string>
+    <string name="pro_feature_zero_ads">终身彻底免除广告</string>
+    <string name="pro_btn_watch_rewarded_video">🎬 观看视频 - 免费获取 12 小时通行证</string>
+    <string name="pro_pass_activated_toast">⭐ %1$s 专业版通行证已激活 12 小时！</string>
+    <string name="pro_ads_not_available">当前暂无可用的激励视频</string>
+    <string name="pro_btn_buy_permanent">👑 购买 %1$s 永久专业版%2$s</string>
+    <string name="pro_billing_not_available">Google Play 结算服务不可用</string>
+    <string name="pro_permanent_active_title">Flash SPI Tool 永久专业版已激活</string>
+    <string name="pro_permanent_active_desc">您已拥有 Flash SPI Tool 永久专业版。所有高级工具完全解锁，无广告且无时间限制。</string>
+    <string name="ad_loading_rewarded_video_toast">正在加载激励视频... 请几秒后重试。</string>
+    <string name="pro_pass_expired">已过期</string>
+    <string name="menu_pro_mode">⭐ 专业版模式</string>
+    <string name="menu_pro_permanent">👑 永久专业版</string>
+    <string name="menu_pro_timer">⭐ 专业版 %1$s</string>
+    <string name="str_scanning_sectors">正在扫描扇区…</string>
+    <string name="str_ok">确定</string>
+    <string name="str_btn_apply">应用</string>
+    <string name="str_btn_undo">撤销</string>
+    <string name="str_btn_redo">重做</string>
+    <string name="menu_hex_patch_gbe">🌐 注入 Intel GbE MAC</string>
+    <string name="menu_hex_extract_msdm">🔑 提取 MSDM 密钥</string>
+    <string name="menu_hex_verify_integrity">🔒 校验哈希完整性</string>
+    <string name="menu_hex_export_file">📥 导出到外部存储</string>
+    <string name="str_btn_export_storage">导出到存储</string>
+    <string name="menu_hex_undo">↩️ 撤销</string>
+    <string name="menu_hex_save_and_flash">💾 保存并烧录</string>
+    <string name="str_menu_save_mods">💾 保存 (%1$d)</string>
+    <string name="str_toast_mod_undone">修改已撤销 (剩余 %1$d 处)</string>
+    <string name="str_edit_byte_title">✏️ 编辑字节：0x%1$08X [%2$d]</string>
+    <string name="str_byte_original">原始值：0x%1$02X (%2$d)
+</string>
+    <string name="str_byte_current">当前值：0x%1$02X (%2$d)   二进制：%3$s   ASCII：\'%4$c\'</string>
+    <string name="str_byte_word16_header">• 16 位字 (Word)：
+</string>
+    <string name="str_byte_dword32_header">• 32 位双字 (Dword)：
+</string>
+    <string name="str_byte_endian_val">   小端序 LE: 0x%1$04X (%2$d)  |  大端序 BE: 0x%3$04X (%4$d)
+</string>
+    <string name="str_byte_dword_endian_val">   小端序 LE: 0x%1$08X (%2$d)
+   大端序 BE: 0x%3$08X (%4$d)</string>
+    <string name="str_new_hex_value_label">新十六进制数值 (00 - FF)：</string>
+    <string name="str_byte_modified_success">字节修改成功</string>
+    <string name="str_invalid_hex">无效的十六进制数值：%1$s</string>
+    <string name="str_no_dump_loaded">未加载固件 Dump</string>
+    <string name="str_dialog_gbe_title">🌐 Intel GbE MAC 注入器</string>
+    <string name="str_gbe_info_format">• 检测到 GbE 区域：0x%1$08X
+• 当前 MAC：%2$s
+• 0xBABA 校验和：%3$s
+• NVM 备份：%4$s
+
+请输入铭牌标签上的新 MAC 地址：</string>
+    <string name="str_gbe_checksum_valid">有效 (0xBABA)</string>
+    <string name="str_gbe_checksum_invalid">无效/未知</string>
+    <string name="str_gbe_backup_present">存在</string>
+    <string name="str_gbe_backup_none">未检测到</string>
+    <string name="str_gbe_btn_inject">注入并重新计算校验和</string>
+    <string name="str_invalid_mac_format">无效的 MAC 格式 (例如 AA:BB:CC:DD:EE:FF)</string>
+    <string name="str_gbe_patch_desc">Intel GbE MAC 注入修改</string>
+    <string name="str_gbe_inject_success">✅ Intel GbE MAC 已注入且 0xBABA 校验和已修正。</string>
+    <string name="str_gbe_inject_error">注入 MAC 出错：%1$s</string>
+    <string name="str_dialog_msdm_title">🔑 Windows OEM 数字激活密钥 (MSDM)</string>
+    <string name="str_msdm_not_found">在此 BIOS dump 中未检测到包含 Windows 产品密钥的 ACPI MSDM 表。</string>
+    <string name="str_btn_copy_key">📋 复制密钥</string>
+    <string name="str_btn_goto_offset">🔍 跳转到偏移量</string>
+    <string name="str_msdm_copied_toast">密钥已复制到剪贴板：%1$s</string>
+    <string name="str_msdm_details_format">• 制造商 (OEM ID)：%1$s
+• ACPI 表名：%2$s
+• 固件偏移量：0x%3$08X
+• ACPI 校验和：%4$s</string>
+    <string name="str_status_valid">有效</string>
+    <string name="str_status_invalid">无效</string>
+    <string name="str_integrity_no_data">未加载数据，无法计算哈希</string>
+    <string name="str_dialog_integrity_title">🔒 密码学哈希完整性校验</string>
+    <string name="str_integrity_match_success">🟢 校验完全匹配 (%1$s)
+与剪贴板中的哈希 100%% 一致。</string>
+    <string name="str_integrity_mismatch_warning">🔴 完整性警告
+固件哈希与剪贴板不匹配！</string>
+    <string name="str_integrity_no_clipboard_hash">⚪ 剪贴板中未找到可供对比的已知哈希值。</string>
+    <string name="str_btn_copy_md5">📋 复制 MD5</string>
+    <string name="str_toast_md5_copied">MD5 已复制到剪贴板</string>
+    <string name="str_btn_copy_sha256">📋 复制 SHA-256</string>
+    <string name="str_toast_sha256_copied">SHA-256 已复制到剪贴板</string>
+    <string name="str_btn_generate_sidecars">📄 生成校验清单文件</string>
+    <string name="str_toast_sidecars_success">.sha256 和 .md5 校验清单已导出到“下载/FlashromApp”。</string>
+    <string name="str_toast_sidecars_error">生成校验清单文件失败：%1$s</string>
+    <string name="str_err_compute_hash">计算哈希失败：%1$s</string>
+    <string name="str_no_pending_modifications">没有待保存的修改。</string>
+    <string name="str_dialog_save_and_flash_title">💾 保存并写入 SPI 芯片</string>
+    <string name="str_dialog_save_and_flash_msg">已对 %2$s 应用了 %1$d 处修改。
+
+是否立即直接写入连接的 SPI 芯片？</string>
+    <string name="str_btn_write_to_chip">🔥 写入芯片</string>
+    <string name="str_btn_save_only">仅保存</string>
+    <string name="str_toast_changes_saved">修改已保存至 %1$s</string>
+    <string name="str_toast_save_error">保存出错：%1$s</string>
+    <string name="menu_emergency_rollback">🚨 紧急回滚</string>
+    <string name="menu_unlock_status_registers">🔓 解锁 SPI 状态寄存器 (SR1/SR2/SR3)</string>
+    <string name="menu_quad_enable">⚡ 启用/校验 Quad Enable (QE 位)</string>
+    <string name="str_log_hex_flash_requested">[十六进制编辑] 🔥 用户从十六进制查看器请求写入 SPI 芯片。</string>
+    <string name="str_log_vault_snapshot_saved">[安全保险箱] 🛡️ 烧录前自动快照已保存：%1$s</string>
+    <string name="str_log_vault_snapshot_error">[安全保险箱] ⚠️ 创建快照出错：%1$s</string>
+    <string name="str_vault_no_backups">安全保险箱中没有可用的备份快照。</string>
+    <string name="str_dialog_emergency_rollback_title">🚨 紧急回滚 (防变砖救砖)</string>
+    <string name="str_dialog_emergency_rollback_msg">将恢复保险箱中最新的安全快照备份：
+
+• 文件：%1$s
+• 日期：%2$s
+• 大小：%3$s
+• 芯片：%4$s
+• SHA-256：%5$s
+
+是否将此文件还原为 bios.bin 并立即写入已连接的芯片？</string>
+    <string name="str_btn_restore_and_flash">🔥 还原并烧录</string>
+    <string name="str_log_rollback_restored">[回滚] 🔄 快照已还原为 bios.bin：%1$s</string>
+    <string name="str_log_rollback_error">[回滚] ❌ 还原紧急备份失败。</string>
+    <string name="str_toast_rollback_restored">bios.bin 已从安全保险箱还原。</string>
+    <string name="str_dialog_unlock_sr_title">🔓 解锁状态寄存器 (SR1/SR2/SR3)</string>
+    <string name="str_dialog_unlock_sr_msg">许多 SPI 闪存芯片 (Winbond、Macronix、Micron、GigaDevice) 擦除或写入失败是因为激活了写保护位 (BP0..BP3、SRP0、SEC、TB)。
+
+此操作将使用 --wp-disable 运行 flashrom 以解除所有硬件和软件保护块。
+
+确定要立即执行解锁吗？</string>
+    <string name="str_btn_unlock_chip">🔓 解锁芯片</string>
+    <string name="str_log_unlocking_sr">[硬件 SPI] 🔓 正在解锁状态寄存器 (flashrom --wp-disable)...</string>
+    <string name="str_dialog_quad_enable_title">⚡ Quad Enable 配置 (QE 位)</string>
+    <string name="str_dialog_quad_enable_msg">以 Quad-SPI 模式 (4 条 IO 线) 启动的主板和显卡，如果 SPI 芯片状态寄存器 SR2 中的 QE 位被清除或禁用，将无法点亮开机。
+
+请选择操作：</string>
+    <string name="str_btn_enable_qe">启用 / 解锁 QE</string>
+    <string name="str_log_configuring_spi_sr">[硬件 SPI] ⚡ 正在配置并解锁 SPI 寄存器...</string>
+    <string name="str_btn_check_wp_status">查看 WP 状态</string>
+    <string name="str_log_querying_wp_status">[硬件 SPI] 🔍 正在查询状态与保护寄存器 (flashrom --wp-status)...</string>
+    <string name="menu_verify_integrity">🔒 完整性校验 MD5 / SHA-256</string>
+    <string name="str_diff_summary_hashes">文件 A：%1$s (%2$d B) | MD5：%3$s
+文件 B：%4$s (%5$d B) | MD5：%6$s</string>
+    <string name="str_diff_different_sizes">⚠️ 大小和哈希均不同：
+文件 A：%1$d B (MD5：%5$s)
+文件 B：%2$d B (MD5：%6$s)
+差异：%3$d 字节 (%4$.1f%%)</string>
+    <string name="str_files_identical_with_hash">✅ 文件 100%% 完全相同 (大小一致且 MD5 哈希相同：%1$s)</string>
+    <string name="str_files_different_with_hash">❌ 文件存在差异 (%1$d 个不同字节，占 %3$d B 的 %2$.2f%%)
+MD5 A：%4$s
+MD5 B：%5$s</string>
+    <string name="str_chip_model_label">芯片 (-c):</string>
+    <string name="str_chip_auto">自动 (自动检测)</string>
+    <string name="str_btn_set_chip">设置 (-c)</string>
+    <string name="str_clear_chip">清除芯片型号 (重置为自动)</string>
+    <string name="str_dialog_set_chip_title">闪存芯片型号 (-c)</string>
+    <string name="str_dialog_set_chip_msg">为 flashrom 指定确切的芯片型号 (-c 参数)。留空则自动检测。</string>
+    <string name="str_chip_model_hint">例如 W25Q64JV-.Q</string>
+    <string name="str_btn_auto_chip">重置为自动</string>
+    <string name="str_chip_set_toast">已设置芯片型号：%1$s</string>
+    <string name="str_chip_cleared_toast">芯片型号已重置为自动</string>
+    <string name="str_detected_chips_label">最近检测到的芯片：</string>
+    <string name="str_custom_chip_option">✏️ 手动输入芯片型号...</string>
+    <string name="menu_language">🌐 语言 / Language / Idioma</string>
+    <string name="str_select_language_title">选择语言</string>
+    <string name="str_lang_system">系统默认</string>
+    <string name="str_lang_en">English</string>
+    <string name="str_lang_es">Español</string>
+    <string name="str_lang_zh_cn">简体中文 (Simplified Chinese)</string>
+    <string name="str_lang_zh_tw">繁體中文 (Traditional Chinese)</string>
+</resources>

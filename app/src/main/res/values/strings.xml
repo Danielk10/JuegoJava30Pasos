@@ -42,8 +42,6 @@
     <string name="str_error">Error</string>
     <string name="str_cancelar">Cancel</string>
     <string name="str_detener">Stop</string>
-    
-    <!-- Extracted strings from Java code -->
     <string name="str_file_a">File A: %1$s</string>
     <string name="str_file_b">File B: %1$s</string>
     <string name="str_err_load_file_a">Error loading File A: %1$s</string>
@@ -84,7 +82,7 @@
     <string name="str_binary_summary">File: %1$s | Size: %2$d bytes</string>
     <string name="str_log_new_install">--- New installation detected ---</string>
     <string name="str_log_preparing_resources">Preparing local resources in internal storage...</string>
-    <string name="str_log_update_detected">--- Update detected (v%1$d -> v%2$d) ---</string>
+    <string name="str_log_update_detected">--- Update detected (v%1$d -&gt; v%2$d) ---</string>
     <string name="str_log_verifying_resources">Verifying local resources for the new version...</string>
     <string name="str_log_warn_dependencies_failed">[WARN] Failed to prepare all local dependencies.</string>
     <string name="str_log_assets_copied">Assets copied successfully to internal storage.</string>
@@ -162,13 +160,13 @@
     <string name="str_dummy_opt_probe">Identify emulated chip</string>
     <string name="str_dummy_opt_select">Select predefined chip</string>
     <string name="str_dummy_opt_info">Valid emulation chips</string>
-    <string name="str_about_html"><![CDATA[<h2>Flash SPI Tool</h2><p>Advanced application for reading, verifying, and writing Firmware in <b>SPI Flash Memories</b> using the native <b>flashrom</b> engine.</p><hr/><h3>Memory and Chip Compatibility</h3><p><b>✔ Supported Chips:</b><br/>• <b>SPI Flash Memories (25xx series):</b> Winbond (W25Q, W25X), Macronix (MX25L), GigaDevice (GD25Q), Spansion/Cypress (S25FL), EON (EN25), etc.<br/>• SPI, LPC, FWH, and MTD bus chips officially supported by flashrom.</p><p><b>❌ Unsupported Memories (24C series I2C EEPROMs):</b><br/>• The <b>24C series EEPROMs</b> (24C02, 24C04, 24C08, 24C16, 24C32, 24C64, 24C128, 24C256, etc.) use the <b>I2C</b> protocol (2 wires: SDA and SCL), not SPI.<br/>• <b>flashrom</b> operates exclusively on the SPI bus via the <code>ch341a_spi</code> driver and <b>does not support the I2C protocol</b>.<br/>• Furthermore, 24C EEPROMs lack a universal electronic identification command (JEDEC ID 0x9F), which is why chip detection will always report that the IC was not detected.</p><hr/><h3>CH341A Programmer Configuration</h3><p>• <b>Programmer Mode (Jumper on pins 1-2):</b> Required for the app to recognize the device as a USB programmer (VID 0x1A86, PID 0x5512). In this mode, the SPI interface operates for the 25xx series.<br/>• <b>Serial TTL/UART Mode (Jumper on pins 2-3):</b> The hardware switches to COM serial port mode (PID 0x5523) and will not work for programming Flash memories.<br/>• <b>ZIF Socket:</b> Even though the physical CH341A board has silk-screened markings for 24xx and 25xx, with this app, chips must only be inserted into the <b>25 SPI FLASH</b> section.</p><hr/><h3>Licenses and Open Source Libraries</h3><p><b>Project License:</b> GNU GPLv3.<br/><br/><b>Dependencies and Libraries:</b><br/>• <a href="https://github.com/flashrom/flashrom">flashrom</a> (GPL-2.0)<br/>• <a href="https://github.com/mik3y/usb-serial-for-android">usb-serial-for-android</a> (MIT)<br/>• <a href="https://github.com/libusb/libusb">libusb</a> (LGPL-2.1+)<br/>• <a href="https://github.com/pciutils/pciutils">pciutils</a> (GPL-2.0+)<br/>• <a href="https://developer.intra2net.com/git/libftdi">libftdi</a> (LGPL-2.1+)<br/>• <a href="https://gitlab.zapb.de/libjaylink/libjaylink">libjaylink</a> (GPL-2.0+)<br/><br/><b>Developer Related Projects:</b><br/>• <a href="https://github.com/Danielk10/PIC-k150-Programing">PIC k150 Programming</a> — PIC programmer via Android with P018A protocol<br/></p>]]></string>
+    <string name="str_about_html">&lt;h2&gt;Flash SPI Tool&lt;/h2&gt;&lt;p&gt;Advanced application for reading, verifying, and writing Firmware in &lt;b&gt;SPI Flash Memories&lt;/b&gt; using the native &lt;b&gt;flashrom&lt;/b&gt; engine.&lt;/p&gt;&lt;hr/&gt;&lt;h3&gt;Memory and Chip Compatibility&lt;/h3&gt;&lt;p&gt;&lt;b&gt;✔ Supported Chips:&lt;/b&gt;&lt;br/&gt;• &lt;b&gt;SPI Flash Memories (25xx series):&lt;/b&gt; Winbond (W25Q, W25X), Macronix (MX25L), GigaDevice (GD25Q), Spansion/Cypress (S25FL), EON (EN25), etc.&lt;br/&gt;• SPI, LPC, FWH, and MTD bus chips officially supported by flashrom.&lt;/p&gt;&lt;p&gt;&lt;b&gt;❌ Unsupported Memories (24C series I2C EEPROMs):&lt;/b&gt;&lt;br/&gt;• The &lt;b&gt;24C series EEPROMs&lt;/b&gt; (24C02, 24C04, 24C08, 24C16, 24C32, 24C64, 24C128, 24C256, etc.) use the &lt;b&gt;I2C&lt;/b&gt; protocol (2 wires: SDA and SCL), not SPI.&lt;br/&gt;• &lt;b&gt;flashrom&lt;/b&gt; operates exclusively on the SPI bus via the &lt;code&gt;ch341a_spi&lt;/code&gt; driver and &lt;b&gt;does not support the I2C protocol&lt;/b&gt;.&lt;br/&gt;• Furthermore, 24C EEPROMs lack a universal electronic identification command (JEDEC ID 0x9F), which is why chip detection will always report that the IC was not detected.&lt;/p&gt;&lt;hr/&gt;&lt;h3&gt;CH341A Programmer Configuration&lt;/h3&gt;&lt;p&gt;• &lt;b&gt;Programmer Mode (Jumper on pins 1-2):&lt;/b&gt; Required for the app to recognize the device as a USB programmer (VID 0x1A86, PID 0x5512). In this mode, the SPI interface operates for the 25xx series.&lt;br/&gt;• &lt;b&gt;Serial TTL/UART Mode (Jumper on pins 2-3):&lt;/b&gt; The hardware switches to COM serial port mode (PID 0x5523) and will not work for programming Flash memories.&lt;br/&gt;• &lt;b&gt;ZIF Socket:&lt;/b&gt; Even though the physical CH341A board has silk-screened markings for 24xx and 25xx, with this app, chips must only be inserted into the &lt;b&gt;25 SPI FLASH&lt;/b&gt; section.&lt;/p&gt;&lt;hr/&gt;&lt;h3&gt;Licenses and Open Source Libraries&lt;/h3&gt;&lt;p&gt;&lt;b&gt;Project License:&lt;/b&gt; GNU GPLv3.&lt;br/&gt;&lt;br/&gt;&lt;b&gt;Dependencies and Libraries:&lt;/b&gt;&lt;br/&gt;• &lt;a href=\"https://github.com/flashrom/flashrom\"&gt;flashrom&lt;/a&gt; (GPL-2.0)&lt;br/&gt;• &lt;a href=\"https://github.com/mik3y/usb-serial-for-android\"&gt;usb-serial-for-android&lt;/a&gt; (MIT)&lt;br/&gt;• &lt;a href=\"https://github.com/libusb/libusb\"&gt;libusb&lt;/a&gt; (LGPL-2.1+)&lt;br/&gt;• &lt;a href=\"https://github.com/pciutils/pciutils\"&gt;pciutils&lt;/a&gt; (GPL-2.0+)&lt;br/&gt;• &lt;a href=\"https://developer.intra2net.com/git/libftdi\"&gt;libftdi&lt;/a&gt; (LGPL-2.1+)&lt;br/&gt;• &lt;a href=\"https://gitlab.zapb.de/libjaylink/libjaylink\"&gt;libjaylink&lt;/a&gt; (GPL-2.0+)&lt;br/&gt;&lt;br/&gt;&lt;b&gt;Developer Related Projects:&lt;/b&gt;&lt;br/&gt;• &lt;a href=\"https://github.com/Danielk10/PIC-k150-Programing\"&gt;PIC k150 Programming&lt;/a&gt; — PIC programmer via Android with P018A protocol&lt;br/&gt;&lt;/p&gt;</string>
     <string name="donate_thank_you_title">Thank You So Much! ❤️</string>
     <string name="donate_thank_you_message">Your support means a lot! Thank you for backing Flash SPI Tool.</string>
     <string name="str_hint_programmer_param">e.g. ch341a_spi or ft2232_spi:type=2232H</string>
     <string name="str_menu_working_dir">Save/Load Path</string>
     <string name="str_external_file">External file: %1$s</string>
-    <string name="str_err_file_too_large_diff">File is too large (>16MB). Cannot compare in memory.</string>
+    <string name="str_err_file_too_large_diff">File is too large (&gt;16MB). Cannot compare in memory.</string>
     <string name="str_billing_connecting">Connecting to Google Play... Please try again in a few seconds.</string>
     <string name="str_billing_not_ready">Product is not ready or Google Play Console is still processing it.</string>
     <string name="str_log_process_aborted">\n[PROCESS ABORTED BY USER]\n</string>
@@ -182,7 +180,7 @@
     <string name="str_known_devices">Known devices: CH341A, FT2232, Bus Pirate, Dediprog, ST-LINK, etc.</string>
     <string name="str_can_connect_manually">You can try connecting manually — flashrom will report if compatible.</string>
     <string name="str_device_detected_requesting">Device detected: %1$s | Requesting link...</string>
-    <string name="str_vid_pid_detected">VID:PID detected => %1$s</string>
+    <string name="str_vid_pid_detected">VID:PID detected =&gt; %1$s</string>
     <string name="str_serial_programmer_detected">Serial programmer detected — starting PTY bridge...</string>
     <string name="str_pty_bridge_active_format">PtyBridge active: flashrom will use %1$s at %2$d bps</string>
     <string name="str_warn_pty_start_failed">[WARN] PtyBridge could not start. devpts available? Check native log.</string>
@@ -207,7 +205,7 @@
     <string name="str_log_rom_imported">ROM imported: \'%1$s\' (%2$s, %3$s)</string>
     <string name="str_raw_binary">raw binary</string>
     <string name="str_intel_hex">Intel HEX</string>
-    <string name="str_log_intel_hex_converted">Intel HEX -> binary conversion applied successfully.</string>
+    <string name="str_log_intel_hex_converted">Intel HEX -&gt; binary conversion applied successfully.</string>
     <string name="str_log_warn_copy_failed">Notice: Could not create copy with original name for manual commands.</string>
     <string name="str_log_file_saved_bios">File saved as \'bios.bin\' — ready to Flash or Verify.</string>
     <string name="str_log_file_also_avail">Also available as \'%1$s\' for manual commands.</string>
@@ -231,8 +229,6 @@
     <string name="str_transport_socket_desc">Local TCP Socket (127.0.0.1) - Recommended (High speed, zero latency)</string>
     <string name="str_transport_pty_desc">Pseudoterminal PTY (/dev/pts) - Classic mode (Optimized C++ engine)</string>
     <string name="str_err_usb_host_not_supported">USB Host service is not supported or available on this device.</string>
-
-    <!-- Pro Suite & 12-Hour Pass -->
     <string name="pro_access_title">⭐ %1$s Pro</string>
     <string name="pro_access_subtitle">Unlock advanced technical suite for %1$s</string>
     <string name="pro_feature_antibrick_vault">Antibrick Safety Vault and Pre-Flash Backup</string>
@@ -255,17 +251,11 @@
     <string name="menu_pro_mode">⭐ Pro Mode</string>
     <string name="menu_pro_permanent">👑 Permanent Pro</string>
     <string name="menu_pro_timer">⭐ Pro %1$s</string>
-
-    <!-- Hex Diff Activity -->
     <string name="str_scanning_sectors">Scanning sectors…</string>
-
-    <!-- General Common Action -->
     <string name="str_ok">OK</string>
     <string name="str_btn_apply">Apply</string>
     <string name="str_btn_undo">Undo</string>
     <string name="str_btn_redo">Redo</string>
-
-    <!-- Hex Viewer Activity -->
     <string name="menu_hex_patch_gbe">🌐 Inject Intel GbE MAC</string>
     <string name="menu_hex_extract_msdm">🔑 Extract MSDM Key</string>
     <string name="menu_hex_verify_integrity">🔒 Verify Integrity</string>
@@ -325,8 +315,6 @@
     <string name="str_btn_save_only">Save Only</string>
     <string name="str_toast_changes_saved">Changes saved to %1$s</string>
     <string name="str_toast_save_error">Error saving: %1$s</string>
-
-    <!-- Main Menu & Hardware Dialogs -->
     <string name="menu_emergency_rollback">🚨 Emergency Rollback</string>
     <string name="menu_unlock_status_registers">🔓 Unlock SPI Registers (SR1/SR2/SR3)</string>
     <string name="menu_quad_enable">⚡ Enable/Verify Quad Enable (Bit QE)</string>
@@ -355,4 +343,23 @@
     <string name="str_diff_different_sizes">⚠️ Different sizes and hashes:\nFile A: %1$d B (MD5: %5$s)\nFile B: %2$d B (MD5: %6$s)\nDifferences: %3$d bytes (%4$.1f%%)</string>
     <string name="str_files_identical_with_hash">✅ Files 100%% identical (Same size and MD5 hash: %1$s)</string>
     <string name="str_files_different_with_hash">❌ Files are different (%1$d different bytes, %2$.2f%% of %3$d B)\nMD5 A: %4$s\nMD5 B: %5$s</string>
+    <string name="str_chip_model_label">Chip (-c):</string>
+    <string name="str_chip_auto">Auto (Detect)</string>
+    <string name="str_btn_set_chip">Set (-c)</string>
+    <string name="str_clear_chip">Clear Chip Model (Reset to Auto)</string>
+    <string name="str_dialog_set_chip_title">Flash Chip Model (-c)</string>
+    <string name="str_dialog_set_chip_msg">Specify the exact chip model for flashrom (the -c parameter). Leave empty for auto-detect.</string>
+    <string name="str_chip_model_hint">e.g. W25Q64JV-.Q</string>
+    <string name="str_btn_auto_chip">Reset to Auto</string>
+    <string name="str_chip_set_toast">Chip model set: %1$s</string>
+    <string name="str_chip_cleared_toast">Chip model reset to Auto</string>
+    <string name="str_detected_chips_label">Recently detected chips:</string>
+    <string name="str_custom_chip_option">✏️ Enter custom chip model...</string>
+    <string name="menu_language">🌐 Language / 语言 / Idioma</string>
+    <string name="str_select_language_title">Select Language</string>
+    <string name="str_lang_system">System Default</string>
+    <string name="str_lang_en">English</string>
+    <string name="str_lang_es">Español</string>
+    <string name="str_lang_zh_cn">简体中文 (Simplified Chinese)</string>
+    <string name="str_lang_zh_tw">繁體中文 (Traditional Chinese)</string>
 </resources>

@@ -242,6 +242,71 @@
                     android:textColor="@color/btn_text_color" />
             </LinearLayout>
 
+            <!-- Selector de Modelo de Chip Flash (-c) -->
+            <LinearLayout
+                android:id="@+id/layoutChipSelector"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="#1B1E2B"
+                android:paddingStart="10dp"
+                android:paddingEnd="4dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
+                android:layout_marginBottom="4dp">
+
+                <TextView
+                    android:id="@+id/tvChipLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/str_chip_model_label"
+                    android:textColor="#90CAF9"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvSelectedChip"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="4dp"
+                    android:text="@string/str_chip_auto"
+                    android:textColor="#80D8FF"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:singleLine="true"
+                    android:ellipsize="middle" />
+
+                <Button
+                    android:id="@+id/btnSetChip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="32dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:paddingTop="2dp"
+                    android:paddingBottom="2dp"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
+                    android:text="@string/str_btn_set_chip"
+                    android:textColor="@color/btn_text_color"
+                    app:backgroundTint="@color/btn_tint_grey"
+                    android:textSize="12sp"
+                    android:layout_marginEnd="2dp" />
+
+                <ImageButton
+                    android:id="@+id/btnClearChip"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@android:drawable/ic_menu_close_clear_cancel"
+                    app:tint="#EF5350"
+                    android:contentDescription="@string/str_clear_chip"
+                    android:visibility="gone" />
+            </LinearLayout>
+
             <EditText
                 android:id="@+id/etCustomCommand"
                 android:layout_width="match_parent"

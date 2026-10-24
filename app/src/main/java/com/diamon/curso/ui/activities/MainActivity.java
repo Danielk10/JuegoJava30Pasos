@@ -44,6 +44,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.ImageButton;
 import com.diamon.curso.ui.views.LogScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -51,6 +52,8 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.core.os.LocaleListCompat;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -78,6 +81,14 @@ public class MainActivity extends AppCompatActivity {
     private static final String KEY_LAST_READ_FILE = "last_read_file";
     private static final String KEY_LAST_VERSION = "last_version_code";
     private static final String KEY_DUMMY_CHIP_INDEX = "dummy_chip_index";
+    private static final String KEY_SELECTED_CHIP = "selected_chip";
+
+    private LinearLayout layoutChipSelector;
+    private TextView tvSelectedChip;
+    private Button btnSetChip;
+    private ImageButton btnClearChip;
+    private String selectedChip = "";
+    private final List<String> lastDetectedChips = new ArrayList<>();
 
 
 
@@ -290,6 +301,24 @@ public class MainActivity extends AppCompatActivity {
         cbVerifyWrite = findViewById(R.id.cbVerifyWrite);
         etCustomCommand = findViewById(R.id.etCustomCommand);
 
+        layoutChipSelector = findViewById(R.id.layoutChipSelector);
+        tvSelectedChip = findViewById(R.id.tvSelectedChip);
+        btnSetChip = findViewById(R.id.btnSetChip);
+        btnClearChip = findViewById(R.id.btnClearChip);
+
+        selectedChip = getSharedPreferences(PREFS, MODE_PRIVATE).getString(KEY_SELECTED_CHIP, "");
+        updateChipSelectorUI();
+
+        if (layoutChipSelector != null) {
+            layoutChipSelector.setOnClickListener(v -> showChipSelectionDialog());
+        }
+        if (btnSetChip != null) {
+            btnSetChip.setOnClickListener(v -> showChipSelectionDialog());
+        }
+        if (btnClearChip != null) {
+            btnClearChip.setOnClickListener(v -> clearSelectedChip());
+        }
+
         btnAbort.setOnClickListener(v -> flashromExecutor.abort());
 
         // Restaurar estado de ROM persistida (no borrar archivos al recrear Activity por rotación/config change)
@@ -448,16 +477,33 @@ public class MainActivity extends AppCompatActivity {
                         return;
                     }
                     if (btnAbort != null) btnAbort.setVisibility(View.GONE);
-                    String[] items = suggestedChips.toArray(new String[0]);
+
+                    if (suggestedChips != null) {
+                        for (String c : suggestedChips) {
+                            if (!lastDetectedChips.contains(c)) {
+                                lastDetectedChips.add(c);
+                            }
+                        }
+                    }
+
+                    List<String> options = new ArrayList<>();
+                    if (suggestedChips != null && !suggestedChips.isEmpty()) {
+                        options.addAll(suggestedChips);
+                    }
+                    options.add(getString(R.string.str_custom_chip_option));
+
+                    String[] items = options.toArray(new String[0]);
                     new android.app.AlertDialog.Builder(MainActivity.this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
                         .setTitle(R.string.str_ambiguity_title)
                         .setMessage(R.string.str_ambiguity_msg)
                         .setItems(items, (dialog, which) -> {
-                            String chosenChip = items[which];
-                            java.util.List<String> newArgs = new ArrayList<>(Arrays.asList(args));
-                            newArgs.add("-c");
-                            newArgs.add(chosenChip);
-                            executeCustomFlashromCommand("flashrom " + android.text.TextUtils.join(" ", newArgs));
+                            if (which == items.length - 1 && items[which].equals(getString(R.string.str_custom_chip_option))) {
+                                showCustomChipInputDialog(args);
+                            } else {
+                                String chosenChip = items[which];
+                                setSelectedChip(chosenChip);
+                                retryOperationWithChip(args, chosenChip);
+                            }
                         })
                         .setNegativeButton(R.string.str_cancelar, null)
                         .show();
@@ -638,7 +684,8 @@ public class MainActivity extends AppCompatActivity {
                         if (biosFile.exists() && biosFile.length() > 0) {
                             try {
                                 SafetyVaultManager vault = SafetyVaultManager.getInstance(MainActivity.this);
-                                SafetyVaultManager.VaultBackup backup = vault.createPreFlashSnapshot(biosFile, selectedProgrammer);
+                                String targetChip = (selectedChip != null && !selectedChip.trim().isEmpty()) ? selectedChip.trim() : selectedProgrammer;
+                                SafetyVaultManager.VaultBackup backup = vault.createPreFlashSnapshot(biosFile, targetChip);
                                 log(getString(R.string.str_log_vault_snapshot_saved, backup.getFile().getName()));
                             } catch (Exception ex) {
                                 log(getString(R.string.str_log_vault_snapshot_error, ex.getMessage()));
@@ -1156,20 +1203,50 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        String[] resolvedArgs = args;
+        List<String> list = new ArrayList<>();
+        boolean hasChipArg = false;
+        for (String a : args) {
+            if ("-c".equals(a)) {
+                hasChipArg = true;
+                break;
+            }
+        }
+
+        if (!hasChipArg && selectedChip != null && !selectedChip.trim().isEmpty() && !isDummyProgrammer()) {
+            boolean inserted = false;
+            for (int i = 0; i < args.length; i++) {
+                list.add(args[i]);
+                if ("-p".equals(args[i]) && i + 1 < args.length) {
+                    list.add(args[i + 1]);
+                    list.add("-c");
+                    list.add(selectedChip.trim());
+                    i++;
+                    inserted = true;
+                }
+            }
+            if (!inserted) {
+                list.add(0, "-c");
+                list.add(1, selectedChip.trim());
+            }
+        } else {
+            list.addAll(Arrays.asList(args));
+        }
+
+        String[] effectiveArgs = list.toArray(new String[0]);
+        String[] resolvedArgs = effectiveArgs;
         PtyBridge ptyBridge = usbController.getPtyBridge();
         if (ptyBridge != null && ptyBridge.isOpen()) {
             List<String> argList = new ArrayList<>();
-            for (int i = 0; i < args.length; i++) {
-                if ("-p".equals(args[i]) && i + 1 < args.length && UsbController.needsPtyBridge(args[i + 1])) {
+            for (int i = 0; i < effectiveArgs.length; i++) {
+                if ("-p".equals(effectiveArgs[i]) && i + 1 < effectiveArgs.length && UsbController.needsPtyBridge(effectiveArgs[i + 1])) {
                     argList.add("-p");
-                    String progName = args[i + 1];
+                    String progName = effectiveArgs[i + 1];
                     int colon = progName.indexOf(':');
                     String bareProg = (colon > 0) ? progName.substring(0, colon) : progName;
                     argList.add(usbController.buildPtyProgrammerParam(bareProg));
                     i++;
                 } else {
-                    argList.add(args[i]);
+                    argList.add(effectiveArgs[i]);
                 }
             }
             resolvedArgs = argList.toArray(new String[0]);
@@ -1185,7 +1262,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        log("$ flashrom " + android.text.TextUtils.join(" ", args));
+        log("$ flashrom " + android.text.TextUtils.join(" ", effectiveArgs));
 
         // Configurar si saltar verificación en escritura
         String opLabel = "";
@@ -1422,6 +1499,9 @@ public class MainActivity extends AppCompatActivity {
             return true;
         } else if (id == R.id.action_export_serprog) {
             exportSerprogFirmware();
+            return true;
+        } else if (id == R.id.action_language) {
+            showLanguageSelectionDialog();
             return true;
         }
 
@@ -1888,6 +1968,222 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             log(getString(R.string.str_log_err_creating_test_file, e.getMessage()));
         }
+    }
+
+    private void updateChipSelectorUI() {
+        if (tvSelectedChip == null) return;
+        if (selectedChip == null || selectedChip.trim().isEmpty()) {
+            tvSelectedChip.setText(R.string.str_chip_auto);
+            tvSelectedChip.setTextColor(0xFF80D8FF);
+            if (btnClearChip != null) btnClearChip.setVisibility(View.GONE);
+        } else {
+            tvSelectedChip.setText(selectedChip.trim());
+            tvSelectedChip.setTextColor(0xFF69F0AE);
+            if (btnClearChip != null) btnClearChip.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void setSelectedChip(String chip) {
+        if (chip == null) chip = "";
+        selectedChip = chip.trim();
+        getSharedPreferences(PREFS, MODE_PRIVATE).edit()
+                .putString(KEY_SELECTED_CHIP, selectedChip)
+                .apply();
+        updateChipSelectorUI();
+        if (!selectedChip.isEmpty()) {
+            log("[CHIP] " + getString(R.string.str_chip_set_toast, selectedChip));
+            Toast.makeText(this, getString(R.string.str_chip_set_toast, selectedChip), Toast.LENGTH_SHORT).show();
+        } else {
+            log("[CHIP] " + getString(R.string.str_chip_cleared_toast));
+            Toast.makeText(this, getString(R.string.str_chip_cleared_toast), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void clearSelectedChip() {
+        setSelectedChip("");
+    }
+
+    private void showChipSelectionDialog() {
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert);
+        builder.setTitle(R.string.str_dialog_set_chip_title);
+
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        int pad = (int) (18 * getResources().getDisplayMetrics().density);
+        layout.setPadding(pad, pad / 2, pad, pad / 2);
+
+        TextView tvMsg = new TextView(this);
+        tvMsg.setText(R.string.str_dialog_set_chip_msg);
+        tvMsg.setTextColor(0xFFB0BEC5);
+        tvMsg.setTextSize(14);
+        tvMsg.setPadding(0, 0, 0, (int) (8 * getResources().getDisplayMetrics().density));
+        layout.addView(tvMsg);
+
+        final EditText input = new EditText(this);
+        input.setHint(R.string.str_chip_model_hint);
+        input.setText(selectedChip);
+        input.setTextColor(0xFFFFFFFF);
+        input.setHintTextColor(0xFF757575);
+        input.setBackgroundColor(0xFF1B1E2B);
+        int padInner = (int) (10 * getResources().getDisplayMetrics().density);
+        input.setPadding(padInner, padInner, padInner, padInner);
+        layout.addView(input);
+
+        if (!lastDetectedChips.isEmpty()) {
+            TextView tvDetected = new TextView(this);
+            tvDetected.setText(R.string.str_detected_chips_label);
+            tvDetected.setTextColor(0xFF90CAF9);
+            tvDetected.setTextSize(13);
+            tvDetected.setPadding(0, (int) (12 * getResources().getDisplayMetrics().density), 0, (int) (4 * getResources().getDisplayMetrics().density));
+            layout.addView(tvDetected);
+
+            for (String chip : lastDetectedChips) {
+                Button btnChip = new Button(this, null, android.R.attr.borderlessButtonStyle);
+                btnChip.setText("• " + chip);
+                btnChip.setTextColor(0xFF69F0AE);
+                btnChip.setTextSize(13);
+                btnChip.setGravity(android.view.Gravity.START | android.view.Gravity.CENTER_VERTICAL);
+                btnChip.setOnClickListener(v -> input.setText(chip));
+                layout.addView(btnChip);
+            }
+        }
+
+        builder.setView(layout);
+
+        builder.setPositiveButton(R.string.str_guardar_configu, (dialog, which) -> {
+            String entered = input.getText() == null ? "" : input.getText().toString().trim();
+            setSelectedChip(entered);
+        });
+
+        if (selectedChip != null && !selectedChip.isEmpty()) {
+            builder.setNeutralButton(R.string.str_btn_auto_chip, (dialog, which) -> clearSelectedChip());
+        }
+
+        builder.setNegativeButton(R.string.str_cancelar, null);
+        builder.show();
+    }
+
+    private void showCustomChipInputDialog(String[] pendingArgs) {
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert);
+        builder.setTitle(R.string.str_dialog_set_chip_title);
+
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        int pad = (int) (18 * getResources().getDisplayMetrics().density);
+        layout.setPadding(pad, pad / 2, pad, pad / 2);
+
+        TextView tvMsg = new TextView(this);
+        tvMsg.setText(R.string.str_dialog_set_chip_msg);
+        tvMsg.setTextColor(0xFFB0BEC5);
+        tvMsg.setTextSize(14);
+        tvMsg.setPadding(0, 0, 0, (int) (8 * getResources().getDisplayMetrics().density));
+        layout.addView(tvMsg);
+
+        final EditText input = new EditText(this);
+        input.setHint(R.string.str_chip_model_hint);
+        input.setTextColor(0xFFFFFFFF);
+        input.setHintTextColor(0xFF757575);
+        input.setBackgroundColor(0xFF1B1E2B);
+        int padInner = (int) (10 * getResources().getDisplayMetrics().density);
+        input.setPadding(padInner, padInner, padInner, padInner);
+        layout.addView(input);
+
+        builder.setView(layout);
+
+        builder.setPositiveButton(R.string.str_ok, (dialog, which) -> {
+            String entered = input.getText() == null ? "" : input.getText().toString().trim();
+            if (!entered.isEmpty()) {
+                setSelectedChip(entered);
+                retryOperationWithChip(pendingArgs, entered);
+            }
+        });
+        builder.setNegativeButton(R.string.str_cancelar, null);
+        builder.show();
+    }
+
+    private void retryOperationWithChip(String[] args, String chip) {
+        if (args == null || args.length == 0 || chip == null || chip.trim().isEmpty()) {
+            return;
+        }
+        List<String> newArgs = new ArrayList<>();
+        boolean cFound = false;
+        for (int i = 0; i < args.length; i++) {
+            if ("-c".equals(args[i])) {
+                newArgs.add("-c");
+                newArgs.add(chip.trim());
+                i++; // saltar chip anterior
+                cFound = true;
+            } else {
+                newArgs.add(args[i]);
+            }
+        }
+        if (!cFound) {
+            int insertIdx = -1;
+            for (int i = 0; i < newArgs.size(); i++) {
+                if ("-p".equals(newArgs.get(i)) && i + 1 < newArgs.size()) {
+                    insertIdx = i + 2;
+                    break;
+                }
+            }
+            if (insertIdx != -1) {
+                newArgs.add(insertIdx, "-c");
+                newArgs.add(insertIdx + 1, chip.trim());
+            } else {
+                newArgs.add(0, "-c");
+                newArgs.add(1, chip.trim());
+            }
+        }
+        executeFlashromTask(newArgs.toArray(new String[0]));
+    }
+
+    private void showLanguageSelectionDialog() {
+        String[] options = {
+                getString(R.string.str_lang_system),
+                getString(R.string.str_lang_en),
+                getString(R.string.str_lang_es),
+                getString(R.string.str_lang_zh_cn),
+                getString(R.string.str_lang_zh_tw)
+        };
+
+        LocaleListCompat currentLocales = AppCompatDelegate.getApplicationLocales();
+        int checkedItem = 0;
+        if (!currentLocales.isEmpty()) {
+            String currentTag = currentLocales.get(0).toLanguageTag();
+            if (currentTag.startsWith("en")) {
+                checkedItem = 1;
+            } else if (currentTag.startsWith("es")) {
+                checkedItem = 2;
+            } else if (currentTag.contains("TW") || currentTag.contains("Hant")) {
+                checkedItem = 4;
+            } else if (currentTag.startsWith("zh")) {
+                checkedItem = 3;
+            }
+        }
+
+        new android.app.AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+                .setTitle(R.string.str_select_language_title)
+                .setSingleChoiceItems(options, checkedItem, (dialog, which) -> {
+                    dialog.dismiss();
+                    switch (which) {
+                        case 0:
+                            AppCompatDelegate.setApplicationLocales(LocaleListCompat.getEmptyLocaleList());
+                            break;
+                        case 1:
+                            AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags("en"));
+                            break;
+                        case 2:
+                            AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags("es"));
+                            break;
+                        case 3:
+                            AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags("zh-CN"));
+                            break;
+                        case 4:
+                            AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags("zh-TW"));
+                            break;
+                    }
+                })
+                .setNegativeButton(R.string.str_cancelar, null)
+                .show();
     }
 
     private void releaseWakeLockAndScreenOn() {
